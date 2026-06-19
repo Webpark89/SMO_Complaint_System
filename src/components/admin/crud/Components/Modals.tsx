@@ -390,7 +390,7 @@ export function FilterTabs({ options, value, onChange }: FilterTabsProps) {
           size="sm"
           className={
             value === opt.value
-              ? "border-[var(--gold)] bg-[var(--gold)] text-[#111827] hover:opacity-95"
+              ? "border-[var(--gold)] bg-[var(--gold)] text-white hover:opacity-95"
               : "border-[var(--border)] bg-white text-slate-600"
           }
           onClick={() => onChange(opt.value)}

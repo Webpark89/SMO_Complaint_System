@@ -120,7 +120,7 @@ export function ActionToolbar({
       )}
       {showAddNew && onAddNew && (
         <Button
-          className="gap-2 bg-[var(--gold)] text-[#111827] hover:opacity-95"
+          className="gap-2 bg-[var(--gold)] text-white hover:opacity-95"
           onClick={onAddNew}
         >
           <Plus className="h-4 w-4" />

@@ -36,7 +36,6 @@ find $SRC_DIR -type f \( -name "*.ts" -o -name "*.tsx" \) | while read file; do
     sed -i '' 's|@/components/cms/MainLayout|@/components/cms/CMSLayout|g' "$file"
     sed -i '' 's|@/components/cms/SiteHeader|@/components/cms/Header|g' "$file"
     sed -i '' 's|@/components/cms/SiteFooter|@/components/cms/Footer|g' "$file"
-    sed -i '' 's|@/components/cms/LanguageSwitch|@/components/cms/LocaleSwitch|g' "$file"
 done
 
 # 4️⃣ Complaints pages

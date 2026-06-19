@@ -14,12 +14,10 @@ import {
   FileText,
   Tag,
   MessageSquareText,
-  Paperclip,
-  UserRound,
-  ClipboardCheck,
   Clock,
   Edit2,
   Plus,
+  ClipboardCheck,
 } from "lucide-react";
 import {
   Select,
@@ -459,6 +457,7 @@ function ComplaintForm() {
     setMaxVisibleStep((value) => Math.max(value, step));
   }
 
+  // ยุบรวม Validation ของทุกส่วนที่เหลือมาไว้ที่ Step 2
   function stepErrors(step: number): StepErrors {
     const next: StepErrors = {};
     if (step === 1) {
@@ -472,6 +471,8 @@ function ComplaintForm() {
       if (!form.occurred_date) next.occurred_date = "กรุณาเลือกวันที่เกิดเหตุ";
       if (!form.occurred_time) next.occurred_time = "กรุณาเลือกเวลาที่เกิดเหตุ";
       if (!form.location) next.location = "กรุณาเลือกสาขา";
+
+      // Validation ส่วนเก่าของหน้า 2 ที่อาจซ่อนอยู่
       if (form.category_id === "product_service") {
         if (!form.product_type) next.product_type = "กรุณาเลือกชนิดสินค้า";
         if (form.product_type === "OTHER" && !form.product_type_other.trim())
@@ -483,21 +484,23 @@ function ComplaintForm() {
         if (!form.delivery_date.trim())
           next.delivery_date = "กรุณาเลือกวันส่งมอบสินค้า";
       }
-    }
-    if (step === 4) {
+
+      // Validation ส่วนข้อมูลผู้แจ้ง
       if (!form.is_anonymous) {
         if (!form.reporter_name || !form.reporter_name.trim()) {
           next.reporter_name = "กรุณาระบุชื่อ-นามสกุล";
         }
         if (!form.reporter_email || !form.reporter_email.trim()) {
-          next.reporter_email = "กรุณาระบุอีเมล"; // แจ้งเตือนเมื่อปล่อยว่าง
+          next.reporter_email = "กรุณาระบุอีเมล";
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.reporter_email)) {
-          next.reporter_email = "กรุณาระบุอีเมลที่ถูกต้อง"; // แจ้งเตือนเมื่อพิมพ์ผิดฟอร์แมต
+          next.reporter_email = "กรุณาระบุอีเมลที่ถูกต้อง";
         }
       }
+
+      // Validation ส่วนยืนยัน
+      if (!form.consent_truth)
+        next.consent_truth = "กรุณายืนยันความถูกต้องของข้อมูล";
     }
-    if (step === 5 && !form.consent_truth)
-      next.consent_truth = "กรุณายืนยันความถูกต้องของข้อมูล";
     return next;
   }
 
@@ -527,13 +530,22 @@ function ComplaintForm() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    // Re-validate Step 2 on Submit as well just to be safe
+    const finalErrors = stepErrors(2);
+    if (Object.keys(finalErrors).length > 0) {
+      setErrors((prev) => ({ ...prev, ...finalErrors }));
+      toast.error("กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วนก่อนส่งแบบฟอร์ม");
+      return;
+    }
+
     const parsed = schema.safeParse(form);
     if (!parsed.success) {
       const next: StepErrors = {};
       for (const i of parsed.error.issues) {
         next[i.path[0] as keyof ComplaintFormData] = i.message;
       }
-      setErrors(next);
+      setErrors((prev) => ({ ...prev, ...next }));
       toast.error(
         parsed.error.issues[0]?.message ?? "กรุณากรอกข้อมูลให้ครบถ้วน",
       );
@@ -550,11 +562,6 @@ function ComplaintForm() {
       fakeCounter += 1;
 
       setSuccess({ ref: fakeRef });
-      /* // โค้ดเดิมที่ใช้ยิง API เก็บไว้เผื่อใช้อนาคต
-    const payload = { ... } // เก็บ Payload ไว้เหมือนเดิม
-    const res = await submitComplaint(payload);
-    setSuccess({ ref: res.reference_number });
-    */
     } catch (err: unknown) {
       toast.error(
         err instanceof Error ? err.message : "การส่งล้มเหลว กรุณาลองใหม่",
@@ -579,7 +586,7 @@ function ComplaintForm() {
               <p className="mt-2 text-sm text-muted-foreground">
                 เจ้าหน้าที่จะดำเนินการตามนโยบายคุ้มครองผู้แจ้งเบาะแส
               </p>
-              <div className="mx-auto mt-8 max-w-md rounded-xl border border-border bg-(--surface-muted) p-6 text-left">
+              <div className="mx-auto mt-8 max-w-md rounded-xl border border-border bg-[var(--surface-muted)] p-6 text-left">
                 <div className="text-[11px] font-semibold tracking-[0.2em] text-muted-foreground">
                   หมายเลขอ้างอิง / Reference Number
                 </div>
@@ -636,9 +643,6 @@ function ComplaintForm() {
     : form.category_id === "safety" && form.subtopic_id === "sf_driving";
 
   const summaryLocation = selectedLocation?.name || "ยังไม่ได้เลือกสาขา";
-  const summaryReporter = form.is_anonymous
-    ? `anonymous / ${form.reporter_email || "ไม่ระบุตัวตน"}`
-    : form.reporter_email || "ยังไม่ได้ระบุอีเมล";
 
   return (
     <PageContainer>
@@ -666,7 +670,7 @@ function ComplaintForm() {
           </div>
 
           <form onSubmit={onSubmit} className="space-y-4">
-            {Array.from({ length: 5 }, (_, index) => index + 1).map((step) => {
+            {Array.from({ length: 2 }, (_, index) => index + 1).map((step) => {
               const isOpen = currentStep === step;
               const getStepInfo = (stepNumber: number) => {
                 switch (stepNumber) {
@@ -678,26 +682,8 @@ function ComplaintForm() {
                     };
                   case 2:
                     return {
-                      th: "รายละเอียดเหตุการณ์",
-                      en: "Incident Details",
-                      required: true,
-                    };
-                  case 3:
-                    return {
-                      th: "แนบไฟล์ (ถ้ามี)",
-                      en: "Attach Files",
-                      required: false,
-                    };
-                  case 4:
-                    return {
-                      th: "ข้อมูลผู้ร้องเรียน",
-                      en: "Reporter Information",
-                      required: false,
-                    };
-                  case 5:
-                    return {
-                      th: "การยืนยัน",
-                      en: "Confirmation",
+                      th: "รายละเอียดและการยืนยัน",
+                      en: "Details & Confirmation",
                       required: true,
                     };
                   default:
@@ -709,13 +695,7 @@ function ComplaintForm() {
               const stepSummary =
                 step === 1
                   ? `ประเภท: ${summaryCategory} > ${summarySubtopic}`
-                  : step === 2
-                    ? `เหตุการณ์: ${form.occurred_date || "--"} | ${form.occurred_time || "--"} | ${summaryLocation} | มีพยาน: ${form.has_witness ? `มี (${form.witnesses.length} คน)` : "ไม่มี"}`
-                    : step === 3
-                      ? `ไฟล์แนบ: ${form.files.length > 0 ? `${form.files.length} ไฟล์` : "ไม่มีไฟล์แนบ"}`
-                      : step === 4
-                        ? `ผู้แจ้ง: ${summaryReporter}`
-                        : `การยืนยัน: ${form.consent_truth ? "ยืนยันแล้ว" : "รอการยืนยัน"}`;
+                  : `เหตุการณ์: ${form.occurred_date || "--"} | สาขา: ${summaryLocation}`;
 
               return (
                 <div
@@ -738,8 +718,8 @@ function ComplaintForm() {
                       "h-auto rounded-none font-normal whitespace-normal",
                       "group flex w-full items-start justify-between gap-4 px-5 py-4 text-left transition-colors duration-200",
                       isOpen
-                        ? "border-b border-border bg-slate-50/50 dark:bg-(--surface-muted) hover:bg-slate-50/50 dark:hover:bg-(--surface-muted)"
-                        : "hover:bg-slate-50 dark:hover:bg-(--surface-muted)/50",
+                        ? "border-b border-border bg-slate-50/50 dark:bg-[var(--surface-muted)] hover:bg-slate-50/50 dark:hover:bg-[var(--surface-muted)]"
+                        : "hover:bg-slate-50 dark:hover:bg-[var(--surface-muted)]/50",
                     )}
                     aria-expanded={isOpen}
                   >
@@ -797,8 +777,8 @@ function ComplaintForm() {
                     style={{ willChange: "max-height, opacity, transform" }}
                   >
                     <div className="overflow-hidden">
-                      <div className="px-3 pb-3 pt-3 md:px-7 md:pb-7">
-                        {" "}
+                      <div className="p-3 md:p-6">
+                        {/* Step 1: ประเภทเรื่องร้องเรียน (ยังเหมือนเดิม) */}
                         {step === 1 && (
                           <Section
                             icon={<Tag className="h-4 w-4" />}
@@ -838,7 +818,6 @@ function ComplaintForm() {
                                           }));
                                         }}
                                         className={cn(
-                                          // เติม gap-0 ตรงนี้เพื่อล้างค่า Default ของ Shadcn
                                           "gap-0 h-auto w-full flex-col items-start justify-start whitespace-normal font-normal",
                                           "rounded-lg border px-3 py-2 text-left text-sm transition-colors",
                                           active
@@ -895,7 +874,6 @@ function ComplaintForm() {
                                           update("subcategory_other", "");
                                         }}
                                         className={cn(
-                                          // เติม gap-0 ตรงนี้ด้วยเช่นกัน
                                           "gap-0 h-auto w-full flex-col items-start justify-start whitespace-normal font-normal",
                                           "rounded-lg border px-3 py-2 text-left text-sm transition-colors",
                                           active
@@ -939,7 +917,7 @@ function ComplaintForm() {
                                 </div>
                               )}
                             </div>
-                            <div className="mt-6 flex justify-end pt-4">
+                            <div className="mt-4 flex justify-end pt-4">
                               <Button
                                 type="button"
                                 disabled={Object.keys(stepErrors(1)).length > 0}
@@ -950,657 +928,583 @@ function ComplaintForm() {
                             </div>
                           </Section>
                         )}
+
+                        {/* Step 2: ยุบรวมรายละเอียดที่เหลือทั้งหมด */}
                         {step === 2 && (
                           <Section
                             icon={<MessageSquareText className="h-4 w-4" />}
                             step="2"
-                            title="รายละเอียดเหตุการณ์"
+                            title="รายละเอียด, ผู้ร้องเรียน และยืนยัน"
                             required
                             hideHeader
                           >
-                            <div className="space-y-6">
-                              <div>
-                                <Label className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                                  <Clock className="h-4 w-4 text-primary" />
-                                  วันที่และเวลาที่เกิดเหตุ
-                                </Label>
-                                <div className="-mt-0.5 mb-2 ml-6 text-xs text-muted-foreground leading-relaxed">
-                                  Date and Time of Incident
-                                  <span className="block text-[11px] opacity-80 mt-0.5">
-                                    ระบบบันทึกวันและเวลาปัจจุบันอัตโนมัติ
-                                    (System auto-records current date and time)
-                                  </span>
+                            <div className="space-y-10">
+                              {/* --- Section: รายละเอียดเหตุการณ์ --- */}
+                              <div className="space-y-6">
+                                <h3 className="text-base font-semibold text-primary">
+                                  1. รายละเอียดเหตุการณ์ (Incident Details)
+                                </h3>
+                                <div>
+                                  <Label className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                                    <Clock className="h-4 w-4 text-primary" />
+                                    วันที่และเวลาที่เกิดเหตุ
+                                  </Label>
+                                  <div className="-mt-0.5 mb-2 text-xs text-muted-foreground leading-relaxed">
+                                    Date and Time of Incident
+                                  </div>
+                                  <div className="mt-3 grid gap-4 md:grid-cols-2">
+                                    <div>
+                                      <Label className="text-sm font-medium text-foreground mb-1 block">
+                                        วันที่{" "}
+                                        <span className="text-xs text-muted-foreground font-normal ml-1">
+                                          (Date)
+                                        </span>
+                                      </Label>
+                                      <Input
+                                        type="date"
+                                        className={cn(
+                                          "w-full rounded-lg px-3 py-5 text-sm focus-visible:ring-2 focus-visible:ring-primary/20",
+                                          errors.occurred_date
+                                            ? "border-red-500 bg-red-50 text-[#111827]"
+                                            : "border-border text-foreground",
+                                        )}
+                                        value={form.occurred_date}
+                                        onChange={(e) =>
+                                          update(
+                                            "occurred_date",
+                                            e.target.value,
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="text-sm font-medium text-foreground mb-1 block">
+                                        เวลา{" "}
+                                        <span className="text-xs text-muted-foreground font-normal ml-1">
+                                          (Time)
+                                        </span>
+                                      </Label>
+                                      <Input
+                                        type="time"
+                                        className={cn(
+                                          "w-full rounded-lg px-3 py-5 text-sm focus-visible:ring-2 focus-visible:ring-primary/20",
+                                          errors.occurred_time
+                                            ? "border-red-500 bg-red-50 text-[#111827]"
+                                            : "border-border text-foreground",
+                                        )}
+                                        value={form.occurred_time}
+                                        onChange={(e) =>
+                                          update(
+                                            "occurred_time",
+                                            e.target.value,
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                  </div>
                                 </div>
 
-                                {!isDateTimeEditMode ? (
-                                  <div className="ml-6 mt-3 flex items-center gap-3">
-                                    <div className="flex-1 flex items-center gap-3 rounded-lg border border-border bg-slate-50 dark:bg-(--surface-muted) px-4 py-3">
-                                      <Clock className="h-4 w-4 text-primary/70" />
-                                      <span className="font-medium text-foreground text-sm">
-                                        {formatThaiDateTime(
-                                          form.occurred_date,
-                                          form.occurred_time,
-                                        )}
-                                      </span>
-                                    </div>
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        setIsDateTimeEditMode(true)
-                                      }
-                                      className="flex h-11 items-center gap-2 rounded-lg border border-border bg-white px-4 text-sm font-medium text-foreground hover:bg-slate-50 transition-colors shadow-sm"
+                                <div>
+                                  <Label className="text-sm font-semibold text-foreground block mb-0.5">
+                                    สาขา{" "}
+                                    <span className="text-destructive">*</span>
+                                  </Label>
+                                  <div className="text-xs text-muted-foreground mb-2">
+                                    Branch Location
+                                  </div>
+
+                                  <Select
+                                    value={form.location}
+                                    onValueChange={(value) =>
+                                      update("location", value)
+                                    }
+                                  >
+                                    <SelectTrigger
+                                      className={cn(
+                                        "w-full rounded-lg bg-white px-3 py-5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20",
+                                        errors.location
+                                          ? "border-slate-500 bg-white text-[#111827]"
+                                          : "border-border text-foreground",
+                                      )}
                                     >
-                                      <Edit2 className="h-4 w-4" /> แก้ไข (Edit)
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <div className="ml-6 mt-3 space-y-4 rounded-xl border border-border bg-slate-50 dark:bg-(--surface-muted) p-4">
-                                    <div className="grid gap-4 md:grid-cols-2">
-                                      <div>
-                                        <Label className="text-sm font-medium text-foreground mb-1 block">
-                                          วันที่{" "}
-                                          <span className="text-xs text-muted-foreground font-normal ml-1">
-                                            (Date)
+                                      <SelectValue placeholder="-- กรุณาเลือกสาขา (Select Branch) --" />
+                                    </SelectTrigger>
+
+                                    <SelectContent>
+                                      {complaintLocations.map((location) => (
+                                        <SelectItem
+                                          key={location.id}
+                                          value={location.id}
+                                        >
+                                          {location.name}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <FieldError msg={errors.location} />
+                                </div>
+
+                                <div className="rounded-xl border border-border bg-slate-50 dark:bg-[var(--surface-muted)] p-4 md:p-5">
+                                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                                    <div className="flex-1">
+                                      <Label className="text-sm font-semibold text-foreground">
+                                        มีพยานหรือไม่?
+                                      </Label>
+                                      <div className="-mt-0.5 mb-1 text-xs text-muted-foreground">
+                                        Are there witnesses?
+                                      </div>
+                                      <p className="mt-1 text-xs text-muted-foreground leading-relaxed max-w-sm">
+                                        ระบุได้หากมีผู้เห็นเหตุการณ์หรือผู้เกี่ยวข้องเพิ่มเติม
+                                      </p>
+                                    </div>
+
+                                    <RadioGroup
+                                      className="flex items-center gap-6 shrink-0 p-2"
+                                      value={
+                                        form.has_witness ? "true" : "false"
+                                      }
+                                      onValueChange={(v) =>
+                                        update("has_witness", v === "true")
+                                      }
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <RadioGroupItem
+                                          value="true"
+                                          id="witness_yes"
+                                        />
+                                        <Label
+                                          htmlFor="witness_yes"
+                                          className="text-sm font-medium cursor-pointer"
+                                        >
+                                          มี{" "}
+                                          <span className="text-muted-foreground font-normal ml-0.5">
+                                            (Yes)
                                           </span>
                                         </Label>
-                                        <Input
-                                          type="date"
-                                          className={cn(
-                                            "w-full rounded-lg px-3 py-5 text-sm focus-visible:ring-2 focus-visible:ring-primary/20",
-                                            errors.occurred_date
-                                              ? "border-red-500 bg-red-50 text-[#111827]" // Error state: ขอบแดง พื้นหลังแดงอ่อน
-                                              : "border-border text-foreground",
-                                          )}
-                                          value={form.occurred_date}
-                                          onChange={(e) =>
-                                            update(
-                                              "occurred_date",
-                                              e.target.value,
-                                            )
-                                          }
-                                        />
                                       </div>
-                                      <div>
-                                        <Label className="text-sm font-medium text-foreground mb-1 block">
-                                          เวลา{" "}
-                                          <span className="text-xs text-muted-foreground font-normal ml-1">
-                                            (Time)
+
+                                      <div className="flex items-center gap-2">
+                                        <RadioGroupItem
+                                          value="false"
+                                          id="witness_no"
+                                        />
+                                        <Label
+                                          htmlFor="witness_no"
+                                          className="text-sm font-medium cursor-pointer"
+                                        >
+                                          ไม่มี{" "}
+                                          <span className="text-muted-foreground font-normal ml-0.5">
+                                            (No)
                                           </span>
                                         </Label>
-                                        <Input
-                                          type="time"
-                                          className={cn(
-                                            "w-full rounded-lg px-3 py-5 text-sm focus-visible:ring-2 focus-visible:ring-primary/20",
-                                            errors.occurred_time
-                                              ? "border-red-500 bg-red-50 text-[#111827]" // Error state: ขอบแดง พื้นหลังแดงอ่อน
-                                              : "border-border text-foreground",
-                                          )}
-                                          value={form.occurred_time}
-                                          onChange={(e) =>
-                                            update(
-                                              "occurred_time",
-                                              e.target.value,
-                                            )
-                                          }
-                                        />
+                                      </div>
+                                    </RadioGroup>
+                                  </div>
+
+                                  <div
+                                    className={cn(
+                                      "grid transition-all duration-300 ease-in-out",
+                                      form.has_witness
+                                        ? "grid-rows-[1fr] opacity-100 mt-5 pt-5 border-t border-border"
+                                        : "grid-rows-[0fr] opacity-0 mt-0",
+                                    )}
+                                  >
+                                    <div className="overflow-hidden">
+                                      <div className="mb-3 text-sm font-medium text-foreground">
+                                        รายชื่อพยาน{" "}
+                                        <span className="text-xs text-muted-foreground ml-1">
+                                          (Witness List)
+                                        </span>
+                                      </div>
+                                      <div className="space-y-3 pb-1 px-1">
+                                        {form.witnesses?.map(
+                                          (witness, index) => (
+                                            <div
+                                              key={index}
+                                              className="flex flex-col sm:flex-row items-start sm:items-center gap-3"
+                                            >
+                                              <Input
+                                                className="rounded-lg flex-1 bg-white"
+                                                value={witness.name}
+                                                onChange={(e) => {
+                                                  const updated = [
+                                                    ...form.witnesses!,
+                                                  ];
+                                                  updated[index] = {
+                                                    ...updated[index],
+                                                    name: e.target.value,
+                                                  };
+                                                  update("witnesses", updated);
+                                                }}
+                                                placeholder="ชื่อ-นามสกุล (Name)"
+                                              />
+
+                                              <div className="flex items-center gap-2 w-full sm:w-auto flex-1">
+                                                <Input
+                                                  className="rounded-lg w-full bg-white"
+                                                  value={witness.phone}
+                                                  onChange={(e) => {
+                                                    const updated = [
+                                                      ...form.witnesses!,
+                                                    ];
+                                                    updated[index] = {
+                                                      ...updated[index],
+                                                      phone: e.target.value,
+                                                    };
+                                                    update(
+                                                      "witnesses",
+                                                      updated,
+                                                    );
+                                                  }}
+                                                  placeholder="เบอร์โทรศัพท์ (Phone)"
+                                                />
+
+                                                {index === 0 ? (
+                                                  <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    className="shrink-0 w-10 sm:w-24"
+                                                    onClick={() => {
+                                                      update("witnesses", [
+                                                        ...(form.witnesses ||
+                                                          []),
+                                                        { name: "", phone: "" },
+                                                      ]);
+                                                    }}
+                                                  >
+                                                    <Plus className="h-4 w-4 sm:mr-2" />
+                                                    <span className="hidden sm:inline">
+                                                      เพิ่ม
+                                                    </span>
+                                                  </Button>
+                                                ) : (
+                                                  <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    className="shrink-0 w-10 sm:w-24 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                                    onClick={() => {
+                                                      update(
+                                                        "witnesses",
+                                                        form.witnesses!.filter(
+                                                          (_, i) => i !== index,
+                                                        ),
+                                                      );
+                                                    }}
+                                                  >
+                                                    <X className="h-4 w-4 sm:mr-2" />
+                                                    <span className="hidden sm:inline">
+                                                      ลบ
+                                                    </span>
+                                                  </Button>
+                                                )}
+                                              </div>
+                                            </div>
+                                          ),
+                                        )}
                                       </div>
                                     </div>
-                                    <div className="flex gap-2 justify-end pt-2 border-t border-border/50">
-                                      <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        className="px-4"
-                                        onClick={() =>
-                                          setIsDateTimeEditMode(false)
-                                        }
-                                      >
-                                        ยกเลิก
-                                      </Button>
-                                      <Button
-                                        type="button"
-                                        size="sm"
-                                        className="px-4"
-                                        onClick={() =>
-                                          setIsDateTimeEditMode(false)
-                                        }
-                                      >
-                                        บันทึก
-                                      </Button>
-                                    </div>
                                   </div>
-                                )}
-                                <div className="ml-6">
-                                  <FieldError
-                                    msg={
-                                      errors.occurred_date ||
-                                      errors.occurred_time
+                                </div>
+
+                                <div>
+                                  <Label className="text-sm font-semibold text-foreground block mb-0.5">
+                                    รายละเอียดเพิ่มเติม
+                                  </Label>
+                                  <div className="text-xs text-muted-foreground mb-2 flex items-center justify-between">
+                                    <span>
+                                      Additional Information{" "}
+                                      <span className="ml-1 opacity-70">
+                                        (ไม่บังคับ / Optional)
+                                      </span>
+                                    </span>
+                                  </div>
+
+                                  <Textarea
+                                    className="min-h-[120px] resize-y rounded-xl bg-white p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                    maxLength={1000}
+                                    placeholder="สามารถระบุรายละเอียดเพิ่มเติม เช่น บุคคลที่เกี่ยวข้อง เหตุการณ์เพิ่มเติม หรือข้อมูลอื่น ๆ..."
+                                    value={form.description}
+                                    onChange={(e) =>
+                                      update("description", e.target.value)
                                     }
                                   />
-                                </div>
-                              </div>
-                              <div>
-                                <Label className="text-sm font-semibold text-foreground block mb-0.5">
-                                  สาขา{" "}
-                                  <span className="text-destructive">*</span>
-                                </Label>
-                                <div className="text-xs text-muted-foreground mb-2">
-                                  Branch Location
-                                </div>
-
-                                {/* ส่วน Select Component ของ Shadcn */}
-                                <Select
-                                  value={form.location}
-                                  onValueChange={(value) =>
-                                    update("location", value)
-                                  }
-                                >
-                                  <SelectTrigger
-                                    className={cn(
-                                      "w-full rounded-lg bg-white px-3 py-5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20",
-                                      errors.location
-                                        ? "border-red-500 bg-red-50 text-[#111827]" // Error state: ขอบแดง พื้นหลังแดงอ่อน
-                                        : "border-border text-foreground",
-                                    )}
-                                  >
-                                    <SelectValue placeholder="-- กรุณาเลือกสาขา (Select Branch) --" />
-                                  </SelectTrigger>
-
-                                  <SelectContent>
-                                    {complaintLocations.map((location) => (
-                                      <SelectItem
-                                        key={location.id}
-                                        value={location.id}
-                                      >
-                                        {location.name}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FieldError msg={errors.location} />
-                              </div>
-
-                              <div className="rounded-xl border border-border bg-slate-50 dark:bg-(--surface-muted) p-4 md:p-5">
-                                {/* TOP ROW: Question + Radio */}
-                                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                                  <div className="flex-1">
-                                    <Label className="text-sm font-semibold text-foreground">
-                                      มีพยานหรือไม่?
-                                    </Label>
-                                    <div className="-mt-0.5 mb-1 text-xs text-muted-foreground">
-                                      Are there witnesses?
-                                    </div>
-                                    <p className="mt-1 text-xs text-muted-foreground leading-relaxed max-w-sm">
-                                      ระบุได้หากมีผู้เห็นเหตุการณ์หรือผู้เกี่ยวข้องเพิ่มเติม
-                                    </p>
+                                  <div className="mt-2 flex items-center justify-end">
+                                    <span
+                                      className={cn(
+                                        "text-xs font-medium",
+                                        form.description.length === 0
+                                          ? "text-muted-foreground/60"
+                                          : "text-primary/70",
+                                      )}
+                                    >
+                                      {form.description.length} / 1000
+                                    </span>
                                   </div>
-
-                                  <RadioGroup
-                                    className="flex items-center gap-6 shrink-0 p-2"
-                                    value={form.has_witness ? "true" : "false"}
-                                    onValueChange={(v) =>
-                                      update("has_witness", v === "true")
-                                    }
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <RadioGroupItem
-                                        value="true"
-                                        id="witness_yes"
-                                      />
-                                      <Label
-                                        htmlFor="witness_yes"
-                                        className="text-sm font-medium cursor-pointer"
-                                      >
-                                        มี{" "}
-                                        <span className="text-muted-foreground font-normal ml-0.5">
-                                          (Yes)
-                                        </span>
-                                      </Label>
-                                    </div>
-
-                                    <div className="flex items-center gap-2">
-                                      <RadioGroupItem
-                                        value="false"
-                                        id="witness_no"
-                                      />
-                                      <Label
-                                        htmlFor="witness_no"
-                                        className="text-sm font-medium cursor-pointer"
-                                      >
-                                        ไม่มี{" "}
-                                        <span className="text-muted-foreground font-normal ml-0.5">
-                                          (No)
-                                        </span>
-                                      </Label>
-                                    </div>
-                                  </RadioGroup>
                                 </div>
+                              </div>
 
-                                {/* BOTTOM ROW: Witness List */}
-                                <div
+                              <hr className="border-border" />
+
+                              {/* --- Section: แนบไฟล์ --- */}
+                              <div className="space-y-4">
+                                <h3 className="text-base font-semibold text-primary">
+                                  2. แนบไฟล์ / Attach Files (ถ้ามี)
+                                </h3>
+                                <label
+                                  onDragOver={(e) => {
+                                    e.preventDefault();
+                                  }}
+                                  onDrop={(e) => {
+                                    e.preventDefault();
+                                    addFiles(e.dataTransfer.files);
+                                  }}
                                   className={cn(
-                                    "grid transition-all duration-300 ease-in-out",
-                                    form.has_witness
-                                      ? "grid-rows-[1fr] opacity-100 mt-5 pt-5 border-t border-border"
-                                      : "grid-rows-[0fr] opacity-0 mt-0",
+                                    "flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed py-10 text-center transition",
+                                    "border-border bg-[var(--surface-muted)] hover:border-primary/40",
                                   )}
                                 >
-                                  <div className="overflow-hidden">
-                                    <div className="mb-3 text-sm font-medium text-foreground">
-                                      รายชื่อพยาน{" "}
-                                      <span className="text-xs text-muted-foreground ml-1">
-                                        (Witness List)
-                                      </span>
-                                    </div>
-                                    <div className="space-y-3">
-                                      {form.witnesses?.map((witness, index) => (
-                                        <div
-                                          key={index}
-                                          className="flex flex-col sm:flex-row items-start sm:items-center gap-3"
-                                        >
-                                          <Input
-                                            className="rounded-lg flex-1 bg-white"
-                                            value={witness.name}
-                                            onChange={(e) => {
-                                              const updated = [
-                                                ...form.witnesses!,
-                                              ];
-                                              updated[index] = {
-                                                ...updated[index],
-                                                name: e.target.value,
-                                              };
-                                              update("witnesses", updated);
-                                            }}
-                                            placeholder="ชื่อ-นามสกุล (Name)"
-                                          />
+                                  <Upload className="h-7 w-7 text-muted-foreground" />
+                                  <div className="mt-3 text-sm font-medium">
+                                    ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือก
+                                  </div>
+                                  <div className="mt-1 text-sm font-medium">
+                                    Drag and drop files here, or click to select
+                                  </div>
 
-                                          <div className="flex items-center gap-2 w-full sm:w-auto flex-1">
-                                            <Input
-                                              className="rounded-lg w-full bg-white"
-                                              value={witness.phone}
-                                              onChange={(e) => {
-                                                const updated = [
-                                                  ...form.witnesses!,
-                                                ];
-                                                updated[index] = {
-                                                  ...updated[index],
-                                                  phone: e.target.value,
-                                                };
-                                                update("witnesses", updated);
-                                              }}
-                                              placeholder="เบอร์โทรศัพท์ (Phone)"
-                                            />
-
-                                            {index === 0 ? (
-                                              <Button
-                                                type="button"
-                                                variant="outline"
-                                                className="shrink-0"
-                                                onClick={() => {
-                                                  update("witnesses", [
-                                                    ...(form.witnesses || []),
-                                                    { name: "", phone: "" },
-                                                  ]);
-                                                }}
-                                              >
-                                                <Plus className="h-4 w-4 sm:mr-2" />
-                                                <span className="hidden sm:inline">
-                                                  เพิ่ม
-                                                </span>
-                                              </Button>
-                                            ) : (
-                                              <Button
-                                                type="button"
-                                                variant="ghost"
-                                                className="shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                                onClick={() => {
-                                                  update(
-                                                    "witnesses",
-                                                    form.witnesses!.filter(
-                                                      (_, i) => i !== index,
-                                                    ),
-                                                  );
-                                                }}
-                                              >
-                                                <X className="h-4 w-4 sm:mr-2" />
-                                                <span className="hidden sm:inline">
-                                                  ลบ
-                                                </span>
-                                              </Button>
-                                            )}
-                                          </div>
+                                  <div className="mt-2 text-xs text-muted-foreground">
+                                    รองรับ PDF, DOCX, PNG, JPG, MP4, MOV ·
+                                    สูงสุด 5 ไฟล์
+                                  </div>
+                                  <input
+                                    type="file"
+                                    multiple
+                                    accept=".pdf,.docx,.doc,.png,.jpg,.jpeg,video/mp4,video/quicktime" // เพิ่มบรรทัดนี้
+                                    className="hidden"
+                                    onChange={(e) => addFiles(e.target.files)}
+                                  />
+                                </label>
+                                {form.files.length > 0 && (
+                                  <ul className="mt-3 space-y-2">
+                                    {form.files.map((file, index) => (
+                                      <li
+                                        key={`${file.name}-${index}`}
+                                        className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-2.5 text-sm"
+                                      >
+                                        <div className="flex min-w-0 items-center gap-2">
+                                          <FileText className="h-4 w-4 flex-none text-primary" />
+                                          <span className="truncate">
+                                            {file.name}
+                                          </span>
+                                          <span className="text-xs text-muted-foreground">
+                                            ({Math.round(file.size / 1024)} KB)
+                                          </span>
                                         </div>
-                                      ))}
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            update(
+                                              "files",
+                                              form.files.filter(
+                                                (_, itemIndex) =>
+                                                  itemIndex !== index,
+                                              ),
+                                            )
+                                          }
+                                          className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-destructive"
+                                          aria-label="ลบไฟล์"
+                                        >
+                                          <X className="h-4 w-4" />
+                                        </button>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </div>
+
+                              <hr className="border-border" />
+
+                              {/* --- Section: ข้อมูลผู้ร้องเรียน --- */}
+                              <div className="space-y-4">
+                                <h3 className="text-base font-semibold text-primary flex items-center gap-2">
+                                  3. ข้อมูลผู้ร้องเรียน (Reporter Information)
+                                </h3>
+                                <label className="group flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-border bg-slate-50 dark:bg-[var(--surface-muted)] p-4 transition-colors hover:border-primary/40">
+                                  <div className="flex items-start gap-3">
+                                    <div className="mt-0.5 rounded-lg border border-border bg-white p-1.5 text-slate-700 shadow-sm">
+                                      <Lock className="h-4 w-4" />
+                                    </div>
+                                    <div>
+                                      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                                        ไม่เปิดเผยตัวตน{" "}
+                                        <span className="font-normal text-muted-foreground">
+                                          (Anonymous)
+                                        </span>
+                                      </div>
+                                      <div className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                                        หากเปิดใช้งาน
+                                        ระบบจะข้ามการกรอกข้อมูลส่วนตัวทั้งหมดทันที
+                                        <br />
+                                        <span className="text-[11px] opacity-80">
+                                          If enabled, personal information
+                                          fields will be skipped automatically.
+                                        </span>
+                                      </div>
                                     </div>
                                   </div>
+                                  <Switch
+                                    className="mt-1"
+                                    checked={form.is_anonymous}
+                                    onCheckedChange={(v) => {
+                                      update("is_anonymous", v);
+                                      if (v) {
+                                        update("reporter_name", "");
+                                        update("reporter_email", "");
+                                        update("reporter_phone", "");
+                                      }
+                                    }}
+                                  />
+                                </label>
+
+                                <div className="mt-4 grid gap-5 md:grid-cols-2">
+                                  {!form.is_anonymous && (
+                                    <>
+                                      <FieldGroup
+                                        label="ชื่อ-นามสกุล"
+                                        required
+                                        error={errors.reporter_name}
+                                      >
+                                        <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">
+                                          Full Name
+                                        </div>
+                                        <Input
+                                          className={cn(
+                                            "rounded-lg bg-background",
+                                            errors.reporter_name &&
+                                              "border-slate-300 bg-white",
+                                          )}
+                                          value={form.reporter_name}
+                                          onChange={(e) =>
+                                            update(
+                                              "reporter_name",
+                                              e.target.value,
+                                            )
+                                          }
+                                          placeholder="ระบุชื่อ-สกุล"
+                                        />
+                                      </FieldGroup>
+
+                                      <FieldGroup
+                                        label="อีเมล"
+                                        required
+                                        error={errors.reporter_email}
+                                      >
+                                        <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">
+                                          Email Address
+                                        </div>
+                                        <Input
+                                          type="email"
+                                          className={cn(
+                                            "rounded-lg bg-background",
+                                            errors.reporter_email &&
+                                              "border-slate-300 bg-white",
+                                          )}
+                                          value={form.reporter_email}
+                                          onChange={(e) =>
+                                            update(
+                                              "reporter_email",
+                                              e.target.value,
+                                            )
+                                          }
+                                          placeholder="ระบุอีเมล"
+                                          autoComplete="email"
+                                        />
+                                      </FieldGroup>
+
+                                      <FieldGroup
+                                        label="เบอร์โทรศัพท์"
+                                        full
+                                        error={errors.reporter_phone}
+                                      >
+                                        <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">
+                                          Phone Number
+                                        </div>
+                                        <Input
+                                          className={cn(
+                                            "rounded-lg bg-background",
+                                            errors.reporter_phone &&
+                                              "border-destructive/50 bg-destructive/5",
+                                          )}
+                                          value={form.reporter_phone}
+                                          onChange={(e) =>
+                                            update(
+                                              "reporter_phone",
+                                              e.target.value,
+                                            )
+                                          }
+                                          placeholder="ระบุเบอร์โทรศํัพท์"
+                                        />
+                                      </FieldGroup>
+                                    </>
+                                  )}
                                 </div>
                               </div>
 
-                              {/* -------------------------------------
-      รายละเอียดเพิ่มเติม (Additional Information)
-  ------------------------------------- */}
-                              <div>
-                                <Label className="text-sm font-semibold text-foreground block mb-0.5">
-                                  รายละเอียดเพิ่มเติม
-                                </Label>
-                                <div className="text-xs text-muted-foreground mb-2 flex items-center justify-between">
-                                  <span>
-                                    Additional Information{" "}
-                                    <span className="ml-1 opacity-70">
-                                      (ไม่บังคับ / Optional)
-                                    </span>
-                                  </span>
-                                </div>
+                              <hr className="border-border" />
 
-                                <Textarea
-                                  className="min-h-[120px] resize-y rounded-xl bg-white p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                  maxLength={1000}
-                                  placeholder="สามารถระบุรายละเอียดเพิ่มเติม เช่น บุคคลที่เกี่ยวข้อง เหตุการณ์เพิ่มเติม หรือข้อมูลอื่น ๆ..."
-                                  value={form.description}
-                                  onChange={(e) =>
-                                    update("description", e.target.value)
+                              {/* --- Section: การยืนยัน (Submit) --- */}
+                              <div className="space-y-4">
+                                <h3 className="text-base font-semibold text-primary">
+                                  4. การยืนยัน (Confirmation)
+                                </h3>
+                                <label
+                                  className={cn(
+                                    "flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors",
+                                    errors.consent_truth
+                                      ? "border-slate-300 bg-slate-50"
+                                      : "border-border bg-slate-50 dark:bg-[var(--surface-muted)] hover:border-primary/40",
+                                  )}
+                                >
+                                  <Checkbox
+                                    className="mt-1"
+                                    checked={form.consent_truth}
+                                    onCheckedChange={(v) =>
+                                      update("consent_truth", v === true)
+                                    }
+                                  />
+                                  <div className="flex-1">
+                                    <div className="text-sm text-foreground/90 leading-relaxed">
+                                      ข้าพเจ้ายืนยันว่า{" "}
+                                      <span className="font-semibold text-foreground">
+                                        ข้อมูลที่ให้เป็นความจริง
+                                      </span>{" "}
+                                      และส่งด้วยเจตนาสุจริต
+                                    </div>
+                                    <div className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                                      I confirm that the information provided is
+                                      true and submitted in good faith.
+                                    </div>
+                                  </div>
+                                </label>
+                                <FieldError msg={errors.consent_truth} />
+                              </div>
+
+                              {/* --- Submit Button --- */}
+                              <div className="mt-6 flex justify-end">
+                                <Button
+                                  type="submit"
+                                  size="lg"
+                                  disabled={
+                                    submitting ||
+                                    !form.consent_truth ||
+                                    Object.keys(stepErrors(2)).length > 0
                                   }
-                                />
-                                <div className="mt-2 flex items-center justify-end">
-                                  <span
-                                    className={cn(
-                                      "text-xs font-medium",
-                                      form.description.length === 0
-                                        ? "text-muted-foreground/60"
-                                        : "text-primary/70",
-                                    )}
-                                  >
-                                    {form.description.length} / 1000
-                                  </span>
-                                </div>
+                                >
+                                  <Send className="mr-1.5 h-4 w-4" />{" "}
+                                  {submitting
+                                    ? "กำลังส่ง…"
+                                    : "ส่งเรื่องร้องเรียน"}
+                                </Button>
                               </div>
-                            </div>
-                            <div className="mt-6 flex justify-end pt-4">
-                              <Button
-                                type="button"
-                                disabled={Object.keys(stepErrors(2)).length > 0}
-                                onClick={() => handleNextStep(2)}
-                              >
-                                ถัดไป
-                              </Button>
-                            </div>
-                          </Section>
-                        )}
-                        {step === 3 && (
-                          <Section
-                            icon={<Paperclip className="h-4 w-4" />}
-                            step="3"
-                            title="แนบไฟล์ (ถ้ามี)"
-                            hideHeader
-                          >
-                            <label
-                              onDragOver={(e) => {
-                                e.preventDefault();
-                              }}
-                              onDrop={(e) => {
-                                e.preventDefault();
-                                addFiles(e.dataTransfer.files);
-                              }}
-                              className={cn(
-                                "flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed py-10 text-center transition",
-                                "border-border bg-(--surface-muted) hover:border-primary/40",
-                              )}
-                            >
-                              <Upload className="h-7 w-7 text-muted-foreground" />
-                              <div className="mt-3 text-sm font-medium">
-                                ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือก
-                              </div>
-                              <div className="mt-1 text-sm font-medium">
-                                Drag and drop files here, or click to select
-                              </div>
-
-                              <div className="mt-2 text-xs text-muted-foreground">
-                                รองรับ PDF, DOCX, PNG, JPG · สูงสุด 5 ไฟล์
-                              </div>
-                              <input
-                                type="file"
-                                multiple
-                                className="hidden"
-                                onChange={(e) => addFiles(e.target.files)}
-                              />
-                            </label>
-                            {form.files.length > 0 && (
-                              <ul className="mt-3 space-y-2">
-                                {form.files.map((file, index) => (
-                                  <li
-                                    key={`${file.name}-${index}`}
-                                    className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-2.5 text-sm"
-                                  >
-                                    <div className="flex min-w-0 items-center gap-2">
-                                      <FileText className="h-4 w-4 flex-none text-primary" />
-                                      <span className="truncate">
-                                        {file.name}
-                                      </span>
-                                      <span className="text-xs text-muted-foreground">
-                                        ({Math.round(file.size / 1024)} KB)
-                                      </span>
-                                    </div>
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        update(
-                                          "files",
-                                          form.files.filter(
-                                            (_, itemIndex) =>
-                                              itemIndex !== index,
-                                          ),
-                                        )
-                                      }
-                                      className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-destructive"
-                                      aria-label="ลบไฟล์"
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </button>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                            <div className="mt-6 flex justify-end pt-4">
-                              <Button
-                                type="button"
-                                disabled={Object.keys(stepErrors(3)).length > 0}
-                                onClick={() => handleNextStep(3)}
-                              >
-                                ถัดไป
-                              </Button>
-                            </div>
-                          </Section>
-                        )}
-                        {step === 4 && (
-                          <Section
-                            icon={<UserRound className="h-4 w-4" />}
-                            step="4"
-                            title="ข้อมูลผู้ร้องเรียน"
-                            hint="ไม่บังคับ"
-                            hideHeader
-                          >
-                            <label className="group flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-border bg-slate-50 dark:bg-(--surface-muted) p-4 transition-colors hover:border-primary/40">
-                              <div className="flex items-start gap-3">
-                                <div className="mt-0.5 rounded-lg border border-border bg-white p-1.5 text-slate-700 shadow-sm">
-                                  <Lock className="h-4 w-4" />
-                                </div>
-                                <div>
-                                  <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                                    ไม่เปิดเผยตัวตน{" "}
-                                    <span className="font-normal text-muted-foreground">
-                                      (Anonymous)
-                                    </span>
-                                  </div>
-                                  <div className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                                    หากเปิดใช้งาน
-                                    ระบบจะข้ามการกรอกข้อมูลส่วนตัวทั้งหมดทันที
-                                    <br />
-                                    <span className="text-[11px] opacity-80">
-                                      If enabled, personal information fields
-                                      will be skipped automatically.
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                              <Switch
-                                className="mt-1"
-                                checked={form.is_anonymous}
-                                onCheckedChange={(v) => {
-                                  update("is_anonymous", v);
-                                  if (v) {
-                                    update("reporter_name", "");
-                                    update("reporter_email", "");
-                                    update("reporter_phone", "");
-                                  }
-                                }}
-                              />
-                            </label>
-
-                            <div className="mt-4 grid gap-5 md:grid-cols-2">
-                              {!form.is_anonymous && (
-                                <>
-                                  <FieldGroup
-                                    label="ชื่อ-นามสกุล"
-                                    required
-                                    error={errors.reporter_name}
-                                  >
-                                    {/* เลื่อนภาษาอังกฤษลงมาด้านล่าง Label */}
-                                    <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">
-                                      Full Name
-                                    </div>
-                                    <Input
-                                      className={cn(
-                                        "rounded-lg bg-background",
-                                        errors.reporter_name &&
-                                          "border-destructive/50 bg-destructive/5",
-                                      )}
-                                      value={form.reporter_name}
-                                      onChange={(e) =>
-                                        update("reporter_name", e.target.value)
-                                      }
-                                      placeholder="ระบุชื่อ-สกุล"
-                                    />
-                                  </FieldGroup>
-
-                                  <FieldGroup
-                                    label="อีเมล"
-                                    required
-                                    error={errors.reporter_email}
-                                  >
-                                    <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">
-                                      Email Address
-                                    </div>
-                                    <Input
-                                      type="email"
-                                      className={cn(
-                                        "rounded-lg bg-background",
-                                        errors.reporter_email &&
-                                          "border-destructive/50 bg-destructive/5",
-                                      )}
-                                      value={form.reporter_email}
-                                      onChange={(e) =>
-                                        update("reporter_email", e.target.value)
-                                      }
-                                      placeholder="ระบุอีเมล"
-                                      autoComplete="email"
-                                    />
-                                  </FieldGroup>
-
-                                  <FieldGroup
-                                    label="เบอร์โทรศัพท์"
-                                    full
-                                    error={errors.reporter_phone}
-                                  >
-                                    <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">
-                                      Phone Number
-                                    </div>
-                                    <Input
-                                      className={cn(
-                                        "rounded-lg bg-background",
-                                        errors.reporter_phone &&
-                                          "border-destructive/50 bg-destructive/5",
-                                      )}
-                                      value={form.reporter_phone}
-                                      onChange={(e) =>
-                                        update("reporter_phone", e.target.value)
-                                      }
-                                      placeholder="ระบุเบอร์โทรศํัพท์"
-                                    />
-                                  </FieldGroup>
-                                </>
-                              )}
-                            </div>
-                            <div className="mt-6 flex justify-end pt-4">
-                              <Button
-                                type="button"
-                                disabled={Object.keys(stepErrors(4)).length > 0}
-                                onClick={() => handleNextStep(4)}
-                              >
-                                ถัดไป
-                              </Button>
-                            </div>
-                          </Section>
-                        )}
-                        {step === 5 && (
-                          <Section
-                            icon={<ClipboardCheck className="h-4 w-4" />}
-                            step="5"
-                            title="การยืนยัน"
-                            required
-                            hideHeader
-                          >
-                            <label
-                              className={cn(
-                                "flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors",
-                                // เพิ่มการเช็ค Error state เพื่อให้กรอบแดงถ้าลืมติ๊ก (ถ้าคุณมีตัวแปร errors)
-                                errors.consent_truth
-                                  ? "border-destructive/50 bg-destructive/5"
-                                  : "border-border bg-slate-50 dark:bg-(--surface-muted) hover:border-primary/40",
-                              )}
-                            >
-                              <Checkbox
-                                className="mt-1" // ขยับลงนิดหน่อยให้ตรงกับบรรทัดแรกของข้อความ
-                                checked={form.consent_truth}
-                                onCheckedChange={(v) =>
-                                  update("consent_truth", v === true)
-                                }
-                              />
-                              <div className="flex-1">
-                                {/* ข้อความภาษาไทย (Primary Text) */}
-                                <div className="text-sm text-foreground/90 leading-relaxed">
-                                  ข้าพเจ้ายืนยันว่า{" "}
-                                  <span className="font-semibold text-foreground">
-                                    ข้อมูลที่ให้เป็นความจริง
-                                  </span>{" "}
-                                  และส่งด้วยเจตนาสุจริต
-                                </div>
-
-                                {/* ข้อความภาษาอังกฤษ (Secondary Text) */}
-                                <div className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                                  I confirm that the information provided is
-                                  true and submitted in good faith.
-                                </div>
-                              </div>
-                            </label>
-
-                            <FieldError msg={errors.consent_truth} />
-
-                            <div className="mt-6">
-                              <Button
-                                type="submit"
-                                size="lg"
-                                disabled={
-                                  submitting ||
-                                  !form.consent_truth ||
-                                  Object.values(errors).filter(Boolean).length >
-                                    0
-                                }
-                              >
-                                <Send className="mr-1.5 h-4 w-4" />{" "}
-                                {submitting
-                                  ? "กำลังส่ง…"
-                                  : "ส่งเรื่องร้องเรียน"}
-                              </Button>
                             </div>
                           </Section>
                         )}

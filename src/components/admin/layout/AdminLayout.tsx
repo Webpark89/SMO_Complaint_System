@@ -316,19 +316,19 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             </div>
           </div>
         </div>
-
         <div className="flex items-center gap-4">
-          <div className="relative hidden w-[320px] overflow-hidden rounded-xl border border-[var(--border)] bg-white shadow-soft md:block">
+          {/* 1. ช่องค้นหา */}
+          <div className="relative hidden h-[48px] w-[320px] items-center overflow-hidden rounded-xl border border-[var(--border)] bg-white shadow-soft md:flex">
             <input
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
               placeholder="ค้นหาเรื่องร้องเรียน แบบฟอร์ม ผู้ใช้งาน…"
-              className="w-full bg-transparent px-4 py-2.5 pr-10 text-sm outline-none placeholder:text-slate-400"
+              className="h-full w-full bg-transparent px-4 pr-10 text-sm outline-none placeholder:text-slate-400"
               aria-label="Global search"
             />
             <button
               type="button"
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-50"
+              className="absolute right-2 flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-50"
               aria-label="Search"
               onClick={() => router.navigate({ to: "/admin/complaints" })}
             >
@@ -336,15 +336,16 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             </button>
           </div>
 
+          {/* 2. ปุ่มกระดิ่งแจ้งเตือน */}
           <button
             type="button"
-            className="relative rounded-xl border border-[var(--border)] bg-white px-3 py-2 shadow-soft transition-colors hover:bg-slate-50"
+            className="relative flex h-[48px] w-[48px] items-center justify-center rounded-xl border border-[var(--border)] bg-white shadow-soft transition-colors hover:bg-slate-50"
             aria-label="Notifications"
             onClick={() => setNotificationsOpen((v) => !v)}
           >
-            <Bell className="h-4 w-4 text-[#111827]" />
+            <Bell className="h-5 w-5 text-[#111827]" />
             <span
-              className="absolute right-2 top-1 h-2 w-2 rounded-full bg-[var(--secondary)]"
+              className="absolute right-[12px] top-[12px] h-2 w-2 rounded-full bg-[var(--secondary)]"
               aria-hidden
             />
           </button>
@@ -390,17 +391,15 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             </div>
           ) : null}
 
-          <div className="flex items-center gap-2 rounded-2xl border border-[var(--border)] bg-white px-3 py-2 shadow-soft">
-            <div>
-              <div className="text-[12px] font-bold tracking-wider text-slate-500">
+          {/* 3. กล่องโปรไฟล์ Admin */}
+          <div className="flex h-[48px] items-center gap-3 rounded-full border border-[var(--border)] bg-white pl-4 pr-1.5 shadow-soft">
+            <div className="flex flex-col justify-center leading-tight">
+              <div className="text-[11px] font-bold tracking-wider text-slate-500">
                 ADMIN
               </div>
-              <div className="text-[13px] font-semibold text-[#111827]">
-                Admin
-              </div>
             </div>
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--gold-soft)] text-[#111827]">
-              <ShieldCheck className="h-4 w-4" />
+            <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[var(--gold-soft)] text-[#111827]">
+              <ShieldCheck className="h-4.5 w-4.5" />
             </span>
           </div>
         </div>
