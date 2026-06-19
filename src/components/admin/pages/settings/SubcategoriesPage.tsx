@@ -53,7 +53,7 @@ function statusVariant(s: SubStatus): StatusVariant {
 const DETAIL_FIELDS = [
   { key: "id", label: "รหัสหมวดย่อย" },
   { key: "category", label: "หมวดหมู่หลัก" },
-  { key: "name", label: "ชื่อหมวดย่อย" },
+  { key: "name", label: "หัวข้อย่อย" },
   { key: "description", label: "คำอธิบาย" },
   { key: "status", label: "สถานะ" },
 ];
@@ -230,7 +230,7 @@ export function SubcategoriesPage() {
     },
     {
       key: "name",
-      header: "ชื่อหมวดย่อย",
+      header: "หัวข้อย่อย",
       render: (r) => (
         <span className="font-medium text-slate-800">{r.name}</span>
       ),
@@ -337,7 +337,7 @@ export function SubcategoriesPage() {
       <CreateEditModal
         open={modalOpen}
         onOpenChange={setModalOpen}
-        title="เพิ่มหมวดย่อยใหม่"
+        title="เพิ่มหัวข้อย่อยใหม่"
         description="กำหนดหมวดหมู่หลัก ชื่อ และคำอธิบายสำหรับหมวดย่อยใหม่"
         fields={CREATE_FIELDS}
         values={createValues}
@@ -350,7 +350,7 @@ export function SubcategoriesPage() {
       <CreateEditModal
         open={editModalOpen}
         onOpenChange={setEditModalOpen}
-        title="แก้ไขหมวดย่อย"
+        title="แก้ไขหัวข้อย่อย"
         description={`แก้ไขหมวดย่อย: ${selectedItem?.name ?? ""}`}
         fields={EDIT_FIELDS}
         values={editValues}
@@ -372,7 +372,7 @@ export function SubcategoriesPage() {
       <DetailDrawer
         open={detailDrawerOpen}
         onOpenChange={setDetailDrawerOpen}
-        title="รายละเอียดหมวดย่อย"
+        title="รายละเอียดหัวข้อย่อย"
         item={selectedItem as Record<string, unknown> | null}
         fields={DETAIL_FIELDS}
         size="md"

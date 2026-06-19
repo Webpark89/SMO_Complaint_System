@@ -35,13 +35,13 @@ function getCategoryName(formTypeId: FormTypeId): string {
 // ============================================================
 
 export const mockSubcategories: SubcategoryRow[] = [
-  // ========== 1.1 ฟอร์มการปฏิบัติต่อผู้มีส่วนได้เสีย (6 subcategories) ==========
+  // หมวดหมู่หลัก: การปฏิบัติต่อผู้มีส่วนได้เสีย (จรรยาบรรณทางธุรกิจ)
   {
     id: "eth_shareholder",
     code: "1.1.1",
     formTypeId: "ethics",
-    category: getCategoryName("ethics"),
-    name: "ผู้ถือหุ้น (Shareholder)",
+    category: "การปฏิบัติต่อผู้มีส่วนได้เสีย (จรรยาบรรณทางธุรกิจ)",
+    name: "ผู้ถือหุ้น",
     description: "ร้องเรียนเรื่องผู้ถือหุ้น",
     status: "เปิดใช้งาน",
   },
@@ -49,8 +49,8 @@ export const mockSubcategories: SubcategoryRow[] = [
     id: "eth_customer",
     code: "1.1.2",
     formTypeId: "ethics",
-    category: getCategoryName("ethics"),
-    name: "ลูกค้า (Customer)",
+    category: "การปฏิบัติต่อผู้มีส่วนได้เสีย (จรรยาบรรณทางธุรกิจ)",
+    name: "ลูกค้า",
     description: "ร้องเรียนเรื่องลูกค้า",
     status: "เปิดใช้งาน",
   },

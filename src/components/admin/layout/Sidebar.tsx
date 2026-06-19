@@ -269,11 +269,11 @@ export function Sidebar({ activeKey }: SidebarProps) {
           className="flex w-full items-center  gap-3 px-4 py-3 text-sm font-medium text-accent-500 transition-colors hover:bg-accent-50 hover:text-accent-600"
           onClick={() => {
             localStorage.removeItem("auth-token");
-            router.navigate({ to: "/" });
+            router.navigate({ to: "/auth" });
           }}
         >
-          <LogOut className="h-5 w-5 text-accent" />
-          <span className="truncate text-accent">กลับสู่หน้าระบบร้องเรียน</span>
+          <LogOut className="h-5 w-5 text-red-500" />
+          <span className="truncate text-red-500">ออกจากระบบ</span>
         </button>
       </div>
     </aside>
