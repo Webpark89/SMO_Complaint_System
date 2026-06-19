@@ -47,7 +47,7 @@ type OrgRow = {
 
 const PARENT_OPTIONS = [
   { value: "", label: "ไม่มี (หน่วยงานหลัก)" },
-  { value: "สำนักงานใหญ่", label: "สำนักงานใหญ่" },
+  { value: "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) ", label: "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) " },
 ];
 
 const TYPES = [...ORG_TYPES];

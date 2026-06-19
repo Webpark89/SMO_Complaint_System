@@ -9,7 +9,7 @@ export type ComplaintLocation = {
 export const complaintLocations: ComplaintLocation[] = [
   {
     id: "hq",
-    name: "สำนักงานใหญ่",
+    name: "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) สำนักงานใหญ่",
     address:
       "บริษัท กลุ่มสมอทอง จำกัด (มหาชน)\n119/1 หมู่ที่ 10 ตำบลประสงค์\nอำเภอท่าชนะ จังหวัดสุราษฎร์ธานี 84170",
     phone: "+66 77 951 470",
@@ -17,7 +17,7 @@ export const complaintLocations: ComplaintLocation[] = [
   },
   {
     id: "branch_thachana",
-    name: "สาขาท่าชนะ",
+    name: "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) สาขาท่าชนะ",
     address:
       "บริษัท กลุ่มสมอทอง จำกัด (มหาชน)\n199/2 หมู่ที่ 10 ตำบลประสงค์\nอำเภอท่าชนะ จังหวัดสุราษฎร์ธานี 84170",
     phone: "+66 77 951 470",
@@ -25,7 +25,7 @@ export const complaintLocations: ComplaintLocation[] = [
   },
   {
     id: "branch_phanom",
-    name: "สาขาพนม",
+    name: "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) สาขาพนม",
     address:
       "บริษัท กลุ่มสมอทอง จำกัด (มหาชน)\n333 หมู่ที่ 6 ตำบลคลองชะอุ่น\nอำเภอพนม จังหวัดสุราษฎร์ธานี 84250",
     phone: "+66 77 951 444",
@@ -33,7 +33,7 @@ export const complaintLocations: ComplaintLocation[] = [
   },
   {
     id: "branch_saraburi",
-    name: "สาขาสระบุรี",
+    name: "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) สาขาสระบุรี",
     address:
       "บริษัท กลุ่มสมอทอง จำกัด (มหาชน)\n33/3 หมู่ที่ 1 ตำบลหนองโรง\nอำเภอหนองแค จังหวัดสระบุรี 18140",
     phone: "+66 36 679 902",

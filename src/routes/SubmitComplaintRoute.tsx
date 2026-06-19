@@ -656,19 +656,6 @@ function ComplaintForm() {
               <ArrowLeft className="mr-1.5 h-3.5 w-3.5" /> กลับสู่หน้าแรก
             </Link>
           </div>
-
-          <div className="mb-4 rounded-xl border border-border bg-card px-4 py-3 text-sm shadow-soft">
-            <span className="font-medium text-primary">สรุป:</span>{" "}
-            <span>{summaryCategory}</span>
-            <span className="mx-2 text-muted-foreground">/</span>
-            <span>
-              {summarySubtopic}
-              {summarySubtopicDetail ? ` (${summarySubtopicDetail})` : ""}
-            </span>
-            <span className="mx-2 text-muted-foreground">/</span>
-            <span>{summaryLocation}</span>
-          </div>
-
           <form onSubmit={onSubmit} className="space-y-4">
             {Array.from({ length: 2 }, (_, index) => index + 1).map((step) => {
               const isOpen = currentStep === step;
@@ -692,10 +679,7 @@ function ComplaintForm() {
               };
 
               const stepInfo = getStepInfo(step);
-              const stepSummary =
-                step === 1
-                  ? `ประเภท: ${summaryCategory} > ${summarySubtopic}`
-                  : `เหตุการณ์: ${form.occurred_date || "--"} | สาขา: ${summaryLocation}`;
+              const stepSummary = step === 1;
 
               return (
                 <div
@@ -789,7 +773,7 @@ function ComplaintForm() {
                           >
                             <div className="grid gap-5">
                               <div>
-                                <Label className="text-xs font-medium text-foreground/80">
+                                <Label className="text-xs font-medium font-bold text-foreground/80">
                                   เลือกหมวดหมู่หลัก (Select Main Category)
                                 </Label>
                                 <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -849,8 +833,8 @@ function ComplaintForm() {
                               </div>
 
                               <div>
-                                <Label className="text-xs font-medium text-foreground/80">
-                                  หัวข้อย่อย (Sub-topic)
+                                <Label className="text-xs font-medium font-bold text-foreground/80">
+                                  เลือกหัวข้อย่อย (Select Sub Topic)
                                 </Label>
                                 <div
                                   className={cn(
@@ -939,120 +923,141 @@ function ComplaintForm() {
                             hideHeader
                           >
                             <div className="space-y-10">
-                              {/* --- Section: รายละเอียดเหตุการณ์ --- */}
                               <div className="space-y-6">
-                                <h3 className="text-base font-semibold text-primary">
-                                  1. รายละเอียดเหตุการณ์ (Incident Details)
-                                </h3>
-                                <div>
-                                  <Label className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                                    <Clock className="h-4 w-4 text-primary" />
-                                    วันที่และเวลาที่เกิดเหตุ
-                                  </Label>
-                                  <div className="-mt-0.5 mb-2 text-xs text-muted-foreground leading-relaxed">
-                                    Date and Time of Incident
-                                  </div>
-                                  <div className="mt-3 grid gap-4 md:grid-cols-2">
-                                    <div>
-                                      <Label className="text-sm font-medium text-foreground mb-1 block">
-                                        วันที่{" "}
-                                        <span className="text-xs text-muted-foreground font-normal ml-1">
-                                          (Date)
-                                        </span>
-                                      </Label>
-                                      <Input
-                                        type="date"
-                                        className={cn(
-                                          "w-full rounded-lg px-3 py-5 text-sm focus-visible:ring-2 focus-visible:ring-primary/20",
-                                          errors.occurred_date
-                                            ? "border-red-500 bg-red-50 text-[#111827]"
-                                            : "border-border text-foreground",
-                                        )}
-                                        value={form.occurred_date}
-                                        onChange={(e) =>
-                                          update(
-                                            "occurred_date",
-                                            e.target.value,
-                                          )
-                                        }
-                                      />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                  {/* คอลัมน์ซ้าย: วันที่และเวลาที่เกิดเหตุ */}
+                                  <div className="flex flex-col h-full">
+                                    <h3 className="text-base font-semibold text-primary mb-1 block">
+                                      วันที่และเวลาที่เกิดเหตุ (Date and Time of
+                                      Incident){" "}
+                                      <span className="text-destructive">
+                                        *
+                                      </span>
+                                    </h3>
+                                    <div className="text-xs text-muted-foreground mb-4">
+                                      *ระบบบันทึกวันและเวลาปัจจุบันอัตโนมัติ
+                                      (System auto-records current date and
+                                      time)
                                     </div>
-                                    <div>
-                                      <Label className="text-sm font-medium text-foreground mb-1 block">
-                                        เวลา{" "}
-                                        <span className="text-xs text-muted-foreground font-normal ml-1">
-                                          (Time)
-                                        </span>
-                                      </Label>
-                                      <Input
-                                        type="time"
-                                        className={cn(
-                                          "w-full rounded-lg px-3 py-5 text-sm focus-visible:ring-2 focus-visible:ring-primary/20",
-                                          errors.occurred_time
-                                            ? "border-red-500 bg-red-50 text-[#111827]"
-                                            : "border-border text-foreground",
-                                        )}
-                                        value={form.occurred_time}
-                                        onChange={(e) =>
-                                          update(
-                                            "occurred_time",
-                                            e.target.value,
-                                          )
-                                        }
-                                      />
+
+                                    <div className="grid gap-4 md:grid-cols-2 mt-auto">
+                                      <div className="flex flex-col">
+                                        <Label className="text-sm font-medium text-foreground mb-1 block">
+                                          วันที่{" "}
+                                          <span className="text-xs text-muted-foreground font-normal ml-1">
+                                            (Date)
+                                          </span>
+                                        </Label>
+                                        <Input
+                                          type="date"
+                                          className={cn(
+                                            "relative w-full h-[52px] rounded-lg px-3 text-sm focus-visible:ring-2 focus-visible:ring-primary/20",
+                                            // บังคับไอคอนปฏิทินของเบราว์เซอร์ให้ชิดขวา
+                                            "[&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-4 [&::-webkit-calendar-picker-indicator]:cursor-pointer",
+                                            errors.occurred_date
+                                              ? "border-red-500 bg-red-50 text-[#111827]"
+                                              : "border-border text-foreground",
+                                          )}
+                                          value={form.occurred_date}
+                                          onChange={(e) =>
+                                            update(
+                                              "occurred_date",
+                                              e.target.value,
+                                            )
+                                          }
+                                        />
+                                        {/* เผื่อที่ว่างด้านล่างให้เท่ากับ Error ฝั่งขวา กล่องจะได้ไม่ขยับหนีกัน */}
+                                        <div className="min-h-[24px] mt-1"></div>
+                                      </div>
+
+                                      <div className="flex flex-col">
+                                        <Label className="text-sm font-medium text-foreground mb-1 block">
+                                          เวลา{" "}
+                                          <span className="text-xs text-muted-foreground font-normal ml-1">
+                                            (Time)
+                                          </span>
+                                        </Label>
+                                        <Input
+                                          type="time"
+                                          className={cn(
+                                            "relative w-full h-[52px] rounded-lg px-3 text-sm focus-visible:ring-2 focus-visible:ring-primary/20",
+                                            // บังคับไอคอนนาฬิกาของเบราว์เซอร์ให้ชิดขวา
+                                            "[&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-4 [&::-webkit-calendar-picker-indicator]:cursor-pointer",
+                                            errors.occurred_time
+                                              ? "border-red-500 bg-red-50 text-[#111827]"
+                                              : "border-border text-foreground",
+                                          )}
+                                          value={form.occurred_time}
+                                          onChange={(e) =>
+                                            update(
+                                              "occurred_time",
+                                              e.target.value,
+                                            )
+                                          }
+                                        />
+                                        <div className="min-h-[24px] mt-1"></div>
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
 
-                                <div>
-                                  <Label className="text-sm font-semibold text-foreground block mb-0.5">
-                                    สาขา{" "}
-                                    <span className="text-destructive">*</span>
-                                  </Label>
-                                  <div className="text-xs text-muted-foreground mb-2">
-                                    Branch Location
-                                  </div>
-
-                                  <Select
-                                    value={form.location}
-                                    onValueChange={(value) =>
-                                      update("location", value)
-                                    }
-                                  >
-                                    <SelectTrigger
-                                      className={cn(
-                                        "w-full rounded-lg bg-white px-3 py-5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20",
-                                        errors.location
-                                          ? "border-slate-500 bg-white text-[#111827]"
-                                          : "border-border text-foreground",
-                                      )}
-                                    >
-                                      <SelectValue placeholder="-- กรุณาเลือกสาขา (Select Branch) --" />
-                                    </SelectTrigger>
-
-                                    <SelectContent>
-                                      {complaintLocations.map((location) => (
-                                        <SelectItem
-                                          key={location.id}
-                                          value={location.id}
+                                  {/* คอลัมน์ขวา: สาขา (Branch Location) */}
+                                  <div className="flex flex-col h-full">
+                                    <h3 className="text-base font-semibold text-primary mb-1 block">
+                                      สาขาที่เกิดเหตุ (Branch Location){" "}
+                                      <span className="text-destructive">
+                                        *
+                                      </span>
+                                    </h3>
+                                    <div className="mt-auto flex flex-col">
+                                      {/* Label เปล่าดันความสูงให้กล่อง Select ตรงกับกล่อง Input ฝั่งซ้าย */}
+                                      <Label className="text-sm font-medium mb-1 block invisible">
+                                        Spacer
+                                      </Label>
+                                      <Select
+                                        value={form.location}
+                                        onValueChange={(value) =>
+                                          update("location", value)
+                                        }
+                                      >
+                                        <SelectTrigger
+                                          className={cn(
+                                            "w-full h-[52px] rounded-lg bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20",
+                                            errors.location
+                                              ? "border-slate-300 bg-white text-[#111827]"
+                                              : "border-border text-foreground",
+                                          )}
                                         >
-                                          {location.name}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                  <FieldError msg={errors.location} />
+                                          <SelectValue placeholder="-- กรุณาเลือกสาขา (Select Branch) --" />
+                                        </SelectTrigger>
+
+                                        <SelectContent>
+                                          {complaintLocations.map(
+                                            (location) => (
+                                              <SelectItem
+                                                key={location.id}
+                                                value={location.id}
+                                              >
+                                                {location.name}
+                                              </SelectItem>
+                                            ),
+                                          )}
+                                        </SelectContent>
+                                      </Select>
+
+                                      {/* จัดการพื้นที่ Error ให้มีความสูงคงที่ เพื่อไม่ให้ดัน Select ลอยขึ้น */}
+                                      <div className="min-h-[24px] mt-1">
+                                        <FieldError msg={errors.location} />
+                                      </div>
+                                    </div>
+                                  </div>
                                 </div>
 
                                 <div className="rounded-xl border border-border bg-slate-50 dark:bg-[var(--surface-muted)] p-4 md:p-5">
                                   <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                                     <div className="flex-1">
                                       <Label className="text-sm font-semibold text-foreground">
-                                        มีพยานหรือไม่?
+                                        มีพยานหรือไม่? (Are there witnesses?)
                                       </Label>
-                                      <div className="-mt-0.5 mb-1 text-xs text-muted-foreground">
-                                        Are there witnesses?
-                                      </div>
                                       <p className="mt-1 text-xs text-muted-foreground leading-relaxed max-w-sm">
                                         ระบุได้หากมีผู้เห็นเหตุการณ์หรือผู้เกี่ยวข้องเพิ่มเติม
                                       </p>
@@ -1248,7 +1253,7 @@ function ComplaintForm() {
                               {/* --- Section: แนบไฟล์ --- */}
                               <div className="space-y-4">
                                 <h3 className="text-base font-semibold text-primary">
-                                  2. แนบไฟล์ / Attach Files (ถ้ามี)
+                                  แนบไฟล์ / Attach Files (ถ้ามี)
                                 </h3>
                                 <label
                                   onDragOver={(e) => {
@@ -1326,7 +1331,7 @@ function ComplaintForm() {
                               {/* --- Section: ข้อมูลผู้ร้องเรียน --- */}
                               <div className="space-y-4">
                                 <h3 className="text-base font-semibold text-primary flex items-center gap-2">
-                                  3. ข้อมูลผู้ร้องเรียน (Reporter Information)
+                                  ข้อมูลผู้ร้องเรียน (Reporter Information)
                                 </h3>
                                 <label className="group flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-border bg-slate-50 dark:bg-[var(--surface-muted)] p-4 transition-colors hover:border-primary/40">
                                   <div className="flex items-start gap-3">
@@ -1335,19 +1340,12 @@ function ComplaintForm() {
                                     </div>
                                     <div>
                                       <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                                        ไม่เปิดเผยตัวตน{" "}
-                                        <span className="font-normal text-muted-foreground">
-                                          (Anonymous)
-                                        </span>
+                                        ไม่เปิดเผยตัวตน (Anonymous)
                                       </div>
                                       <div className="mt-1 text-xs text-muted-foreground leading-relaxed">
                                         หากเปิดใช้งาน
                                         ระบบจะข้ามการกรอกข้อมูลส่วนตัวทั้งหมดทันที
                                         <br />
-                                        <span className="text-[11px] opacity-80">
-                                          If enabled, personal information
-                                          fields will be skipped automatically.
-                                        </span>
                                       </div>
                                     </div>
                                   </div>
@@ -1454,8 +1452,63 @@ function ComplaintForm() {
                               {/* --- Section: การยืนยัน (Submit) --- */}
                               <div className="space-y-4">
                                 <h3 className="text-base font-semibold text-primary">
-                                  4. การยืนยัน (Confirmation)
+                                  การยืนยัน (Confirmation)
                                 </h3>
+                                {/* --- ส่วนสรุป --- */}
+                                <div className="mb-6 rounded-xl border border-border bg-[#f8f9fa] p-6 text-sm shadow-sm">
+                                  <div className="space-y-3 text-foreground">
+                                    <div>
+                                      <span className="font-bold text-[#1e3989]">
+                                        ประเภทเรื่องร้องเรียน :{" "}
+                                      </span>
+                                      <span>
+                                        {summaryCategory}
+                                        {summarySubtopic
+                                          ? ` > ${summarySubtopic}`
+                                          : ""}
+                                        {summarySubtopicDetail
+                                          ? ` (${summarySubtopicDetail})`
+                                          : ""}
+                                      </span>
+                                    </div>
+
+                                    <div>
+                                      <span className="font-bold text-[#1e3989]">
+                                        สาขาที่เกิดเหตุ :{" "}
+                                      </span>
+                                      <span>{summaryLocation}</span>
+                                    </div>
+
+                                    <div>
+                                      <span className="font-bold text-[#1e3989]">
+                                        วันที่และเวลาที่เกิดเหตุ :{" "}
+                                      </span>
+                                      <span>
+                                        วันที่{" "}
+                                        {form.occurred_date
+                                          ? form.occurred_date
+                                          : "-"}{" "}
+                                        เวลา{" "}
+                                        {form.occurred_time
+                                          ? form.occurred_time
+                                          : "-"}{" "}
+                                        น.
+                                      </span>
+                                    </div>
+
+                                    <div>
+                                      <span className="font-bold text-[#1e3989]">
+                                        พยาน :{" "}
+                                      </span>
+                                      {/* แก้ไขให้เช็คจาก boolean และจำนวนรายการใน array */}
+                                      <span>
+                                        {form.has_witness
+                                          ? `มี (${form.witnesses?.length || 0} คน)`
+                                          : "ไม่มี"}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
                                 <label
                                   className={cn(
                                     "flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors",

@@ -381,7 +381,7 @@ export const dict = {
   },
   "submit.incidentLoc": { th: "สาขาเกิดเหตุ", en: "Location of incident" },
   "submit.incidentLoc.ph": {
-    th: "เช่น สำนักงานใหญ่ ชั้น 12 / ไซต์งาน B",
+    th: "เช่น บริษัท กลุ่มสมอทอง จำกัด (มหาชน)  ชั้น 12 / ไซต์งาน B",
     en: "e.g. Head Office, Floor 12 / Site B",
   },
 

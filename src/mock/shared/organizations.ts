@@ -8,7 +8,7 @@ import type { Organization } from "./types";
 export const MOCK_ORGANIZATIONS: Organization[] = [
   {
     id: "org_hq",
-    name: "สำนักงานใหญ่",
+    name: "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) สำนักงานใหญ่",
     branch_code: "HQ",
     parent_id: null,
     level: 0,
@@ -16,7 +16,7 @@ export const MOCK_ORGANIZATIONS: Organization[] = [
   },
   {
     id: "org_bkk",
-    name: "สาขากรุงเทพฯ",
+    name: "สาขาท่าชนะ",
     branch_code: "BKK",
     parent_id: "org_hq",
     level: 1,
@@ -24,7 +24,7 @@ export const MOCK_ORGANIZATIONS: Organization[] = [
   },
   {
     id: "org_nont",
-    name: "สาขานนทบุรี",
+    name: "สาขาพนม",
     branch_code: "NONT",
     parent_id: "org_hq",
     level: 1,
@@ -93,7 +93,11 @@ export function getBranches(): Organization[] {
 // BRANCHES LIST
 // ============================================================
 export const BRANCHES = [
-  { value: "สำนักงานใหญ่", label: "สำนักงานใหญ่" },
-  { value: "สาขากรุงเทพฯ", label: "สาขากรุงเทพฯ" },
-  { value: "สาขานนทบุรี", label: "สาขานนทบุรี" },
+  {
+    value: "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) ",
+    label: "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) ",
+  },
+  { value: "สาขาท่าขนะ", label: "สาขาท่าชนะ" },
+  { value: "สาขาพนม", label: "สาขาพนม" },
+  { value: "สาขาสระบุรี", label: "สาขาสระบุรี" },
 ] as const;

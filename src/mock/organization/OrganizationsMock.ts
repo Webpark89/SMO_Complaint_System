@@ -20,8 +20,8 @@ export const mockOrganizations: OrgRow[] = [
   },
   {
     id: "ORG-001",
-    name: "สำนักงานใหญ่",
-    type: "สำนักงานใหญ่",
+    name: "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) สำนักงานใหญ่",
+    type: "สาขา",
     parent: "บริษัท เอ แอล ปาล์ม จำกัด",
     location: "กรุงเทพมหานคร",
     employees: 245,
@@ -29,7 +29,7 @@ export const mockOrganizations: OrgRow[] = [
   },
   {
     id: "ORG-002",
-    name: "สาขาท่าชนะ",
+    name: "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) สาขาท่าชนะ",
     type: "สาขา",
     parent: "บริษัท เอ แอล ปาล์ม จำกัด",
     location: "สุราษฎร์ธานี",
@@ -38,7 +38,7 @@ export const mockOrganizations: OrgRow[] = [
   },
   {
     id: "ORG-003",
-    name: "สาขาพนม",
+    name: "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) สาขาพนม",
     type: "สาขา",
     parent: "บริษัท เอ แอล ปาล์ม จำกัด",
     location: "สุราษฎร์ธานี",
@@ -47,7 +47,7 @@ export const mockOrganizations: OrgRow[] = [
   },
   {
     id: "ORG-004",
-    name: "สาขาสระบุรี",
+    name: "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) สาขาสระบุรี",
     type: "สาขา",
     parent: "บริษัท เอ แอล ปาล์ม จำกัด",
     location: "สระบุรี",
@@ -59,5 +59,8 @@ export const mockOrganizations: OrgRow[] = [
 export const PARENT_OPTIONS = [
   { value: "", label: "ไม่มี (หน่วยงานหลัก)" },
   { value: "บริษัท เอ แอล ปาล์ม จำกัด", label: "บริษัท เอ แอล ปาล์ม จำกัด" },
-  { value: "สำนักงานใหญ่", label: "สำนักงานใหญ่" },
+  {
+    value: "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) ",
+    label: "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) ",
+  },
 ];
