@@ -178,13 +178,6 @@ const NAV: NavItem[] = [
     group: "SETTINGS",
   },
   {
-    key: "workflows",
-    label: "ขั้นตอนการดำเนินงาน",
-    path: "/admin/settings/workflows",
-    icon: GitBranch,
-    group: "SETTINGS",
-  },
-  {
     key: "termandprivacy",
     label: "เงื่อนไขดำเนินการ",
     path: "/admin/settings/Term-Privacy",

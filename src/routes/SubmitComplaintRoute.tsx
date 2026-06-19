@@ -63,7 +63,7 @@ export const TermsAndPrivacyContent = forwardRef<
         <div className="min-w-0">
           <div className="flex items-center gap-3">
             <h1 className="font-display text-lg font-bold text-primary">
-              เงื่อนไขการใช้งาน และการรักษาความปลอดภัยของข้อมูลส่วนบุคคล
+              เงื่อนไขการใช้งานและการรักษาความปลอดภัยของข้อมูลส่วนบุคคล
             </h1>
           </div>
           <div className="mt-1 text-sm text-muted-foreground">05 พ.ค. 2569</div>
@@ -121,10 +121,10 @@ export const TermsAndPrivacyContent = forwardRef<
           การรักษาความปลอดภัยของข้อมูลส่วนบุคคล
         </h2>
         <p className="mt-3 text-sm text-foreground/80">
-          ท่านสามารถศึกษารายละเอียดของ แบบแจ้งเกี่ยวกับข้อมูลส่วนบุคคล (Privacy
-          Notice){" "}
+          ท่านสามารถศึกษารายละเอียดเกี่ยวกับการเก็บ ใช้
+          และเปิดเผยข้อมูลส่วนบุคคล โดยคลิกที่{" "}
           <a className="text-primary underline" href="/privacy">
-            ที่นี่
+            แบบแจ้งเกี่ยวกับข้อมูลส่วนบุคคล (Privacy Notice)
           </a>
         </p>
       </div>
@@ -927,14 +927,14 @@ function ComplaintForm() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                   {/* คอลัมน์ซ้าย: วันที่และเวลาที่เกิดเหตุ */}
                                   <div className="flex flex-col h-full">
-                                    <h3 className="text-base font-semibold text-primary mb-1 block">
+                                    <Label className="text-sm font-semibold text-foreground block mb-0">
                                       วันที่และเวลาที่เกิดเหตุ (Date and Time of
                                       Incident){" "}
                                       <span className="text-destructive">
                                         *
                                       </span>
-                                    </h3>
-                                    <div className="grid gap-4 md:grid-cols-2 mt-auto">
+                                    </Label>
+                                    <div className="grid gap-4 md:grid-cols-2 mt-3">
                                       <div className="flex flex-col">
                                         <Input
                                           type="date"
@@ -984,17 +984,13 @@ function ComplaintForm() {
 
                                   {/* คอลัมน์ขวา: สาขา (Branch Location) */}
                                   <div className="flex flex-col h-full">
-                                    <h3 className="text-base font-semibold text-primary mb-1 block">
+                                    <Label className="text-sm font-semibold text-foreground block mb-0">
                                       สาขาที่เกิดเหตุ (Branch Location){" "}
                                       <span className="text-destructive">
                                         *
                                       </span>
-                                    </h3>
-                                    <div className="mt-auto flex flex-col">
-                                      {/* Label เปล่าดันความสูงให้กล่อง Select ตรงกับกล่อง Input ฝั่งซ้าย */}
-                                      <Label className="text-sm font-medium mb-1 block invisible">
-                                        Spacer
-                                      </Label>
+                                    </Label>
+                                    <div className="mt-3 flex flex-col">
                                       <Select
                                         value={form.location}
                                         onValueChange={(value) =>

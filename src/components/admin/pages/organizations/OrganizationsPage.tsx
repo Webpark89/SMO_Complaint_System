@@ -47,7 +47,10 @@ type OrgRow = {
 
 const PARENT_OPTIONS = [
   { value: "", label: "ไม่มี (หน่วยงานหลัก)" },
-  { value: "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) ", label: "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) " },
+  {
+    value: "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) ",
+    label: "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) ",
+  },
 ];
 
 const TYPES = [...ORG_TYPES];
@@ -63,8 +66,6 @@ const DETAIL_FIELDS = [
   { key: "name", label: "ชื่อหน่วยงาน" },
   { key: "type", label: "ประเภท" },
   { key: "parent", label: "หน่วยงานแม่" },
-  { key: "location", label: "ที่ตั้ง" },
-  { key: "employees", label: "จำนวนพนักงาน" },
   {
     key: "isActive",
     label: "สถานะ",
@@ -100,20 +101,6 @@ const CREATE_FIELDS: FormField[] = [
     required: false,
     options: PARENT_OPTIONS,
   },
-  {
-    key: "location",
-    label: "ที่ตั้ง",
-    type: "text",
-    placeholder: "กรอกที่ตั้ง",
-    required: true,
-  },
-  {
-    key: "employees",
-    label: "จำนวนพนักงาน",
-    type: "number",
-    placeholder: "0",
-    required: true,
-  },
 ];
 
 const EDIT_FIELDS: FormField[] = [
@@ -139,20 +126,6 @@ const EDIT_FIELDS: FormField[] = [
     placeholder: "เลือกหน่วยงานแม่",
     required: false,
     options: PARENT_OPTIONS,
-  },
-  {
-    key: "location",
-    label: "ที่ตั้ง",
-    type: "text",
-    placeholder: "กรอกที่ตั้ง",
-    required: true,
-  },
-  {
-    key: "employees",
-    label: "จำนวนพนักงาน",
-    type: "number",
-    placeholder: "0",
-    required: true,
   },
   {
     key: "isActive",
@@ -310,26 +283,6 @@ export function OrganizationsPage() {
       render: (r) => <span className="text-slate-600">{r.parent ?? "-"}</span>,
     },
     {
-      key: "location",
-      header: "ที่ตั้ง",
-      render: (r) => (
-        <span className="flex items-center gap-1 text-slate-600">
-          <MapPin className="h-3 w-3 text-slate-400" />
-          {r.location}
-        </span>
-      ),
-    },
-    {
-      key: "employees",
-      header: "จำนวนพนักงาน",
-      render: (r) => (
-        <span className="flex items-center gap-1 text-slate-600">
-          <Users className="h-3 w-3 text-slate-400" />
-          {r.employees}
-        </span>
-      ),
-    },
-    {
       key: "isActive",
       header: "สถานะ",
       render: (r) => (
@@ -361,7 +314,6 @@ export function OrganizationsPage() {
           <ActionToolbar
             onRefresh={handleRefresh}
             onImport={handleImport}
-            onExport={handleExport}
             onAddNew={handleAddNew}
             addNewLabel={TABLE_LABELS.addNew}
             exportLabel="ส่งออก"

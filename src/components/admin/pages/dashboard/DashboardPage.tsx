@@ -3,7 +3,6 @@ import {
   mockDashboardComplaints,
   type DashboardComplaintRow,
 } from "@/mock/complaints";
-
 import {
   TriangleAlert,
   ClipboardList,
@@ -346,7 +345,8 @@ export function DashboardPage() {
 
         {/* Filter & Actions */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 shadow-inner border border-[var(--border)]/50">
+          {/* 1. Quick Time Filters */}
+          <div className="flex items-center gap-1 rounded-xl bg-white p-1 border border-[var(--border)]/50">
             {TIME_FILTERS.map((t) => (
               <button
                 key={t.id}
@@ -362,9 +362,22 @@ export function DashboardPage() {
             ))}
           </div>
 
+          {/* เส้นคั่นบางๆ (Divider) เฉพาะจอใหญ่ */}
+          <div className="hidden h-8 w-px bg-slate-200 sm:block"></div>
+
+          {/* 2. ปุ่มเลือกวันที่แบบ Custom (Date Picker) */}
           <Button
             variant="outline"
-            className="gap-2 border-[var(--border)] bg-white"
+            className="gap-2 border-[var(--border)] bg-white text-slate-600 hover:text-[#111827] justify-start w-full sm:w-auto"
+          >
+            <Calendar className="h-4 w-4 text-primary" />
+            <span className="text-xs font-semibold">เลือกวันที่</span>
+          </Button>
+
+          {/* 3. ปุ่มส่งออก */}
+          <Button
+            variant="outline"
+            className="gap-2 border-[var(--border)] bg-white text-[#111827] font-semibold w-full sm:w-auto ml-auto sm:ml-0"
           >
             <BarChart3 className="h-4 w-4" />
             ส่งออก
@@ -425,8 +438,8 @@ export function DashboardPage() {
                 >
                   <defs>
                     <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#B47F24" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#B47F24" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#D29E0E" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#D29E0E" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid
@@ -459,13 +472,13 @@ export function DashboardPage() {
                   <Area
                     type="monotone"
                     dataKey="total"
-                    stroke="#B47F24"
+                    stroke="#D29E0E"
                     strokeWidth={3}
                     fillOpacity={1}
                     fill="url(#colorTotal)"
                     activeDot={{
                       r: 6,
-                      fill: "#B47F24",
+                      fill: "#D29E0E",
                       stroke: "#fff",
                       strokeWidth: 2,
                     }}
