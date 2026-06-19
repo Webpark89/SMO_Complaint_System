@@ -122,7 +122,7 @@ export const TermsAndPrivacyContent = forwardRef<
         </h2>
         <p className="mt-3 text-sm text-foreground/80">
           ท่านสามารถศึกษารายละเอียดของ แบบแจ้งเกี่ยวกับข้อมูลส่วนบุคคล (Privacy
-          Notice) ได้ที่นี่{" "}
+          Notice){" "}
           <a className="text-primary underline" href="/privacy">
             ที่นี่
           </a>
@@ -934,20 +934,8 @@ function ComplaintForm() {
                                         *
                                       </span>
                                     </h3>
-                                    <div className="text-xs text-muted-foreground mb-4">
-                                      *ระบบบันทึกวันและเวลาปัจจุบันอัตโนมัติ
-                                      (System auto-records current date and
-                                      time)
-                                    </div>
-
                                     <div className="grid gap-4 md:grid-cols-2 mt-auto">
                                       <div className="flex flex-col">
-                                        <Label className="text-sm font-medium text-foreground mb-1 block">
-                                          วันที่{" "}
-                                          <span className="text-xs text-muted-foreground font-normal ml-1">
-                                            (Date)
-                                          </span>
-                                        </Label>
                                         <Input
                                           type="date"
                                           className={cn(
@@ -971,12 +959,6 @@ function ComplaintForm() {
                                       </div>
 
                                       <div className="flex flex-col">
-                                        <Label className="text-sm font-medium text-foreground mb-1 block">
-                                          เวลา{" "}
-                                          <span className="text-xs text-muted-foreground font-normal ml-1">
-                                            (Time)
-                                          </span>
-                                        </Label>
                                         <Input
                                           type="time"
                                           className={cn(

@@ -1,8 +1,9 @@
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState } from "react";
 import {
   mockDashboardComplaints,
   type DashboardComplaintRow,
 } from "@/mock/complaints";
+
 import {
   TriangleAlert,
   ClipboardList,
@@ -14,6 +15,7 @@ import {
   FilePlusIcon,
   BarChart3,
   Search as SearchIcon,
+  Calendar,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,6 +44,7 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type ComplaintStatus =
@@ -129,7 +132,6 @@ export function DashboardPage() {
     let result = mockDashboardComplaints;
 
     if (timeFilter !== "all") {
-      // อิงตามวันปัจจุบันจริง (local time ของเครื่องผู้ใช้)
       const now = new Date();
 
       result = result.filter((r: DashboardComplaintRow) => {
@@ -191,18 +193,21 @@ export function DashboardPage() {
         value: filtered.length,
         icon: ClipboardList,
         trend: trendByTimeFilter,
+        iconColor: "bg-blue-100 text-blue-600", // 1. Blue
       },
       {
-        label: "เรื่องร้องเรียนใหม่ ",
+        label: "เรื่องร้องเรียนใหม่",
         value: filtered.filter((c) => c.status === "ใหม่").length,
         icon: FilePlusIcon,
         trend: trendByTimeFilter,
+        iconColor: "bg-cyan-100 text-cyan-600", // 2. Cyan
       },
       {
         label: "เกิน SLA",
         value: filtered.filter((c) => c.status === "เกิน SLA").length,
         icon: TriangleAlert,
         trend: trendByTimeFilter,
+        iconColor: "bg-red-100 text-red-600", // 3. Red
       },
       {
         label: "ใกล้ครบ SLA",
@@ -212,30 +217,35 @@ export function DashboardPage() {
         ).length,
         icon: Hourglass,
         trend: trendByTimeFilter,
+        iconColor: "bg-orange-100 text-orange-600", // 4. Orange
       },
       {
         label: "อยู่ระหว่างดำเนินการ",
         value: filtered.filter((c) => c.status === "กำลังดำเนินการ").length,
         icon: RefreshCcw,
         trend: trendByTimeFilter,
+        iconColor: "bg-indigo-100 text-indigo-600", // 5. Indigo
       },
       {
         label: "อยู่ระหว่างตรวจสอบ",
         value: filtered.filter((c) => c.status === "อยู่ระหว่างตรวจสอบ").length,
         icon: FileSearchIcon,
         trend: trendByTimeFilter,
+        iconColor: "bg-purple-100 text-purple-600", // 6. Purple
       },
       {
         label: "รออนุมัติ",
         value: filtered.filter((c) => c.status === "รออนุมัติ").length,
         icon: FilePen,
         trend: trendByTimeFilter,
+        iconColor: "bg-amber-100 text-amber-600", // 7. Amber
       },
       {
         label: "ปิดเรื่องแล้ว",
         value: filtered.filter((c) => c.status === "ปิดเรื่องแล้ว").length,
         icon: ClipboardCheck,
         trend: trendByTimeFilter,
+        iconColor: "bg-green-100 text-green-600", // 8. Green
       },
     ];
   }, [filtered, trendByTimeFilter]);
@@ -286,7 +296,7 @@ export function DashboardPage() {
 
   // 6. คำนวณ SLA จาก filtered
   const dynamicSlaData = useMemo(() => {
-    const total = filtered.length || 1; // ป้องกันส่วนเป็น 0
+    const total = filtered.length || 1;
     const overdue = filtered.filter((c) => c.status === "เกิน SLA").length;
     const near = filtered.filter(
       (c) => c.status === "กำลังดำเนินการ" || c.status === "อยู่ระหว่างตรวจสอบ",
@@ -300,10 +310,10 @@ export function DashboardPage() {
     ];
   }, [filtered]);
 
-  // 7. สุ่มหน่วยงานแบบจำลองเพื่อให้กราฟดูสวยงาม (อิงจากข้อมูลที่กรองมา)
+  // 7. สุ่มหน่วยงานแบบจำลองเพื่อให้กราฟดูสวยงาม
   const dynamicOrgData = useMemo(() => {
     const orgsList = [
-      "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) ",
+      "บริษัท กลุ่มสมอทอง จำกัด (มหาชน)",
       "ท่าชนะ",
       "สระบุรี",
       "พนม",
@@ -336,7 +346,6 @@ export function DashboardPage() {
 
         {/* Filter & Actions */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          {/* 🔥 Hot Keys Filter 🔥 */}
           <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 shadow-inner border border-[var(--border)]/50">
             {TIME_FILTERS.map((t) => (
               <button
@@ -384,7 +393,10 @@ export function DashboardPage() {
                     {kpi.trend}
                   </div>
                 </div>
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--gold-soft)] text-[#111827] ring-1 ring-[rgba(176,141,87,0.18)]">
+                {/* เปลี่ยนสีพื้นหลังและตัวอักษรของไอคอนให้ตรงตาม KPI color class */}
+                <span
+                  className={`flex h-11 w-11 items-center justify-center rounded-xl ${kpi.iconColor}`}
+                >
                   <Icon className="h-5 w-5" />
                 </span>
               </CardHeader>
@@ -395,7 +407,6 @@ export function DashboardPage() {
 
       {/* Charts Row 1 */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* 1. Monthly complaints -> Area Chart (Smooth) */}
         <Card className="border-[var(--border)] bg-white shadow-soft">
           <CardHeader>
             <CardTitle className="text-base text-[#111827]">
@@ -465,7 +476,6 @@ export function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* 2. By category -> Doughnut Chart */}
         <Card className="border-[var(--border)] bg-white shadow-soft">
           <CardHeader>
             <CardTitle className="text-base text-[#111827]">
@@ -533,7 +543,6 @@ export function DashboardPage() {
 
       {/* Charts Row 2 */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* 3. By organization -> Vertical Bar Chart */}
         <Card className="border-[var(--border)] bg-white shadow-soft">
           <CardHeader>
             <CardTitle className="text-base text-[#111827]">
@@ -596,7 +605,6 @@ export function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* 4. Status distribution -> Slider / Dot Style (HTML/CSS) */}
         <Card className="border-[var(--border)] bg-white shadow-soft">
           <CardHeader>
             <CardTitle className="text-base text-[#111827]">
@@ -613,7 +621,6 @@ export function DashboardPage() {
                     <div className="w-24 truncate text-xs font-semibold text-slate-600">
                       {s.status}
                     </div>
-                    {/* ส่วนของ Slider (เส้น + จุด) */}
                     <div className="relative flex flex-1 items-center">
                       <div className="absolute h-[3px] w-full rounded-full bg-slate-100" />
                       <div
@@ -639,7 +646,6 @@ export function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* 5. SLA Performance -> 3 Separate Circular Rings */}
         <Card className="border-[var(--border)] bg-white shadow-soft">
           <CardHeader>
             <CardTitle className="text-base text-[#111827]">
@@ -677,7 +683,6 @@ export function DashboardPage() {
                           </Pie>
                         </PieChart>
                       </ResponsiveContainer>
-                      {/* ข้อความ % ตรงกลางวงกลม */}
                       <div className="absolute inset-0 flex flex-col items-center justify-center">
                         <span className="text-sm font-bold text-slate-700">
                           {s.value}%
