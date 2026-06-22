@@ -13,19 +13,7 @@ export function SiteHeader() {
 
   return (
     <header className="w-full border-b border-border bg-white shadow-md">
-      {/* Utility bar — light */}
-      <div className="border-b border-border bg-[var(--surface-muted)] text-muted-foreground">
-        <div className="container mx-auto flex h-7 items-center justify-end px-4 text-[11px]">
-          <div className="flex items-center gap-4">
-            <span className="hidden items-center gap-1.5 sm:inline-flex">
-              <Phone className="h-3 w-3" /> {t("header.hotline")}
-            </span>
-            <span className="hidden items-center gap-1.5 sm:inline-flex">
-              <Mail className="h-3 w-3" /> compliance@smo.co.th
-            </span>
-          </div>
-        </div>
-      </div>
+     
       <div className="container relative mx-auto flex h-14 items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-3">
           <img
@@ -46,7 +34,7 @@ export function SiteHeader() {
         </nav>
 
         {/* ส่วนปุ่ม Action (ขวา) */}
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           {user ? (
             <>
               <div className="hidden items-center gap-3 pr-2 md:flex">
@@ -88,8 +76,21 @@ export function SiteHeader() {
               <LogIn className="mr-1.5 h-4 w-4" /> {t("nav.signIn")}
             </Button>
           )}
+        </div> */}
+         {/* Utility bar — light */}
+      
+        <div className="container mx-auto flex h-7 items-center justify-end px-4 text-[11px]">
+          <div className="flex items-center gap-4">
+            <span className="hidden items-center gap-1.5 sm:inline-flex">
+              <Phone className="h-3 w-3" /> {t("header.hotline")}
+            </span>
+            <span className="hidden items-center gap-1.5 sm:inline-flex">
+              <Mail className="h-3 w-3" /> compliance@smo.co.th
+            </span>
+          </div>
         </div>
       </div>
+
     </header>
   );
 }
