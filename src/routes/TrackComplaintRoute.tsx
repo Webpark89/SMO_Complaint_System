@@ -110,7 +110,7 @@ function TrackPage() {
                 >
                   หมายเลขอ้างอิง
                 </Label>
-                <div className="mt-2 flex gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row">
                   <Input
                     id="ref"
                     placeholder="CMP-2026-0001"
@@ -152,7 +152,7 @@ function TrackPage() {
                 </div>
               </div>
               <div className="px-6 py-6">
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start flex-col sm:flex-row gap-3">
                   <div>
                     <div className="font-mono text-xs text-muted-foreground">
                       {result.reference_number}

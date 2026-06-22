@@ -54,14 +54,14 @@ export const TermsAndPrivacyContent = forwardRef<
 >(function TermsAndPrivacyContent(_props, ref) {
   return (
     <div>
-      <div className="flex flex-col items-center gap-3 text-center">
+      <div className="flex flex-col items-center gap-3 text-center md:flex-row md:items-start md:gap-4 md:text-left">
         <div className="flex-none">
           <div className="rounded-full bg-primary/10 p-2 text-primary">
             <AlertCircle className="h-5 w-5" />
           </div>
         </div>
         <div className="min-w-0">
-          <div className="flex items-center gap-3">
+          <div className="flex justify-center md:justify-start">
             <h1 className="font-display text-lg font-bold text-primary">
               เงื่อนไขการใช้งานและการรักษาความปลอดภัยของข้อมูลส่วนบุคคล
             </h1>
@@ -70,7 +70,7 @@ export const TermsAndPrivacyContent = forwardRef<
         </div>
       </div>
 
-      <p className="mt-4 text-center text-sm text-foreground/80">
+      <p className="mt-4 text-center text-sm text-foreground/80 md:text-left">
         กรุณากด "เข้าใจและยอมรับเงื่อนไขการใช้งาน"{" "}
         <span className="whitespace-nowrap md:whitespace-normal">
           ก่อนไปหน้าถัดไป
