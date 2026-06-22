@@ -783,7 +783,7 @@ function ComplaintForm() {
                             <div className="grid gap-5">
                               <div>
                                 <Label className="text-xs font-medium font-bold text-foreground/80">
-                                  เลือกหมวดหมู่หลัก (Select Main Category)
+                                  เลือกหมวดหมู่การแจ้งเรื่อง (Select Reporting Category)
                                 </Label>
                                 <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-3">
                                   {complaintTypes.map((category) => {
@@ -843,7 +843,7 @@ function ComplaintForm() {
 
                               <div>
                                 <Label className="text-xs font-medium font-bold text-foreground/80">
-                                  เลือกหัวข้อย่อย (Select Sub Topic)
+                                  เลือกประเด็นที่เกี่ยวข้อง (Select Related Issue)
                                 </Label>
                                 <div
                                   className={cn(
