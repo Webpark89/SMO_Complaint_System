@@ -160,7 +160,7 @@ function AuthPage() {
                         signInAdminMock();
                         clearPostLoginRedirectState();
                         toast.success("เข้าสู่ระบบ Admin ชั่วคราวเรียบร้อย");
-                        navigate({ to: "/", replace: true });
+                        navigate({ to: "/admin/dashboard", replace: true });
                       }}
                     >
                       เข้าสู่ระบบ Admin (ชั่วคราว)
@@ -180,7 +180,7 @@ function AuthPage() {
 
           {/* Anonymous Submission */}
           <div className="mt-8">
-            <p className="mb-3 text-sm text-muted-foreground">
+            {/* <p className="mb-3 text-sm text-muted-foreground">
               ส่งเรื่องร้องเรียนโดยไม่ต้องเพิ่มบัญชี
             </p>
             <Button
@@ -194,7 +194,7 @@ function AuthPage() {
               }
             >
               ส่งเรื่องร้องเรียนแบบไม่ระบุตัวตน
-            </Button>
+            </Button> */}
 
             {/* Optional: Google Login */}
             <div className="mt-3">

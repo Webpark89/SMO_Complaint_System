@@ -28,9 +28,9 @@ export function SiteHeader() {
 
           <NavItem to="/SubmitComplaintRoute">{t("nav.submit")}</NavItem>
           <NavItem to="/TrackComplaintRoute">{t("nav.track")}</NavItem>
-          {user && (
+          {/* {user && (
             <NavItem to="/admin/dashboard">{t("nav.dashboard")}</NavItem>
-          )}
+          )} */}
         </nav>
 
         {/* ส่วนปุ่ม Action (ขวา) */}
