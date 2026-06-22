@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
+import loginBg from "@/assets/logo-smo-2.svg";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -67,7 +68,7 @@ function AuthPage() {
   return (
     <div className="grid min-h-screen md:grid-cols-2">
       {/* Left Branding Panel */}
-      <div className="relative hidden overflow-hidden bg-primary md:flex md:flex-col md:justify-between md:p-12 text-primary-foreground">
+      <div className="relative hidden overflow-hidden bg-primary bg-cover bg-center md:flex md:flex-col md:justify-between md:p-12 text-primary-foreground" style={{ backgroundImage: `url(${loginBg})` }}>
         <div className="absolute inset-0 opacity-[0.07] auth-hero-grid" />
         <Link to="/" className="relative inline-flex items-center gap-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-md bg-white/10 backdrop-blur">
