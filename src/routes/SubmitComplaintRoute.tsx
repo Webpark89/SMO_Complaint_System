@@ -613,6 +613,15 @@ function ComplaintForm() {
                   >
                     <Copy className="h-3.5 w-3.5" /> คัดลอก
                   </button>
+                  <button
+                    className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs hover:bg-muted"
+                    onClick={() => {
+                      navigator.clipboard.writeText(success.ref);
+                      toast.success("คัดลอกแล้ว");
+                    }}
+                  >
+                    <Copy className="h-3.5 w-3.5" /> บันทึกภาพ
+                  </button>
                 </div>
                 <p className="mt-3 text-xs text-red-500">
                   โปรดเก็บหมายเลขนี้ไว้สำหรับติดตามสถานะ
@@ -622,16 +631,6 @@ function ComplaintForm() {
                 </p>
               </div>
               <div className="mt-8 flex flex-wrap justify-center gap-3">
-                <Button
-                  onClick={() =>
-                    navigate({
-                      to: "/TrackComplaintRoute",
-                      search: { ref: success.ref } as never,
-                    })
-                  }
-                >
-                  ติดตามเรื่องนี้
-                </Button>
                 <Button variant="outline" onClick={() => navigate({ to: "/" })}>
                   กลับสู่หน้าแรก
                 </Button>
