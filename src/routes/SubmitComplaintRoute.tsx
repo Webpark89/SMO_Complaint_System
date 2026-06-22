@@ -54,7 +54,7 @@ export const TermsAndPrivacyContent = forwardRef<
 >(function TermsAndPrivacyContent(_props, ref) {
   return (
     <div>
-      <div className="flex items-start gap-4">
+      <div className="flex flex-col items-center gap-3 text-center">
         <div className="flex-none">
           <div className="rounded-full bg-primary/10 p-2 text-primary">
             <AlertCircle className="h-5 w-5" />
@@ -70,8 +70,11 @@ export const TermsAndPrivacyContent = forwardRef<
         </div>
       </div>
 
-      <p className="mt-4 text-sm text-foreground/80">
-        กรุณากด "เข้าใจและยอมรับเงื่อนไขการใช้งาน" ก่อนไปหน้าถัดไป
+      <p className="mt-4 text-center text-sm text-foreground/80">
+        กรุณากด "เข้าใจและยอมรับเงื่อนไขการใช้งาน"{" "}
+        <span className="whitespace-nowrap md:whitespace-normal">
+          ก่อนไปหน้าถัดไป
+        </span>
       </p>
 
       <div
@@ -248,6 +251,7 @@ function ConsentGate({
   const [checked, setChecked] = useState<boolean>(hasAccepted);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const [scrolledToBottom, setScrolledToBottom] = useState<boolean>(false);
+  const navigate = useNavigate();
 
   useEffect(() => setChecked(hasAccepted), [hasAccepted]);
 
@@ -270,7 +274,7 @@ function ConsentGate({
           <div className="rounded-2xl border border-border bg-card p-6 shadow-soft transition-shadow">
             <TermsAndPrivacyContent ref={contentRef} />
 
-            <div className="mt-4 flex items-center justify-between">
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <label className="flex items-center gap-3">
                 <Checkbox
                   disabled={!scrolledToBottom}
@@ -281,21 +285,27 @@ function ConsentGate({
                   เข้าใจและยอมรับเงื่อนไขการใช้งาน
                 </span>
               </label>
-              <div className="text-xs text-muted-foreground">
+              <div className="pl-7 text-xs text-muted-foreground sm:pl-0 sm:text-right">
                 {!scrolledToBottom
                   ? "กรุณาเลื่อนอ่านเนื้อหาจนจบเพื่อเปิดใช้งาน"
                   : ""}
               </div>
             </div>
 
-            <div className="mt-4 flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setHasAccepted(false)}>
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:flex sm:justify-end">
+              <Button
+                variant="outline"
+                onClick={() => navigate({ to: "/" })}
+                className="h-11 w-full sm:w-auto"
+              >
                 ยกเลิก
               </Button>
+
               <Button
                 variant="default"
                 disabled={!checked}
                 onClick={() => setHasAccepted(true)}
+                className="h-11 w-full sm:w-auto"
               >
                 ดำเนินการต่อ
               </Button>
@@ -776,7 +786,7 @@ function ComplaintForm() {
                                 <Label className="text-xs font-medium font-bold text-foreground/80">
                                   เลือกหมวดหมู่หลัก (Select Main Category)
                                 </Label>
-                                <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                                <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-3">
                                   {complaintTypes.map((category) => {
                                     const active =
                                       form.category_id === category.id;
@@ -838,7 +848,7 @@ function ComplaintForm() {
                                 </Label>
                                 <div
                                   className={cn(
-                                    "mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3",
+                                    "mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3",
                                     !selectedCategory
                                       ? "opacity-60 pointer-events-none"
                                       : "",

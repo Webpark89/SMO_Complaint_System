@@ -34,7 +34,10 @@ function HomePage() {
             </h1>
             <div className="mx-auto mt-2 h-[3px] w-10 bg-[var(--gold)]" />
             <p className="mx-auto mt-2 max-w-xl text-[14px] leading-snug text-[#6B7280] md:text-[15px]">
-              แจ้งและติดตามเรื่องร้องเรียนอย่างปลอดภัย โปร่งใส และเป็นความลับ
+              แจ้งและติดตามเรื่องร้องเรียนอย่างปลอดภัย{" "}
+              <span className="whitespace-nowrap md:whitespace-normal">
+                โปร่งใส และเป็นความลับ
+              </span>
             </p>
           </div>
         </MainLayout>
@@ -44,7 +47,7 @@ function HomePage() {
       <section className="relative pt-2 md:pt-4 pb-10 md:pb-12">
         {" "}
         <MainLayout>
-          <div className="flex flex-col md:flex-row justify-center gap-3">
+          <div className="flex flex-col items-center justify-center gap-3 md:flex-row">
             {/* Card 1 — Submit */}
             <Link
               to="/SubmitComplaintRoute"
