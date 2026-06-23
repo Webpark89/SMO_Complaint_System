@@ -656,7 +656,7 @@ function ComplaintForm() {
               <div className="mt-8 flex w-full justify-center">
                 <Button 
                   // เปลี่ยนตรงนี้: มือถือใช้ w-full | จอคอมใช้ sm:w-auto sm:px-12
-                  className="h-12 w-full sm:w-auto sm:px-12 rounded-lg bg-[#d49a26] text-base font-medium text-white hover:bg-[#b58320]" 
+                  className="h-12 w-auto px-8 sm:w-auto sm:px-12 rounded-lg bg-[#d49a26] text-base font-medium text-white hover:bg-[#b58320]" 
                   onClick={() => navigate({ to: "/" })}
                 >
                   กลับสู่หน้าแรก
@@ -1648,7 +1648,7 @@ function ComplaintForm() {
   return (
     <PageContainer>
       <section className="py-12 md:py-8">
-        <MainLayout>
+        <div className="mx-auto w-full max-w-7xl px-4 md:px-6 lg:px-8">
           {/* ส่วนหัว: ปุ่มกลับหน้าแรก */}
           <div className="mb-6 flex items-center justify-between">
             <Link
@@ -1659,8 +1659,8 @@ function ComplaintForm() {
             </Link>
           </div>
 
-          {/* แถบ Stepper (ถ้าคุณแยก Component HorizontalStepper ไว้แล้ว มันจะแสดงตรงนี้) */}
-          <HorizontalStepper currentStep={currentStep} maxVisibleStep={maxVisibleStep}onStepClick={(step) => openStep(step)} />
+          {/* แถบ Stepper */}
+          <HorizontalStepper currentStep={currentStep} maxVisibleStep={maxVisibleStep} onStepClick={(step) => openStep(step)} />
 
           {/* เริ่มฟอร์มหลัก */}
           <form onSubmit={onSubmit} className="mt-8 transition-all duration-300">
@@ -1670,15 +1670,23 @@ function ComplaintForm() {
             ========================================== */}
             {currentStep === 1 && (
               <div className="rounded-2xl border border-border bg-white p-6 shadow-sm md:p-8 animate-[fadeIn_0.3s_ease-out_both]">
-                <h2 className="mb-6 border-b pb-4 text-lg font-bold text-[#0f284a]">
-                  หมวดหมู่และประเด็นที่เกี่ยวข้อง <span className="text-destructive">*</span>
-                </h2>
+                
+                {/* 1. เพิ่มคำแปลอังกฤษ และข้อความอธิบายด้านล่าง */}
+                <div className="mb-6 border-b border-border pb-4">
+                  <h2 className="text-lg font-bold text-[#0f284a]">
+                    หมวดหมู่และประเด็นที่เกี่ยวข้อง (Category & Related Issue) <span className="text-destructive">*</span>
+                  </h2>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    กรุณาเลือกหมวดหมู่การแจ้งเรื่องและประเด็นที่เกี่ยวข้อง เพื่อให้บริษัทสามารถจัดประเภทและดำเนินการตรวจสอบได้อย่างเหมาะสม
+                  </p>
+                </div>
                 
                 <div className="grid gap-6">
                   {/* เลือกหมวดหมู่หลัก */}
                   <div>
-                    <Label className="text-sm font-bold text-foreground/80">
-                      เลือกหมวดหมู่การแจ้งเรื่อง (Select Reporting Category)
+                    {/* 2. เพิ่มดอกจันสีแดง */}
+                    <Label className="text-sm font-bold text-[#0f284a]">
+                      เลือกหมวดหมู่การแจ้งเรื่อง (Select Reporting Category) <span className="text-destructive">*</span>
                     </Label>
                     <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
                       {complaintTypes.map((category) => {
@@ -1699,8 +1707,15 @@ function ComplaintForm() {
                                 : "border-border bg-card text-foreground hover:border-[#0f284a]/30 hover:bg-slate-50"
                             )}
                           >
-                            <div className="font-semibold text-base">{category.name}</div>
-                            {category.nameEn && <div className="mt-1 text-xs opacity-80">{category.nameEn}</div>}
+                            <div className="font-bold text-sm md:text-base">{category.name}</div>
+                            {category.nameEn && <div className="mt-0 text-xs font-medium opacity-80">{category.nameEn}</div>}
+                            
+                            {/* 3. เพิ่มบรรทัดคำอธิบายหมวดหมู่ (เช่น เรื่องร้องเรียนด้าน...) */}
+                            {category.description && (
+                              <div className="mt-0 text-[11px] md:text-xs opacity-90 leading-relaxed">
+                                {category.description}
+                              </div>
+                            )}
                           </Button>
                         );
                       })}
@@ -1710,8 +1725,9 @@ function ComplaintForm() {
 
                   {/* เลือกประเด็น (หัวข้อย่อย) */}
                   <div className={cn("transition-opacity", !selectedCategory && "pointer-events-none opacity-50")}>
-                    <Label className="text-sm font-bold text-foreground/80">
-                      เลือกประเด็นที่เกี่ยวข้อง (Select Related Issue)
+                    {/* 2. เพิ่มดอกจันสีแดง */}
+                    <Label className="text-sm font-bold text-[#0f284a]">
+                      เลือกประเด็นที่เกี่ยวข้อง (Select Related Issue) <span className="text-destructive">*</span>
                     </Label>
                     <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
                       {subtopics.map((subtopic) => {
@@ -1729,7 +1745,14 @@ function ComplaintForm() {
                                 : "border-border bg-card text-foreground hover:border-[#0f284a]/30 hover:bg-slate-50"
                             )}
                           >
-                            <div className="font-semibold text-sm">{subtopic.name}</div>
+                            <div className="font-bold text-sm">{subtopic.name}</div>
+                            
+                            {/* 4. เพิ่มภาษาอังกฤษของประเด็นย่อย (เช่น Shareholders) */}
+                            {subtopic.nameEn && (
+                              <div className="mt-1 text-[11px] md:text-xs font-medium opacity-80">
+                                {subtopic.nameEn}
+                              </div>
+                            )}
                           </Button>
                         );
                       })}
@@ -1742,7 +1765,7 @@ function ComplaintForm() {
                   <Button 
                     type="button" 
                     className="bg-[#d49a26] hover:bg-[#b58320] text-white px-8 h-11"
-                    onClick={() => handleNextStep(1)} // ฟังก์ชันตรวจสอบว่ากรอกครบไหมก่อนไป Step 2
+                    onClick={() => handleNextStep(1)}
                   >
                     ถัดไป <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -1751,7 +1774,7 @@ function ComplaintForm() {
             )}
 
             {/* ==========================================
-                STEP 2: รายละเอียดเหตุการณ์
+                STEP 2: รายละเอียดเหตุการณ์ (แนบไฟล์อยู่ท้ายสุด)
             ========================================== */}
             {currentStep === 2 && (
               <div className="rounded-2xl border border-border bg-white p-6 shadow-sm md:p-8 animate-[fadeIn_0.3s_ease-out_both]">
@@ -1759,7 +1782,6 @@ function ComplaintForm() {
                   รายละเอียดเหตุการณ์ <span className="text-destructive">*</span>
                 </h2>
                 
-                {/* --- เริ่มเนื้อหาฟอร์ม Step 2 --- */}
                 <div className="space-y-8">
                   
                   {/* แถวที่ 1: วันที่เวลา และ สาขา */}
@@ -1972,34 +1994,11 @@ function ComplaintForm() {
                     </div>
                   </div>
 
-                </div>
+                  <hr className="border-border" />
 
-                {/* --- ปุ่ม ถัดไป / ย้อนกลับ --- */}
-                <div className="mt-10 flex flex-col-reverse justify-between gap-4 border-t border-border pt-6 sm:flex-row">
-                  <Button type="button" variant="outline" className="h-11 w-full px-8 sm:w-auto" onClick={() => openStep(1)}> {/* แก้เลข openStep ตามหน้าที่อยู่ */}
-                    <ArrowLeft className="mr-2 h-4 w-4" /> ย้อนกลับ
-                  </Button>
-                  
-                  <Button type="button" className="h-11 w-full bg-[#d49a26] px-8 text-white hover:bg-[#b58320] sm:w-auto" onClick={() => handleNextStep(2)}> {/* แก้เลข handleNextStep ตามหน้าที่อยู่ */}
-                    ถัดไป <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* ==========================================
-                STEP 3: แนบไฟล์ และ ข้อมูลผู้ร้องเรียน
-            ========================================== */}
-            {currentStep === 3 && (
-              <div className="rounded-2xl border border-border bg-white p-6 shadow-sm md:p-8 animate-[fadeIn_0.3s_ease-out_both]">
-                <h2 className="mb-6 border-b pb-4 text-lg font-bold text-[#0f284a]">
-                  ข้อมูลเพิ่มเติมและผู้ร้องเรียน
-                </h2>
-                
-                <div className="space-y-8">
-                  {/* --- Section: แนบไฟล์ --- */}
+                  {/* --- ฟังก์ชั่นแนบไฟล์ --- */}
                   <div className="space-y-4">
-                    <h3 className="text-base font-semibold text-primary">
+                    <h3 className="text-base font-semibold text-[#0f284a]">
                       แนบไฟล์ / Attach Files (ถ้ามี)
                     </h3>
                     <label
@@ -2053,88 +2052,15 @@ function ComplaintForm() {
                     )}
                   </div>
 
-                  <hr className="border-border" />
-
-                  {/* --- Section: ข้อมูลผู้ร้องเรียน --- */}
-                  <div className="space-y-4">
-                    <h3 className="text-base font-semibold text-primary flex items-center gap-2">
-                      ข้อมูลผู้ร้องเรียน (Reporter Information)
-                    </h3>
-                    <label className="group flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-border bg-slate-50 dark:bg-[var(--surface-muted)] p-4 transition-colors hover:border-primary/40">
-                      <div className="flex items-start gap-3">
-                        <div className="mt-0.5 rounded-lg border border-border bg-white p-1.5 text-slate-700 shadow-sm">
-                          <Lock className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                            ไม่เปิดเผยตัวตน (Anonymous)
-                          </div>
-                          <div className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                            หากเปิดใช้งาน ระบบจะข้ามการกรอกข้อมูลส่วนตัวทั้งหมดทันที
-                          </div>
-                        </div>
-                      </div>
-                      <Switch
-                        className="mt-1"
-                        checked={form.is_anonymous}
-                        onCheckedChange={(v) => {
-                          update("is_anonymous", v);
-                          if (v) {
-                            update("reporter_name", "");
-                            update("reporter_email", "");
-                            update("reporter_phone", "");
-                          }
-                        }}
-                      />
-                    </label>
-
-                    <div className="mt-4 grid gap-5 md:grid-cols-2">
-                      {!form.is_anonymous && (
-                        <>
-                          <FieldGroup label="ชื่อ-นามสกุล" required error={errors.reporter_name}>
-                            <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">Full Name</div>
-                            <Input
-                              className={cn("rounded-lg bg-background", errors.reporter_name && "border-slate-300 bg-white")}
-                              value={form.reporter_name}
-                              onChange={(e) => update("reporter_name", e.target.value)}
-                              placeholder="ระบุชื่อ-สกุล"
-                            />
-                          </FieldGroup>
-
-                          <FieldGroup label="อีเมล" required error={errors.reporter_email}>
-                            <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">Email Address</div>
-                            <Input
-                              type="email"
-                              className={cn("rounded-lg bg-background", errors.reporter_email && "border-slate-300 bg-white")}
-                              value={form.reporter_email}
-                              onChange={(e) => update("reporter_email", e.target.value)}
-                              placeholder="ระบุอีเมล"
-                              autoComplete="email"
-                            />
-                          </FieldGroup>
-
-                          <FieldGroup label="เบอร์โทรศัพท์" full error={errors.reporter_phone}>
-                            <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">Phone Number</div>
-                            <Input
-                              className={cn("rounded-lg bg-background", errors.reporter_phone && "border-destructive/50 bg-destructive/5")}
-                              value={form.reporter_phone}
-                              onChange={(e) => update("reporter_phone", e.target.value)}
-                              placeholder="ระบุเบอร์โทรศัพท์"
-                            />
-                          </FieldGroup>
-                        </>
-                      )}
-                    </div>
-                  </div>
                 </div>
 
                 {/* --- ปุ่ม ถัดไป / ย้อนกลับ --- */}
                 <div className="mt-10 flex flex-col-reverse justify-between gap-4 border-t border-border pt-6 sm:flex-row">
-                  <Button type="button" variant="outline" className="h-11 w-full px-8 sm:w-auto" onClick={() => openStep(1)}> {/* แก้เลข openStep ตามหน้าที่อยู่ */}
+                  <Button type="button" variant="outline" className="h-11 w-full px-8 sm:w-auto" onClick={() => openStep(1)}>
                     <ArrowLeft className="mr-2 h-4 w-4" /> ย้อนกลับ
                   </Button>
                   
-                  <Button type="button" className="h-11 w-full bg-[#d49a26] px-8 text-white hover:bg-[#b58320] sm:w-auto" onClick={() => handleNextStep(3)}> {/* แก้เลข handleNextStep ตามหน้าที่อยู่ */}
+                  <Button type="button" className="h-11 w-full bg-[#d49a26] px-8 text-white hover:bg-[#b58320] sm:w-auto" onClick={() => handleNextStep(2)}>
                     ถัดไป <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
@@ -2142,7 +2068,97 @@ function ComplaintForm() {
             )}
 
             {/* ==========================================
-                STEP 4: ตรวจสอบและยืนยันข้อมูล (ตามรูปภาพเป๊ะๆ)
+                STEP 3: ข้อมูลผู้ร้องเรียน
+            ========================================== */}
+            {currentStep === 3 && (
+              <div className="rounded-2xl border border-border bg-white p-6 shadow-sm md:p-8 animate-[fadeIn_0.3s_ease-out_both]">
+                <h2 className="mb-6 border-b pb-4 text-lg font-bold text-[#0f284a]">
+                  ข้อมูลผู้ร้องเรียน (Reporter Information)
+                </h2>
+                
+                <div className="space-y-4">
+                  <label className="group flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-border bg-slate-50 dark:bg-[var(--surface-muted)] p-4 transition-colors hover:border-primary/40">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5 rounded-lg border border-border bg-white p-1.5 text-slate-700 shadow-sm">
+                        <Lock className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                          ไม่เปิดเผยตัวตน (Anonymous)
+                        </div>
+                        <div className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                          หากเปิดใช้งาน ระบบจะข้ามการกรอกข้อมูลส่วนตัวทั้งหมดทันที
+                        </div>
+                      </div>
+                    </div>
+                    <Switch
+                      className="mt-1"
+                      checked={form.is_anonymous}
+                      onCheckedChange={(v) => {
+                        update("is_anonymous", v);
+                        if (v) {
+                          update("reporter_name", "");
+                          update("reporter_email", "");
+                          update("reporter_phone", "");
+                        }
+                      }}
+                    />
+                  </label>
+
+                  <div className="mt-4 grid gap-5 md:grid-cols-2">
+                    {!form.is_anonymous && (
+                      <>
+                        <FieldGroup label="ชื่อ-นามสกุล" required error={errors.reporter_name}>
+                          <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">Full Name</div>
+                          <Input
+                            className={cn("rounded-lg bg-background", errors.reporter_name && "border-slate-300 bg-white")}
+                            value={form.reporter_name}
+                            onChange={(e) => update("reporter_name", e.target.value)}
+                            placeholder="ระบุชื่อ-สกุล"
+                          />
+                        </FieldGroup>
+
+                        <FieldGroup label="อีเมล" required error={errors.reporter_email}>
+                          <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">Email Address</div>
+                          <Input
+                            type="email"
+                            className={cn("rounded-lg bg-background", errors.reporter_email && "border-slate-300 bg-white")}
+                            value={form.reporter_email}
+                            onChange={(e) => update("reporter_email", e.target.value)}
+                            placeholder="ระบุอีเมล"
+                            autoComplete="email"
+                          />
+                        </FieldGroup>
+
+                        <FieldGroup label="เบอร์โทรศัพท์" full error={errors.reporter_phone}>
+                          <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">Phone Number</div>
+                          <Input
+                            className={cn("rounded-lg bg-background", errors.reporter_phone && "border-destructive/50 bg-destructive/5")}
+                            value={form.reporter_phone}
+                            onChange={(e) => update("reporter_phone", e.target.value)}
+                            placeholder="ระบุเบอร์โทรศัพท์"
+                          />
+                        </FieldGroup>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* --- ปุ่ม ถัดไป / ย้อนกลับ --- */}
+                <div className="mt-10 flex flex-col-reverse justify-between gap-4 border-t border-border pt-6 sm:flex-row">
+                  <Button type="button" variant="outline" className="h-11 w-full px-8 sm:w-auto" onClick={() => openStep(2)}>
+                    <ArrowLeft className="mr-2 h-4 w-4" /> ย้อนกลับ
+                  </Button>
+                  
+                  <Button type="button" className="h-11 w-full bg-[#d49a26] px-8 text-white hover:bg-[#b58320] sm:w-auto" onClick={() => handleNextStep(3)}>
+                    ถัดไป <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* ==========================================
+                STEP 4: ตรวจสอบและยืนยันข้อมูล
             ========================================== */}
             {currentStep === 4 && (
               <div className="rounded-2xl border border-border bg-white p-6 shadow-sm md:p-8 animate-[fadeIn_0.3s_ease-out_both]">
@@ -2183,7 +2199,6 @@ function ComplaintForm() {
                       </div>
                       <div>
                         <span className="font-bold text-[#0f284a]">วันที่และเวลาที่ร้องเรียน : </span>
-                        {/* สมมติวันที่ปัจจุบันให้ดูเหมือนในรูป */}
                         วันที่ {new Date().toLocaleDateString('th-TH')} เวลา {new Date().toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'})} น.
                       </div>
                     </div>
@@ -2192,7 +2207,7 @@ function ComplaintForm() {
                   {/* Checkbox ยืนยัน */}
                   <label className="flex items-start gap-3 cursor-pointer">
                     <Checkbox
-                      className="mt-0.5 border-slate-400 data-[state=checked]:bg-[#d49a26] data-[state=checked]:border-[#d49a26]"
+                      className="mt-0.5 border-slate-400 data-[state=checked]:bg-[#002856] data-[state=checked]:border-[#002856]"
                       checked={form.consent_truth}
                       onCheckedChange={(v) => update("consent_truth", v === true)}
                     />
@@ -2201,7 +2216,7 @@ function ComplaintForm() {
                     </div>
                   </label>
                   
-                  {/* Error Message (แสดงถ้ายังไม่กดติ๊กถูก) */}
+                  {/* Error Message */}
                   {!form.consent_truth && (
                     <div className="mt-2 ml-7 flex items-center gap-1.5 text-xs text-red-500 font-medium">
                       <AlertCircle className="h-3.5 w-3.5" /> กรุณายืนยันความถูกต้องของข้อมูล
@@ -2232,7 +2247,7 @@ function ComplaintForm() {
             )}
 
           </form>
-        </MainLayout>
+        </div>
       </section>
     </PageContainer>
   );
@@ -2325,7 +2340,7 @@ function priorityLabel(priority: ComplaintPriority): string {
   return labels[priority];
 }
 
-// นำโค้ดนี้ไปวางล่างสุดของไฟล์ เพื่อสร้างตัว Stepper แนวนอน
+// นำโค้ดนี้ไปวางล่างสุดของไฟล์ เพื่อสร้างตัว Stepper แนวนอนที่ Responsive เต็มรูปแบบ
 function HorizontalStepper({ 
   currentStep, 
   maxVisibleStep, 
@@ -2336,23 +2351,30 @@ function HorizontalStepper({
   onStepClick: (step: number) => void;
 }) {
   const STEPS = [
-  { id: 1, labelTh: "หมวดหมู่และประเด็น", labelEn: "(Category & Related Issue)", icon: BookOpen },
-  { id: 2, labelTh: "รายละเอียดเหตุการณ์", labelEn: "(Incident Information & Details)", icon: FileText },
-  { id: 3, labelTh: "ข้อมูลผู้ร้องเรียน", labelEn: "(Reporter Information)", icon: Edit },
-  { id: 4, labelTh: "ตรวจสอบและยืนยันข้อมูล", labelEn: "(Review & Confirmation)", icon: ShieldCheck },
-];
+    { id: 1, labelTh: "หมวดหมู่และประเด็น", labelEn: "(Category & Related Issue)", icon: BookOpen },
+    { id: 2, labelTh: "รายละเอียดเหตุการณ์", labelEn: "(Incident Information & Details)", icon: FileText },
+    { id: 3, labelTh: "ข้อมูลผู้ร้องเรียน", labelEn: "(Reporter Information)", icon: Edit },
+    { id: 4, labelTh: "ตรวจสอบและยืนยันข้อมูล", labelEn: "(Review & Confirmation)", icon: ShieldCheck },
+  ];
 
   return (
-    // ตรง return บรรทัดแรกของ HorizontalStepper
-    <div className="mb-8 rounded-2xl border border-border bg-white px-4 pt-10 pb-8 shadow-sm md:px-10 md:pt-12 md:pb-10">
-      <div className="relative flex w-full justify-between items-start">
+    // ปรับ Padding ในมือถือให้ลดลง (px-2 py-6) และขยายกลับในจอใหญ่ (sm:px-5)
+    <div className="mb-8 rounded-2xl border border-border bg-white px-2 py-6 sm:px-5 sm:pt-10 sm:pb-8 shadow-sm">
+      <div className="relative z-0 flex w-full justify-between items-start">
         
-        {/* เส้นเชื่อมพื้นหลัง (ยังคงใช้ absolute ได้เพราะอยู่หลังสุด) */}
-        <div className="absolute left-[10%] right-[10%] top-6 h-1 bg-slate-100 -z-0"></div>
-        <div
-          className="absolute left-[10%] right-[10%] top-6 h-1 bg-[#09A129] transition-all duration-300 -z-0"
-          style={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 80}%` }}
-        ></div>
+        {/* ปรับกล่องคุมเส้น (Line Wrapper):
+          - ใช้ left-[12.5%] right-[12.5%] เพื่อให้เส้นเริ่มต้นและจบที่ "กึ่งกลาง" ของ Step เสมอ (กรณีมี 4 Step)
+          - ปรับ top-4 ในมือถือ (กึ่งกลางของวงกลมขนาด 8) และ top-6 ใน Desktop (กึ่งกลางของวงกลมขนาด 12)
+        */}
+        <div className="absolute top-4 md:top-6 left-[12.5%] right-[12.5%] h-1 -translate-y-1/2 z-0 pointer-events-none">
+          {/* เส้นสีเทา (รองพื้น) */}
+          <div className="absolute inset-0 w-full h-full bg-slate-100"></div>
+          {/* เส้นสีเขียว (สถานะ) */}
+          <div
+            className="absolute left-0 top-0 h-full bg-[#09A129] transition-all duration-500 ease-in-out"
+            style={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%` }}
+          ></div>
+        </div>
 
         {STEPS.map((step) => {
           const isActive = currentStep === step.id;
@@ -2362,29 +2384,44 @@ function HorizontalStepper({
           return (
             <div 
               key={step.id} 
+              // ใช้ flex-1 เพื่อให้แต่ละ Step แบ่งพื้นที่ความกว้างเท่าๆ กัน 100%
               className={cn(
-                "relative z-10 flex flex-1 flex-col items-center transition-transform", // ใช้ flex-1 เพื่อกระจายพื้นที่เท่ากัน
-                isClickable ? "cursor-pointer hover:scale-105" : "cursor-not-allowed opacity-80"
+                "relative z-10 flex flex-col items-center flex-1",
+                isClickable ? "cursor-pointer" : "cursor-default"
               )}
               onClick={() => isClickable && onStepClick(step.id)}
             >
-              {/* วงกลม */}
+              {/* วงกลม (ปรับลดขนาดในมือถือเป็น h-8 w-8 และขยายเป็น h-12 w-12 ในจอใหญ่) */}
               <div
                 className={cn(
-                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-[3px] bg-white transition-colors duration-300 md:h-12 md:w-12 md:border-4",
-                  isCompleted || isActive ? "border-[#09A129] text-white bg-[#09A129]" : "border-slate-200 text-slate-300"
+                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-[2px] bg-white transition-colors duration-300 md:h-12 md:w-12 md:border-[3px]",
+                  isCompleted || isActive 
+                    ? "border-[#09A129] bg-[#09A129] text-white" 
+                    : "border-slate-200 bg-white text-slate-300"
                 )}
               >
-                {isCompleted ? <Check className="h-5 w-5 md:h-6 md:w-6" /> : <step.icon className="h-5 w-5 md:h-6 md:w-6" />}
+                {isCompleted ? (
+                  <Check className="h-4 w-4 md:h-6 md:w-6" /> 
+                ) : (
+                  <step.icon className="h-4 w-4 md:h-6 md:w-6" />
+                )}
               </div>
 
-              {/* ข้อความ (เอา absolute ออก แล้วใช้ margin แทน) */}
-              <div className="mt-3 text-center w-full px-1">
-                <div className={cn("text-[11px] font-bold leading-tight md:text-[13px]", isActive || isCompleted ? "text-slate-800" : "text-slate-400")}>
-                  {step.labelTh}
-                </div>
-                <div className="text-[9px] md:text-[10px] font-medium opacity-60 mt-0.5 text-slate-500">
-                  {step.labelEn}
+              {/* ข้อความกำกับ */}
+              <div className="mt-2 md:mt-3 flex flex-col items-center w-full px-1">
+                <div className="w-full max-w-[80px] md:max-w-none text-center flex flex-col items-center">
+                  {/* ภาษาไทย: เอา whitespace-nowrap ออก เพื่อให้ข้อความตัดขึ้นบรรทัดใหม่ได้เมื่อจอกว้างไม่พอ */}
+                  <div className={cn(
+                    "text-[9px] sm:text-[10px] md:text-xs font-bold leading-[1.2] break-words md:whitespace-nowrap", 
+                    isActive || isCompleted ? "text-slate-800" : "text-slate-400"
+                  )}>
+                    {step.labelTh}
+                  </div>
+                  
+                  {/* ภาษาอังกฤษ: ซ่อนในมือถือ (hidden) และแสดงตั้งแต่จอ sm ขึ้นไป (sm:block) เพื่อลดความรก */}
+                  <div className="hidden sm:block text-[9px] md:text-[10px] font-medium opacity-60 mt-0.5 text-slate-500 leading-tight md:whitespace-nowrap">
+                    {step.labelEn}
+                  </div>
                 </div>
               </div>
             </div>
