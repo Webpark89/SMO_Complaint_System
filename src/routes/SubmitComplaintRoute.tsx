@@ -5,6 +5,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import {
   ArrowLeft,
+  ArrowRight,
   Send,
   Lock,
   CheckCircle2,
@@ -46,6 +47,7 @@ import {
 import { complaintLocations } from "@/mock/organization";
 import { cn } from "@/lib/utils";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Check, BookOpen, Edit, ShieldCheck } from "lucide-react";
 
 interface TermsAndPrivacyContentProps {}
 export const TermsAndPrivacyContent = forwardRef<
@@ -223,99 +225,84 @@ function formatThaiDateTime(date: string, time: string): string {
 }
 
 function SubmitPage() {
-  const [hasAcceptedTerms, setHasAcceptedTerms] = useState<boolean>(false);
-
-  return (
-    <div className="transition-opacity duration-300">
-      {!hasAcceptedTerms ? (
-        <ConsentGate
-          hasAccepted={hasAcceptedTerms}
-          setHasAccepted={(v) => {
-            setHasAcceptedTerms(v);
-          }}
-        />
-      ) : (
-        <ComplaintForm />
-      )}
-    </div>
-  );
+  return <ComplaintForm />;
 }
 
-function ConsentGate({
-  hasAccepted,
-  setHasAccepted,
-}: {
-  hasAccepted: boolean;
-  setHasAccepted: (v: boolean) => void;
-}) {
-  const [checked, setChecked] = useState<boolean>(hasAccepted);
-  const contentRef = useRef<HTMLDivElement | null>(null);
-  const [scrolledToBottom, setScrolledToBottom] = useState<boolean>(false);
-  const navigate = useNavigate();
+// function ConsentGate({
+//   hasAccepted,
+//   setHasAccepted,
+// }: {
+//   hasAccepted: boolean;
+//   setHasAccepted: (v: boolean) => void;
+// }) {
+//   const [checked, setChecked] = useState<boolean>(hasAccepted);
+//   const contentRef = useRef<HTMLDivElement | null>(null);
+//   const [scrolledToBottom, setScrolledToBottom] = useState<boolean>(false);
+//   const navigate = useNavigate();
 
-  useEffect(() => setChecked(hasAccepted), [hasAccepted]);
+//   useEffect(() => setChecked(hasAccepted), [hasAccepted]);
 
-  useEffect(() => {
-    const el = contentRef.current;
-    if (!el) return;
-    const check = () => {
-      const { scrollTop, clientHeight, scrollHeight } = el;
-      setScrolledToBottom(scrollTop + clientHeight >= scrollHeight - 8);
-    };
-    check();
-    el.addEventListener("scroll", check, { passive: true });
-    return () => el.removeEventListener("scroll", check);
-  }, []);
+//   useEffect(() => {
+//     const el = contentRef.current;
+//     if (!el) return;
+//     const check = () => {
+//       const { scrollTop, clientHeight, scrollHeight } = el;
+//       setScrolledToBottom(scrollTop + clientHeight >= scrollHeight - 8);
+//     };
+//     check();
+//     el.addEventListener("scroll", check, { passive: true });
+//     return () => el.removeEventListener("scroll", check);
+//   }, []);
 
-  return (
-    <PageContainer>
-      <section className="py-12">
-        <MainLayout narrow>
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-soft transition-shadow">
-            <TermsAndPrivacyContent ref={contentRef} />
+  // return (
+  //   <PageContainer>
+  //     <section className="py-12">
+  //       <MainLayout narrow>
+  //         <div className="rounded-2xl border border-border bg-card p-6 shadow-soft transition-shadow">
+  //           <TermsAndPrivacyContent ref={contentRef} />
 
-            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <label className="flex items-center gap-3">
-                <Checkbox
-                  disabled={!scrolledToBottom}
-                  checked={checked}
-                  onCheckedChange={(v) => setChecked(v === true)}
-                />
-                <span className="text-sm">
-                  เข้าใจและยอมรับเงื่อนไขการใช้งาน
-                </span>
-              </label>
-              <div className="pl-7 text-xs text-muted-foreground sm:pl-0 sm:text-right">
-                {!scrolledToBottom
-                  ? "กรุณาเลื่อนอ่านเนื้อหาจนจบเพื่อเปิดใช้งาน"
-                  : ""}
-              </div>
-            </div>
+  //           <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+  //             <label className="flex items-center gap-3">
+  //               <Checkbox
+  //                 disabled={!scrolledToBottom}
+  //                 checked={checked}
+  //                 onCheckedChange={(v) => setChecked(v === true)}
+  //               />
+  //               <span className="text-sm">
+  //                 เข้าใจและยอมรับเงื่อนไขการใช้งาน
+  //               </span>
+  //             </label>
+  //             <div className="pl-7 text-xs text-muted-foreground sm:pl-0 sm:text-right">
+  //               {!scrolledToBottom
+  //                 ? "กรุณาเลื่อนอ่านเนื้อหาจนจบเพื่อเปิดใช้งาน"
+  //                 : ""}
+  //             </div>
+  //           </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-3 sm:flex sm:justify-end">
-              <Button
-                variant="outline"
-                onClick={() => navigate({ to: "/" })}
-                className="h-11 w-full sm:w-auto"
-              >
-                ยกเลิก
-              </Button>
+  //           <div className="mt-4 grid grid-cols-2 gap-3 sm:flex sm:justify-end">
+  //             <Button
+  //               variant="outline"
+  //               onClick={() => navigate({ to: "/" })}
+  //               className="h-11 w-full sm:w-auto"
+  //             >
+  //               ยกเลิก
+  //             </Button>
 
-              <Button
-                variant="default"
-                disabled={!checked}
-                onClick={() => setHasAccepted(true)}
-                className="h-11 w-full sm:w-auto"
-              >
-                ดำเนินการต่อ
-              </Button>
-            </div>
-          </div>
-        </MainLayout>
-      </section>
-    </PageContainer>
-  );
-}
+  //             <Button
+  //               variant="default"
+  //               disabled={!checked}
+  //               onClick={() => setHasAccepted(true)}
+  //               className="h-11 w-full sm:w-auto"
+  //             >
+  //               ดำเนินการต่อ
+  //             </Button>
+  //           </div>
+  //         </div>
+  //       </MainLayout>
+  //     </section>
+  //   </PageContainer>
+  // );
+
 
 type ComplaintFormData = {
   is_anonymous: boolean;
@@ -385,6 +372,25 @@ function ComplaintForm() {
   const [errors, setErrors] = useState<StepErrors>({});
   const [initialFillDone, setInitialFillDone] = useState(false);
   const [isDateTimeEditMode, setIsDateTimeEditMode] = useState(false);
+
+  const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
+  const [isTermsAccepted, setIsTermsAccepted] = useState(false);
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const [scrolledToBottom, setScrolledToBottom] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!hasAcceptedTerms) {
+      const el = contentRef.current;
+      if (!el) return;
+      const check = () => {
+        const { scrollTop, clientHeight, scrollHeight } = el;
+        setScrolledToBottom(scrollTop + clientHeight >= scrollHeight - 8);
+      };
+      check();
+      el.addEventListener("scroll", check, { passive: true });
+      return () => el.removeEventListener("scroll", check);
+    }
+  }, [hasAcceptedTerms]);
 
   useEffect(() => {
     if (form.has_witness && (!form.witnesses || form.witnesses.length === 0)) {
@@ -470,32 +476,24 @@ function ComplaintForm() {
   // ยุบรวม Validation ของทุกส่วนที่เหลือมาไว้ที่ Step 2
   function stepErrors(step: number): StepErrors {
     const next: StepErrors = {};
+    
+    // Step 1: หมวดหมู่และประเด็น
     if (step === 1) {
-      if (!form.category_id)
-        next.category_id = "กรุณาเลือกประเภทเรื่องร้องเรียน";
+      if (!form.category_id) next.category_id = "กรุณาเลือกประเภทเรื่องร้องเรียน";
       if (!form.subtopic_id) next.subtopic_id = "กรุณาเลือกหัวข้อย่อย";
       if (form.subtopic_id.endsWith("_other") && !form.subtopic_other.trim())
         next.subtopic_other = "กรุณาระบุรายละเอียดเพิ่มเติม";
     }
+    
+    // Step 2: รายละเอียดเหตุการณ์ (วันที่ เวลา สาขา)
     if (step === 2) {
       if (!form.occurred_date) next.occurred_date = "กรุณาเลือกวันที่เกิดเหตุ";
       if (!form.occurred_time) next.occurred_time = "กรุณาเลือกเวลาที่เกิดเหตุ";
       if (!form.location) next.location = "กรุณาเลือกสาขา";
+    }
 
-      // Validation ส่วนเก่าของหน้า 2 ที่อาจซ่อนอยู่
-      if (form.category_id === "product_service") {
-        if (!form.product_type) next.product_type = "กรุณาเลือกชนิดสินค้า";
-        if (form.product_type === "OTHER" && !form.product_type_other.trim())
-          next.product_type_other = "กรุณาระบุชนิดสินค้าที่ไม่อยู่ในรายการ";
-        if (!form.lot_reference.trim())
-          next.lot_reference = "กรุณาระบุล็อตอ้างอิง";
-        if (!form.contract_number.trim())
-          next.contract_number = "กรุณาระบุสัญญาซื้อขายเลขที่";
-        if (!form.delivery_date.trim())
-          next.delivery_date = "กรุณาเลือกวันส่งมอบสินค้า";
-      }
-
-      // Validation ส่วนข้อมูลผู้แจ้ง
+    // Step 3: ข้อมูลผู้ร้องเรียน
+    if (step === 3) {
       if (!form.is_anonymous) {
         if (!form.reporter_name || !form.reporter_name.trim()) {
           next.reporter_name = "กรุณาระบุชื่อ-นามสกุล";
@@ -506,11 +504,13 @@ function ComplaintForm() {
           next.reporter_email = "กรุณาระบุอีเมลที่ถูกต้อง";
         }
       }
-
-      // Validation ส่วนยืนยัน
-      if (!form.consent_truth)
-        next.consent_truth = "กรุณายืนยันความถูกต้องของข้อมูล";
     }
+
+    // Step 4: ตรวจสอบและยืนยันข้อมูล
+    if (step === 4) {
+      if (!form.consent_truth) next.consent_truth = "กรุณายืนยันความถูกต้องของข้อมูล";
+    }
+    
     return next;
   }
 
@@ -584,57 +584,85 @@ function ComplaintForm() {
   if (success) {
     return (
       <PageContainer>
-        <section className="min-h-[80vh] py-16">
+        <section className="min-h-[80vh] py-16 flex flex-col items-center justify-center">
           <MainLayout narrow>
-            <div className="rounded-2xl border border-border bg-card p-10 text-center shadow-elegant">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success/10 text-success">
-                <CheckCircle2 className="h-8 w-8" />
+            <div className="text-center animate-[fadeInUp_0.4s_ease-out_both] flex flex-col items-center">
+              
+              {/* ไอคอน Check วงกลมสีเขียวอ่อน */}
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#e6f4ea] text-[#16a34a] shadow-sm md:h-20 md:w-20">
+                <CheckCircle2 className="h-8 w-8 md:h-10 md:w-10" />
               </div>
-              <h1 className="mt-6 font-display text-2xl font-bold text-primary">
+              
+              {/* หัวข้อหลัก */}
+              <h1 className="mt-6 font-display text-2xl font-bold text-[#0f284a] md:text-3xl">
                 ระบบได้รับเรื่องของท่านเรียบร้อยแล้ว
               </h1>
-              <p className="mt-2 text-sm text-muted-foreground">
+              
+              {/* คำอธิบาย */}
+              <p className="mt-3 text-sm text-muted-foreground md:text-base">
                 เจ้าหน้าที่จะดำเนินการตามนโยบายคุ้มครองผู้แจ้งเบาะแส
               </p>
-              <div className="mx-auto mt-8 max-w-md rounded-xl border border-border bg-[var(--surface-muted)] p-6 text-left">
-                <div className="text-[11px] font-semibold tracking-[0.2em] text-muted-foreground">
+              
+              {/* การ์ดแสดงหมายเลขอ้างอิง (กล่องสีขาว) */}
+              <div className="mx-auto mt-8 w-full max-w-[600px] rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+                <div className="text-xs font-bold tracking-wide text-[#0f284a] md:text-sm">
                   หมายเลขอ้างอิง / Reference Number
                 </div>
-                <div className="mt-2 flex items-center justify-between gap-3">
-                  <div className="font-display text-2xl font-bold tracking-wider text-primary">
-                    {success.ref}
-                  </div>
+                
+                {/* ตัวเลขหมายเลขอ้างอิง (ขยายให้ใหญ่และหนาขึ้น) */}
+                <div className="mt-4 font-display text-3xl font-black tracking-wider text-[#0f284a] md:text-4xl">
+                  {success.ref}
+                </div>
+                
+                {/* กลุ่มปุ่ม คัดลอก / บันทึกภาพ แบบ Responsive */}
+                <div className="mt-6 flex w-full flex-row gap-3 sm:justify-center">
                   <button
-                    className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs hover:bg-muted"
+                    type="button"
+                    // เปลี่ยนตรงนี้: มือถือใช้ flex-1 (แบ่งครึ่ง) | จอคอมใช้ sm:flex-none sm:w-28 (ขนาดคงที่)
+                    className="flex h-11 flex-1 sm:flex-none sm:w-28 items-center justify-center gap-2 rounded-lg border border-[#d49a26] bg-white text-sm font-medium text-[#0f284a] transition-colors hover:bg-slate-50"
                     onClick={() => {
                       navigator.clipboard.writeText(success.ref);
                       toast.success("คัดลอกแล้ว");
                     }}
                   >
-                    <Copy className="h-3.5 w-3.5" /> คัดลอก
+                    <Copy className="h-4 w-4 text-slate-500" /> คัดลอก
                   </button>
                   <button
-                    className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs hover:bg-muted"
+                    type="button"
+                    // เปลี่ยนตรงนี้: มือถือใช้ flex-1 (แบ่งครึ่ง) | จอคอมใช้ sm:flex-none sm:w-32 (ขนาดคงที่)
+                    className="flex h-11 flex-1 sm:flex-none sm:w-32 items-center justify-center gap-2 rounded-lg border border-[#d49a26] bg-white text-sm font-medium text-[#0f284a] transition-colors hover:bg-slate-50"
                     onClick={() => {
                       navigator.clipboard.writeText(success.ref);
                       toast.success("คัดลอกแล้ว");
                     }}
                   >
-                    <Copy className="h-3.5 w-3.5" /> บันทึกภาพ
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                    บันทึกภาพ
                   </button>
                 </div>
-                <p className="mt-3 text-xs text-red-500">
-                  โปรดเก็บหมายเลขนี้ไว้สำหรับติดตามสถานะ
-                </p>
-                <p className="mt-1 text-xs text-red-500">
-                  Please keep this number for status tracking.{" "}
-                </p>
+                
+                {/* ข้อความแจ้งเตือนสีส้ม */}
+                <div className="mt-6 space-y-1">
+                  <p className="text-xs font-medium text-[#d45511] md:text-sm">
+                    โปรดเก็บหมายเลขนี้ไว้สำหรับติดตามสถานะ
+                  </p>
+                  <p className="text-[11px] text-[#d45511] md:text-xs">
+                    Please keep this number for status tracking.
+                  </p>
+                </div>
               </div>
-              <div className="mt-8 flex flex-wrap justify-center gap-3">
-                <Button variant="outline" onClick={() => navigate({ to: "/" })}>
+              
+              {/* ปุ่มกลับหน้าแรก (ปุ่มสีทอง) */}
+              <div className="mt-8 flex w-full justify-center">
+                <Button 
+                  // เปลี่ยนตรงนี้: มือถือใช้ w-full | จอคอมใช้ sm:w-auto sm:px-12
+                  className="h-12 w-full sm:w-auto sm:px-12 rounded-lg bg-[#d49a26] text-base font-medium text-white hover:bg-[#b58320]" 
+                  onClick={() => navigate({ to: "/" })}
+                >
                   กลับสู่หน้าแรก
                 </Button>
               </div>
+              
             </div>
           </MainLayout>
         </section>
@@ -653,907 +681,1556 @@ function ComplaintForm() {
 
   const summaryLocation = selectedLocation?.name || "ยังไม่ได้เลือกสาขา";
 
+  if (!hasAcceptedTerms) {
+    return (
+      <PageContainer>
+        <section className="py-12 md:py-8">
+          <MainLayout>
+            <div className="mb-6 flex items-center justify-between">
+              <Link
+                to="/"
+                className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" /> กลับสู่หน้าแรก
+              </Link>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-white p-6 shadow-sm md:p-8 animate-[fadeIn_0.3s_ease-out_both]">
+              <TermsAndPrivacyContent ref={contentRef} />
+
+              <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-t pt-6">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <Checkbox
+                    disabled={!scrolledToBottom}
+                    checked={isTermsAccepted}
+                    onCheckedChange={(v) => setIsTermsAccepted(v === true)}
+                  />
+                  <span className="text-sm font-medium">เข้าใจและยอมรับเงื่อนไขการใช้งาน</span>
+                </label>
+                {!scrolledToBottom && (
+                  <span className="text-xs text-red-500 font-medium">
+                    กรุณาเลื่อนอ่านเนื้อหาให้จบเพื่อยอมรับเงื่อนไข
+                  </span>
+                )}
+              </div>
+
+              <div className="mt-8 flex justify-end gap-3 border-t border-border pt-6">
+                {/* <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11 px-6"
+                  onClick={() => navigate({ to: "/" })}
+                >
+                  ยกเลิก
+                </Button> */}
+                <Button
+                  type="button"
+                  className="bg-[#d49a26] hover:bg-[#b58320] text-white px-8 h-11"
+                  disabled={!isTermsAccepted}
+                  onClick={() => setHasAcceptedTerms(true)}
+                >
+                  ดำเนินการต่อ <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </MainLayout>
+        </section>
+      </PageContainer>
+    );
+  }
+
+  // return (
+  //   <PageContainer>
+  //     <section className="py-12 md:py-3">
+  //       <MainLayout>
+  //         <div className="mb-4 flex items-center justify-between gap-3">
+  //           <Link
+  //             to="/"
+  //             className="inline-flex items-center text-xs text-muted-foreground hover:text-primary shrink-0"
+  //           >
+  //             <ArrowLeft className="mr-1.5 h-3.5 w-3.5" /> กลับสู่หน้าแรก
+  //           </Link>
+  //         </div>
+  //         <form onSubmit={onSubmit} className="space-y-4">
+  //           {Array.from({ length: 2 }, (_, index) => index + 1).map((step) => {
+  //             const isOpen = currentStep === step;
+  //             const getStepInfo = (stepNumber: number) => {
+  //               switch (stepNumber) {
+  //                 case 1:
+  //                   return {
+  //                     th: "ประเภทเรื่องร้องเรียน",
+  //                     en: "Complaint Type",
+  //                     required: true,
+  //                   };
+  //                 case 2:
+  //                   return {
+  //                     th: "รายละเอียดและการยืนยัน",
+  //                     en: "Details & Confirmation",
+  //                     required: true,
+  //                   };
+  //                 default:
+  //                   return { th: "", en: "", required: false };
+  //               }
+  //             };
+
+  //             const stepInfo = getStepInfo(step);
+  //             const stepSummary = step === 1;
+
+  //             return (
+  //               <div
+  //                 key={step}
+  //                 ref={(node) => {
+  //                   sectionRefs.current[step - 1] = node;
+  //                 }}
+  //                 className={cn(
+  //                   "overflow-hidden rounded-2xl border bg-card transition-all duration-300",
+  //                   isOpen
+  //                     ? "border-primary/30 shadow-elegant"
+  //                     : "border-border shadow-sm hover:border-primary/20",
+  //                 )}
+  //               >
+  //                 <Button
+  //                   type="button"
+  //                   variant="ghost"
+  //                   onClick={() => openStep(step)}
+  //                   className={cn(
+  //                     "h-auto rounded-none font-normal whitespace-normal",
+  //                     "group flex w-full items-start justify-between gap-4 px-5 py-4 text-left transition-colors duration-200",
+  //                     isOpen
+  //                       ? "border-b border-border bg-slate-50/50 dark:bg-[var(--surface-muted)] hover:bg-slate-50/50 dark:hover:bg-[var(--surface-muted)]"
+  //                       : "hover:bg-slate-50 dark:hover:bg-[var(--surface-muted)]/50",
+  //                   )}
+  //                   aria-expanded={isOpen}
+  //                 >
+  //                   <div className="flex min-w-0 items-start gap-4">
+  //                     {/* Step Number Indicator */}
+  //                     <span
+  //                       className={cn(
+  //                         "mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-xl text-sm font-bold transition-all duration-300",
+  //                         isOpen
+  //                           ? "bg-accent text-primary-foreground shadow-md scale-105"
+  //                           : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary",
+  //                       )}
+  //                     >
+  //                       {step}
+  //                     </span>
+
+  //                     {/* Titles & Summary */}
+  //                     <div className="min-w-0 pt-0.5">
+  //                       <div className="flex items-center gap-1.5 font-display text-base font-semibold text-foreground">
+  //                         {stepInfo.th}
+  //                         {stepInfo.required && (
+  //                           <span className="text-destructive">*</span>
+  //                         )}
+  //                       </div>
+
+  //                       <div className="mt-0.5 text-xs text-muted-foreground">
+  //                         {stepInfo.en}
+  //                       </div>
+
+  //                       {!isOpen && stepSummary && (
+  //                         <div className="mt-2.5 flex items-center">
+  //                           <div className="border-l-2 border-primary/40 pl-2.5 text-sm font-medium text-foreground/80 line-clamp-1">
+  //                             {stepSummary}
+  //                           </div>
+  //                         </div>
+  //                       )}
+  //                     </div>
+  //                   </div>
+
+  //                   {!isOpen && (
+  //                     <span className="mt-1 shrink-0 rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-1 text-[11px] font-medium text-muted-foreground transition-colors group-hover:bg-slate-200 dark:group-hover:bg-slate-700">
+  //                       แตะเพื่อแก้ไข
+  //                     </span>
+  //                   )}
+  //                 </Button>
+
+  //                 {/* Content Body */}
+  //                 <div
+  //                   className={cn(
+  //                     "grid transition-all duration-300 ease-in-out",
+  //                     isOpen
+  //                       ? "grid-rows-[1fr] opacity-100"
+  //                       : "grid-rows-[0fr] opacity-0",
+  //                   )}
+  //                   style={{ willChange: "max-height, opacity, transform" }}
+  //                 >
+  //                   <div className="overflow-hidden">
+  //                     <div className="p-3 md:p-6">
+  //                       {/* Step 1: ประเภทเรื่องร้องเรียน (ยังเหมือนเดิม) */}
+  //                       {step === 1 && (
+  //                         <Section
+  //                           icon={<Tag className="h-4 w-4" />}
+  //                           step="1"
+  //                           title="ประเภทเรื่องร้องเรียน"
+  //                           required
+  //                           hideHeader
+  //                         >
+  //                           <div className="grid gap-5">
+  //                             <div>
+  //                               <Label className="text-xs font-medium font-bold text-foreground/80">
+  //                                 เลือกหมวดหมู่การแจ้งเรื่อง (Select Reporting Category)
+  //                               </Label>
+  //                               <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-3">
+  //                                 {complaintTypes.map((category) => {
+  //                                   const active =
+  //                                     form.category_id === category.id;
+  //                                   return (
+  //                                     <Button
+  //                                       key={category.id}
+  //                                       type="button"
+  //                                       variant="ghost"
+  //                                       onClick={() => {
+  //                                         update("category_id", category.id);
+  //                                         update("subtopic_id", "");
+  //                                         update("subtopic_other", "");
+  //                                         update("subcategory_other", "");
+  //                                         update("product_type", "");
+  //                                         update("product_type_other", "");
+  //                                         update("lot_reference", "");
+  //                                         update("contract_number", "");
+  //                                         update("delivery_date", "");
+  //                                         setErrors((prev) => ({
+  //                                           ...prev,
+  //                                           category_id: undefined,
+  //                                           subtopic_id: undefined,
+  //                                         }));
+  //                                       }}
+  //                                       className={cn(
+  //                                         "gap-0 h-auto w-full flex-col items-start justify-start whitespace-normal font-normal",
+  //                                         "rounded-lg border px-3 py-2 text-left text-sm transition-colors",
+  //                                         active
+  //                                           ? "border-primary bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary"
+  //                                           : "border-border bg-card text-foreground hover:bg-muted",
+  //                                       )}
+  //                                       aria-pressed={active}
+  //                                     >
+  //                                       <div className="font-medium text-base sm:text-sm">
+  //                                         {category.name}
+  //                                       </div>
+
+  //                                       {category.nameEn && (
+  //                                         <div className="mt-0 text-xs text-muted-foreground">
+  //                                           {category.nameEn}
+  //                                         </div>
+  //                                       )}
+
+  //                                       {category.description && (
+  //                                         <div className="mt-0 text-xs opacity-80 leading-relaxed">
+  //                                           {category.description}
+  //                                         </div>
+  //                                       )}
+  //                                     </Button>
+  //                                   );
+  //                                 })}
+  //                               </div>
+  //                               <FieldError msg={errors.category_id} />
+  //                             </div>
+
+  //                             <div>
+  //                               <Label className="text-xs font-medium font-bold text-foreground/80">
+  //                                 เลือกประเด็นที่เกี่ยวข้อง (Select Related Issue)
+  //                               </Label>
+  //                               <div
+  //                                 className={cn(
+  //                                   "mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3",
+  //                                   !selectedCategory
+  //                                     ? "opacity-60 pointer-events-none"
+  //                                     : "",
+  //                                 )}
+  //                               >
+  //                                 {subtopics.map((subtopic) => {
+  //                                   const active =
+  //                                     form.subtopic_id === subtopic.id;
+  //                                   return (
+  //                                     <Button
+  //                                       key={subtopic.id}
+  //                                       type="button"
+  //                                       variant="ghost"
+  //                                       onClick={() => {
+  //                                         update("subtopic_id", subtopic.id);
+  //                                         update("subtopic_other", "");
+  //                                         update("subcategory_other", "");
+  //                                       }}
+  //                                       className={cn(
+  //                                         "gap-0 h-auto w-full flex-col items-start justify-start whitespace-normal font-normal",
+  //                                         "rounded-lg border px-3 py-2 text-left text-sm transition-colors",
+  //                                         active
+  //                                           ? "border-primary bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary"
+  //                                           : "border-border bg-card text-foreground hover:bg-muted",
+  //                                       )}
+  //                                       aria-pressed={active}
+  //                                     >
+  //                                       <div className="font-medium text-base sm:text-sm">
+  //                                         {subtopic.name}
+  //                                       </div>
+
+  //                                       {subtopic.nameEn && (
+  //                                         <div className="mt-0.5 text-xs text-muted-foreground">
+  //                                           {subtopic.nameEn}
+  //                                         </div>
+  //                                       )}
+  //                                     </Button>
+  //                                   );
+  //                                 })}
+  //                               </div>
+  //                               <FieldError msg={errors.subtopic_id} />
+  //                             </div>
+
+  //                             {form.subtopic_id.endsWith("_other") && (
+  //                               <div>
+  //                                 <FieldGroup
+  //                                   label="กรุณาระบุรายละเอียด"
+  //                                   required
+  //                                   error={errors.subtopic_other}
+  //                                 >
+  //                                   <Input
+  //                                     className="rounded-lg"
+  //                                     value={form.subtopic_other}
+  //                                     onChange={(e) =>
+  //                                       update("subtopic_other", e.target.value)
+  //                                     }
+  //                                     placeholder="ระบุรายละเอียดเพิ่มเติม"
+  //                                   />
+  //                                 </FieldGroup>
+  //                               </div>
+  //                             )}
+  //                           </div>
+  //                           <div className="mt-4 flex justify-end pt-4">
+  //                             <Button
+  //                               type="button"
+  //                               disabled={Object.keys(stepErrors(1)).length > 0}
+  //                               onClick={() => handleNextStep(1)}
+  //                             >
+  //                               ถัดไป
+  //                             </Button>
+  //                           </div>
+  //                         </Section>
+  //                       )}
+
+  //                       {/* Step 2: ยุบรวมรายละเอียดที่เหลือทั้งหมด */}
+  //                       {step === 2 && (
+  //                         <Section
+  //                           icon={<MessageSquareText className="h-4 w-4" />}
+  //                           step="2"
+  //                           title="รายละเอียด, ผู้ร้องเรียน และยืนยัน"
+  //                           required
+  //                           hideHeader
+  //                         >
+  //                           <div className="space-y-10">
+  //                             <div className="space-y-6">
+  //                               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+  //                                 {/* คอลัมน์ซ้าย: วันที่และเวลาที่เกิดเหตุ */}
+  //                                 <div className="flex flex-col h-full">
+  //                                   <Label className="text-sm font-semibold text-foreground block mb-0">
+  //                                     วันที่และเวลาที่เกิดเหตุ (Date and Time of
+  //                                     Incident){" "}
+  //                                     <span className="text-destructive">
+  //                                       *
+  //                                     </span>
+  //                                   </Label>
+  //                                   <div className="grid gap-4 md:grid-cols-2 mt-3">
+  //                                     <div className="flex flex-col">
+  //                                       <Input
+  //                                         type="date"
+  //                                         className={cn(
+  //                                           "relative w-full h-[52px] rounded-lg px-3 text-sm focus-visible:ring-2 focus-visible:ring-primary/20",
+  //                                           // บังคับไอคอนปฏิทินของเบราว์เซอร์ให้ชิดขวา
+  //                                           "[&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-4 [&::-webkit-calendar-picker-indicator]:cursor-pointer",
+  //                                           errors.occurred_date
+  //                                             ? "border-red-500 bg-red-50 text-[#111827]"
+  //                                             : "border-border text-foreground",
+  //                                         )}
+  //                                         value={form.occurred_date}
+  //                                         onChange={(e) =>
+  //                                           update(
+  //                                             "occurred_date",
+  //                                             e.target.value,
+  //                                           )
+  //                                         }
+  //                                       />
+  //                                       {/* เผื่อที่ว่างด้านล่างให้เท่ากับ Error ฝั่งขวา กล่องจะได้ไม่ขยับหนีกัน */}
+  //                                       <div className="min-h-[24px] mt-1"></div>
+  //                                     </div>
+
+  //                                     <div className="flex flex-col">
+  //                                       <Input
+  //                                         type="time"
+  //                                         className={cn(
+  //                                           "relative w-full h-[52px] rounded-lg px-3 text-sm focus-visible:ring-2 focus-visible:ring-primary/20",
+  //                                           // บังคับไอคอนนาฬิกาของเบราว์เซอร์ให้ชิดขวา
+  //                                           "[&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-4 [&::-webkit-calendar-picker-indicator]:cursor-pointer",
+  //                                           errors.occurred_time
+  //                                             ? "border-red-500 bg-red-50 text-[#111827]"
+  //                                             : "border-border text-foreground",
+  //                                         )}
+  //                                         value={form.occurred_time}
+  //                                         onChange={(e) =>
+  //                                           update(
+  //                                             "occurred_time",
+  //                                             e.target.value,
+  //                                           )
+  //                                         }
+  //                                       />
+  //                                       <div className="min-h-[24px] mt-1"></div>
+  //                                     </div>
+  //                                   </div>
+  //                                 </div>
+
+  //                                 {/* คอลัมน์ขวา: สาขา (Branch Location) */}
+  //                                 <div className="flex flex-col h-full">
+  //                                   <Label className="text-sm font-semibold text-foreground block mb-0">
+  //                                     สาขาที่เกิดเหตุ (Branch Location){" "}
+  //                                     <span className="text-destructive">
+  //                                       *
+  //                                     </span>
+  //                                   </Label>
+  //                                   <div className="mt-3 flex flex-col">
+  //                                     <Select
+  //                                       value={form.location}
+  //                                       onValueChange={(value) =>
+  //                                         update("location", value)
+  //                                       }
+  //                                     >
+  //                                       <SelectTrigger
+  //                                         className={cn(
+  //                                           "w-full h-[52px] rounded-lg bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20",
+  //                                           errors.location
+  //                                             ? "border-slate-300 bg-white text-[#111827]"
+  //                                             : "border-border text-foreground",
+  //                                         )}
+  //                                       >
+  //                                         <SelectValue placeholder="-- กรุณาเลือกสาขา (Select Branch) --" />
+  //                                       </SelectTrigger>
+
+  //                                       <SelectContent>
+  //                                         {complaintLocations.map(
+  //                                           (location) => (
+  //                                             <SelectItem
+  //                                               key={location.id}
+  //                                               value={location.id}
+  //                                             >
+  //                                               {location.name}
+  //                                             </SelectItem>
+  //                                           ),
+  //                                         )}
+  //                                       </SelectContent>
+  //                                     </Select>
+
+  //                                     {/* จัดการพื้นที่ Error ให้มีความสูงคงที่ เพื่อไม่ให้ดัน Select ลอยขึ้น */}
+  //                                     <div className="min-h-[24px] mt-1">
+  //                                       <FieldError msg={errors.location} />
+  //                                     </div>
+  //                                   </div>
+  //                                 </div>
+  //                               </div>
+
+  //                               <div className="rounded-xl border border-border bg-slate-50 dark:bg-[var(--surface-muted)] p-4 md:p-5">
+  //                                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+  //                                   <div className="flex-1">
+  //                                     <Label className="text-sm font-semibold text-foreground">
+  //                                       มีพยานหรือไม่? (Are there witnesses?)
+  //                                     </Label>
+  //                                     <p className="mt-1 text-xs text-muted-foreground leading-relaxed max-w-sm">
+  //                                       ระบุได้หากมีผู้เห็นเหตุการณ์หรือผู้เกี่ยวข้องเพิ่มเติม
+  //                                     </p>
+  //                                   </div>
+
+  //                                   <RadioGroup
+  //                                     className="flex items-center gap-6 shrink-0 p-2"
+  //                                     value={
+  //                                       form.has_witness ? "true" : "false"
+  //                                     }
+  //                                     onValueChange={(v) =>
+  //                                       update("has_witness", v === "true")
+  //                                     }
+  //                                   >
+  //                                     <div className="flex items-center gap-2">
+  //                                       <RadioGroupItem
+  //                                         value="true"
+  //                                         id="witness_yes"
+  //                                       />
+  //                                       <Label
+  //                                         htmlFor="witness_yes"
+  //                                         className="text-sm font-medium cursor-pointer"
+  //                                       >
+  //                                         มี{" "}
+  //                                         <span className="text-muted-foreground font-normal ml-0.5">
+  //                                           (Yes)
+  //                                         </span>
+  //                                       </Label>
+  //                                     </div>
+
+  //                                     <div className="flex items-center gap-2">
+  //                                       <RadioGroupItem
+  //                                         value="false"
+  //                                         id="witness_no"
+  //                                       />
+  //                                       <Label
+  //                                         htmlFor="witness_no"
+  //                                         className="text-sm font-medium cursor-pointer"
+  //                                       >
+  //                                         ไม่มี{" "}
+  //                                         <span className="text-muted-foreground font-normal ml-0.5">
+  //                                           (No)
+  //                                         </span>
+  //                                       </Label>
+  //                                     </div>
+  //                                   </RadioGroup>
+  //                                 </div>
+
+  //                                 <div
+  //                                   className={cn(
+  //                                     "grid transition-all duration-300 ease-in-out",
+  //                                     form.has_witness
+  //                                       ? "grid-rows-[1fr] opacity-100 mt-5 pt-5 border-t border-border"
+  //                                       : "grid-rows-[0fr] opacity-0 mt-0",
+  //                                   )}
+  //                                 >
+  //                                   <div className="overflow-hidden">
+  //                                     <div className="mb-3 text-sm font-medium text-foreground">
+  //                                       รายชื่อพยาน{" "}
+  //                                       <span className="text-xs text-muted-foreground ml-1">
+  //                                         (Witness List)
+  //                                       </span>
+  //                                     </div>
+  //                                     <div className="space-y-3 pb-1 px-1">
+  //                                       {form.witnesses?.map(
+  //                                         (witness, index) => (
+  //                                           <div
+  //                                             key={index}
+  //                                             className="flex flex-col sm:flex-row items-start sm:items-center gap-3"
+  //                                           >
+  //                                             <Input
+  //                                               className="rounded-lg flex-1 bg-white"
+  //                                               value={witness.name}
+  //                                               onChange={(e) => {
+  //                                                 const updated = [
+  //                                                   ...form.witnesses!,
+  //                                                 ];
+  //                                                 updated[index] = {
+  //                                                   ...updated[index],
+  //                                                   name: e.target.value,
+  //                                                 };
+  //                                                 update("witnesses", updated);
+  //                                               }}
+  //                                               placeholder="ชื่อ-นามสกุล (Name)"
+  //                                             />
+
+  //                                             <div className="flex items-center gap-2 w-full sm:w-auto flex-1">
+  //                                               <Input
+  //                                                 className="rounded-lg w-full bg-white"
+  //                                                 value={witness.phone}
+  //                                                 onChange={(e) => {
+  //                                                   const updated = [
+  //                                                     ...form.witnesses!,
+  //                                                   ];
+  //                                                   updated[index] = {
+  //                                                     ...updated[index],
+  //                                                     phone: e.target.value,
+  //                                                   };
+  //                                                   update(
+  //                                                     "witnesses",
+  //                                                     updated,
+  //                                                   );
+  //                                                 }}
+  //                                                 placeholder="เบอร์โทรศัพท์ (Phone)"
+  //                                               />
+
+  //                                               {index === 0 ? (
+  //                                                 <Button
+  //                                                   type="button"
+  //                                                   variant="outline"
+  //                                                   className="shrink-0 w-10 sm:w-24"
+  //                                                   onClick={() => {
+  //                                                     update("witnesses", [
+  //                                                       ...(form.witnesses ||
+  //                                                         []),
+  //                                                       { name: "", phone: "" },
+  //                                                     ]);
+  //                                                   }}
+  //                                                 >
+  //                                                   <Plus className="h-4 w-4 sm:mr-2" />
+  //                                                   <span className="hidden sm:inline">
+  //                                                     เพิ่ม
+  //                                                   </span>
+  //                                                 </Button>
+  //                                               ) : (
+  //                                                 <Button
+  //                                                   type="button"
+  //                                                   variant="ghost"
+  //                                                   className="shrink-0 w-10 sm:w-24 text-destructive hover:bg-destructive/10 hover:text-destructive"
+  //                                                   onClick={() => {
+  //                                                     update(
+  //                                                       "witnesses",
+  //                                                       form.witnesses!.filter(
+  //                                                         (_, i) => i !== index,
+  //                                                       ),
+  //                                                     );
+  //                                                   }}
+  //                                                 >
+  //                                                   <X className="h-4 w-4 sm:mr-2" />
+  //                                                   <span className="hidden sm:inline">
+  //                                                     ลบ
+  //                                                   </span>
+  //                                                 </Button>
+  //                                               )}
+  //                                             </div>
+  //                                           </div>
+  //                                         ),
+  //                                       )}
+  //                                     </div>
+  //                                   </div>
+  //                                 </div>
+  //                               </div>
+
+  //                               <div>
+  //                                 <Label className="text-sm font-semibold text-foreground block mb-0.5">
+  //                                   รายละเอียดเพิ่มเติม
+  //                                 </Label>
+  //                                 <div className="text-xs text-muted-foreground mb-2 flex items-center justify-between">
+  //                                   <span>
+  //                                     Additional Information{" "}
+  //                                     <span className="ml-1 opacity-70">
+  //                                       (ไม่บังคับ / Optional)
+  //                                     </span>
+  //                                   </span>
+  //                                 </div>
+
+  //                                 <Textarea
+  //                                   className="min-h-[120px] resize-y rounded-xl bg-white p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+  //                                   maxLength={1000}
+  //                                   placeholder="สามารถระบุรายละเอียดเพิ่มเติม เช่น บุคคลที่เกี่ยวข้อง เหตุการณ์เพิ่มเติม หรือข้อมูลอื่น ๆ..."
+  //                                   value={form.description}
+  //                                   onChange={(e) =>
+  //                                     update("description", e.target.value)
+  //                                   }
+  //                                 />
+  //                                 <div className="mt-2 flex items-center justify-end">
+  //                                   <span
+  //                                     className={cn(
+  //                                       "text-xs font-medium",
+  //                                       form.description.length === 0
+  //                                         ? "text-muted-foreground/60"
+  //                                         : "text-primary/70",
+  //                                     )}
+  //                                   >
+  //                                     {form.description.length} / 1000
+  //                                   </span>
+  //                                 </div>
+  //                               </div>
+  //                             </div>
+
+  //                             <hr className="border-border" />
+
+  //                             {/* --- Section: แนบไฟล์ --- */}
+  //                             <div className="space-y-4">
+  //                               <h3 className="text-base font-semibold text-primary">
+  //                                 แนบไฟล์ / Attach Files (ถ้ามี)
+  //                               </h3>
+  //                               <label
+  //                                 onDragOver={(e) => {
+  //                                   e.preventDefault();
+  //                                 }}
+  //                                 onDrop={(e) => {
+  //                                   e.preventDefault();
+  //                                   addFiles(e.dataTransfer.files);
+  //                                 }}
+  //                                 className={cn(
+  //                                   "flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed py-10 text-center transition",
+  //                                   "border-border bg-[var(--surface-muted)] hover:border-primary/40",
+  //                                 )}
+  //                               >
+  //                                 <Upload className="h-7 w-7 text-muted-foreground" />
+  //                                 <div className="mt-3 text-sm font-medium">
+  //                                   ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือก
+  //                                 </div>
+  //                                 <div className="mt-1 text-sm font-medium">
+  //                                   Drag and drop files here, or click to select
+  //                                 </div>
+
+  //                                 <div className="mt-2 text-xs text-muted-foreground">
+  //                                   รองรับ PDF, DOCX, PNG, JPG, MP4, MOV ·
+  //                                   สูงสุด 5 ไฟล์
+  //                                 </div>
+  //                                 <input
+  //                                   type="file"
+  //                                   multiple
+  //                                   accept=".pdf,.docx,.doc,.png,.jpg,.jpeg,video/mp4,video/quicktime" // เพิ่มบรรทัดนี้
+  //                                   className="hidden"
+  //                                   onChange={(e) => addFiles(e.target.files)}
+  //                                 />
+  //                               </label>
+  //                               {form.files.length > 0 && (
+  //                                 <ul className="mt-3 space-y-2">
+  //                                   {form.files.map((file, index) => (
+  //                                     <li
+  //                                       key={`${file.name}-${index}`}
+  //                                       className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-2.5 text-sm"
+  //                                     >
+  //                                       <div className="flex min-w-0 items-center gap-2">
+  //                                         <FileText className="h-4 w-4 flex-none text-primary" />
+  //                                         <span className="truncate">
+  //                                           {file.name}
+  //                                         </span>
+  //                                         <span className="text-xs text-muted-foreground">
+  //                                           ({Math.round(file.size / 1024)} KB)
+  //                                         </span>
+  //                                       </div>
+  //                                       <button
+  //                                         type="button"
+  //                                         onClick={() =>
+  //                                           update(
+  //                                             "files",
+  //                                             form.files.filter(
+  //                                               (_, itemIndex) =>
+  //                                                 itemIndex !== index,
+  //                                             ),
+  //                                           )
+  //                                         }
+  //                                         className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-destructive"
+  //                                         aria-label="ลบไฟล์"
+  //                                       >
+  //                                         <X className="h-4 w-4" />
+  //                                       </button>
+  //                                     </li>
+  //                                   ))}
+  //                                 </ul>
+  //                               )}
+  //                             </div>
+
+  //                             <hr className="border-border" />
+
+  //                             {/* --- Section: ข้อมูลผู้ร้องเรียน --- */}
+  //                             <div className="space-y-4">
+  //                               <h3 className="text-base font-semibold text-primary flex items-center gap-2">
+  //                                 ข้อมูลผู้ร้องเรียน (Reporter Information)
+  //                               </h3>
+  //                               <label className="group flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-border bg-slate-50 dark:bg-[var(--surface-muted)] p-4 transition-colors hover:border-primary/40">
+  //                                 <div className="flex items-start gap-3">
+  //                                   <div className="mt-0.5 rounded-lg border border-border bg-white p-1.5 text-slate-700 shadow-sm">
+  //                                     <Lock className="h-4 w-4" />
+  //                                   </div>
+  //                                   <div>
+  //                                     <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+  //                                       ไม่เปิดเผยตัวตน (Anonymous)
+  //                                     </div>
+  //                                     <div className="mt-1 text-xs text-muted-foreground leading-relaxed">
+  //                                       หากเปิดใช้งาน
+  //                                       ระบบจะข้ามการกรอกข้อมูลส่วนตัวทั้งหมดทันที
+  //                                       <br />
+  //                                     </div>
+  //                                   </div>
+  //                                 </div>
+  //                                 <Switch
+  //                                   className="mt-1"
+  //                                   checked={form.is_anonymous}
+  //                                   onCheckedChange={(v) => {
+  //                                     update("is_anonymous", v);
+  //                                     if (v) {
+  //                                       update("reporter_name", "");
+  //                                       update("reporter_email", "");
+  //                                       update("reporter_phone", "");
+  //                                     }
+  //                                   }}
+  //                                 />
+  //                               </label>
+
+  //                               <div className="mt-4 grid gap-5 md:grid-cols-2">
+  //                                 {!form.is_anonymous && (
+  //                                   <>
+  //                                     <FieldGroup
+  //                                       label="ชื่อ-นามสกุล"
+  //                                       required
+  //                                       error={errors.reporter_name}
+  //                                     >
+  //                                       <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">
+  //                                         Full Name
+  //                                       </div>
+  //                                       <Input
+  //                                         className={cn(
+  //                                           "rounded-lg bg-background",
+  //                                           errors.reporter_name &&
+  //                                             "border-slate-300 bg-white",
+  //                                         )}
+  //                                         value={form.reporter_name}
+  //                                         onChange={(e) =>
+  //                                           update(
+  //                                             "reporter_name",
+  //                                             e.target.value,
+  //                                           )
+  //                                         }
+  //                                         placeholder="ระบุชื่อ-สกุล"
+  //                                       />
+  //                                     </FieldGroup>
+
+  //                                     <FieldGroup
+  //                                       label="อีเมล"
+  //                                       required
+  //                                       error={errors.reporter_email}
+  //                                     >
+  //                                       <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">
+  //                                         Email Address
+  //                                       </div>
+  //                                       <Input
+  //                                         type="email"
+  //                                         className={cn(
+  //                                           "rounded-lg bg-background",
+  //                                           errors.reporter_email &&
+  //                                             "border-slate-300 bg-white",
+  //                                         )}
+  //                                         value={form.reporter_email}
+  //                                         onChange={(e) =>
+  //                                           update(
+  //                                             "reporter_email",
+  //                                             e.target.value,
+  //                                           )
+  //                                         }
+  //                                         placeholder="ระบุอีเมล"
+  //                                         autoComplete="email"
+  //                                       />
+  //                                     </FieldGroup>
+
+  //                                     <FieldGroup
+  //                                       label="เบอร์โทรศัพท์"
+  //                                       full
+  //                                       error={errors.reporter_phone}
+  //                                     >
+  //                                       <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">
+  //                                         Phone Number
+  //                                       </div>
+  //                                       <Input
+  //                                         className={cn(
+  //                                           "rounded-lg bg-background",
+  //                                           errors.reporter_phone &&
+  //                                             "border-destructive/50 bg-destructive/5",
+  //                                         )}
+  //                                         value={form.reporter_phone}
+  //                                         onChange={(e) =>
+  //                                           update(
+  //                                             "reporter_phone",
+  //                                             e.target.value,
+  //                                           )
+  //                                         }
+  //                                         placeholder="ระบุเบอร์โทรศํัพท์"
+  //                                       />
+  //                                     </FieldGroup>
+  //                                   </>
+  //                                 )}
+  //                               </div>
+  //                             </div>
+
+  //                             <hr className="border-border" />
+
+  //                             {/* --- Section: การยืนยัน (Submit) --- */}
+  //                             <div className="space-y-4">
+  //                               <h3 className="text-base font-semibold text-primary">
+  //                                 การยืนยัน (Confirmation)
+  //                               </h3>
+  //                               {/* --- ส่วนสรุป --- */}
+  //                               <div className="mb-6 rounded-xl border border-border bg-[#f8f9fa] p-6 text-sm shadow-sm">
+  //                                 <div className="space-y-3 text-foreground">
+  //                                   <div>
+  //                                     <span className="font-bold text-[#1e3989]">
+  //                                       ประเภทเรื่องร้องเรียน :{" "}
+  //                                     </span>
+  //                                     <span>
+  //                                       {summaryCategory}
+  //                                       {summarySubtopic
+  //                                         ? ` > ${summarySubtopic}`
+  //                                         : ""}
+  //                                       {summarySubtopicDetail
+  //                                         ? ` (${summarySubtopicDetail})`
+  //                                         : ""}
+  //                                     </span>
+  //                                   </div>
+
+  //                                   <div>
+  //                                     <span className="font-bold text-[#1e3989]">
+  //                                       สาขาที่เกิดเหตุ :{" "}
+  //                                     </span>
+  //                                     <span>{summaryLocation}</span>
+  //                                   </div>
+
+  //                                   <div>
+  //                                     <span className="font-bold text-[#1e3989]">
+  //                                       วันที่และเวลาที่เกิดเหตุ :{" "}
+  //                                     </span>
+  //                                     <span>
+  //                                       วันที่{" "}
+  //                                       {form.occurred_date
+  //                                         ? form.occurred_date
+  //                                         : "-"}{" "}
+  //                                       เวลา{" "}
+  //                                       {form.occurred_time
+  //                                         ? form.occurred_time
+  //                                         : "-"}{" "}
+  //                                       น.
+  //                                     </span>
+  //                                   </div>
+
+  //                                   <div>
+  //                                     <span className="font-bold text-[#1e3989]">
+  //                                       พยาน :{" "}
+  //                                     </span>
+  //                                     {/* แก้ไขให้เช็คจาก boolean และจำนวนรายการใน array */}
+  //                                     <span>
+  //                                       {form.has_witness
+  //                                         ? `มี (${form.witnesses?.length || 0} คน)`
+  //                                         : "ไม่มี"}
+  //                                     </span>
+  //                                   </div>
+  //                                 </div>
+  //                               </div>
+  //                               <label
+  //                                 className={cn(
+  //                                   "flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors",
+  //                                   errors.consent_truth
+  //                                     ? "border-slate-300 bg-slate-50"
+  //                                     : "border-border bg-slate-50 dark:bg-[var(--surface-muted)] hover:border-primary/40",
+  //                                 )}
+  //                               >
+  //                                 <Checkbox
+  //                                   className="mt-1"
+  //                                   checked={form.consent_truth}
+  //                                   onCheckedChange={(v) =>
+  //                                     update("consent_truth", v === true)
+  //                                   }
+  //                                 />
+  //                                 <div className="flex-1">
+  //                                   <div className="text-sm text-foreground/90 leading-relaxed">
+  //                                     ข้าพเจ้ายืนยันว่า{" "}
+  //                                     <span className="font-semibold text-foreground">
+  //                                       ข้อมูลที่ให้เป็นความจริง
+  //                                     </span>{" "}
+  //                                     และส่งด้วยเจตนาสุจริต
+  //                                   </div>
+  //                                   <div className="mt-1 text-xs text-muted-foreground leading-relaxed">
+  //                                     I confirm that the information provided is
+  //                                     true and submitted in good faith.
+  //                                   </div>
+  //                                 </div>
+  //                               </label>
+  //                               <FieldError msg={errors.consent_truth} />
+  //                             </div>
+
+  //                             {/* --- Submit Button --- */}
+  //                             <div className="mt-6 flex justify-end">
+  //                               <Button
+  //                                 type="submit"
+  //                                 size="lg"
+  //                                 disabled={
+  //                                   submitting ||
+  //                                   !form.consent_truth ||
+  //                                   Object.keys(stepErrors(2)).length > 0
+  //                                 }
+  //                               >
+  //                                 <Send className="mr-1.5 h-4 w-4" />{" "}
+  //                                 {submitting
+  //                                   ? "กำลังส่ง…"
+  //                                   : "ส่งเรื่องร้องเรียน"}
+  //                               </Button>
+  //                             </div>
+  //                           </div>
+  //                         </Section>
+  //                       )}
+  //                     </div>
+  //                   </div>
+  //                 </div>
+  //               </div>
+  //             );
+  //           })}
+  //         </form>
+  //       </MainLayout>
+  //     </section>
+  //   </PageContainer>
+  // );
   return (
     <PageContainer>
-      <section className="py-12 md:py-3">
+      <section className="py-12 md:py-8">
         <MainLayout>
-          <div className="mb-4 flex items-center justify-between gap-3">
+          {/* ส่วนหัว: ปุ่มกลับหน้าแรก */}
+          <div className="mb-6 flex items-center justify-between">
             <Link
               to="/"
-              className="inline-flex items-center text-xs text-muted-foreground hover:text-primary shrink-0"
+              className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
             >
-              <ArrowLeft className="mr-1.5 h-3.5 w-3.5" /> กลับสู่หน้าแรก
+              <ArrowLeft className="mr-2 h-4 w-4" /> กลับสู่หน้าแรก
             </Link>
           </div>
-          <form onSubmit={onSubmit} className="space-y-4">
-            {Array.from({ length: 2 }, (_, index) => index + 1).map((step) => {
-              const isOpen = currentStep === step;
-              const getStepInfo = (stepNumber: number) => {
-                switch (stepNumber) {
-                  case 1:
-                    return {
-                      th: "ประเภทเรื่องร้องเรียน",
-                      en: "Complaint Type",
-                      required: true,
-                    };
-                  case 2:
-                    return {
-                      th: "รายละเอียดและการยืนยัน",
-                      en: "Details & Confirmation",
-                      required: true,
-                    };
-                  default:
-                    return { th: "", en: "", required: false };
-                }
-              };
 
-              const stepInfo = getStepInfo(step);
-              const stepSummary = step === 1;
+          {/* แถบ Stepper (ถ้าคุณแยก Component HorizontalStepper ไว้แล้ว มันจะแสดงตรงนี้) */}
+          <HorizontalStepper currentStep={currentStep} maxVisibleStep={maxVisibleStep}onStepClick={(step) => openStep(step)} />
 
-              return (
-                <div
-                  key={step}
-                  ref={(node) => {
-                    sectionRefs.current[step - 1] = node;
-                  }}
-                  className={cn(
-                    "overflow-hidden rounded-2xl border bg-card transition-all duration-300",
-                    isOpen
-                      ? "border-primary/30 shadow-elegant"
-                      : "border-border shadow-sm hover:border-primary/20",
-                  )}
-                >
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => openStep(step)}
-                    className={cn(
-                      "h-auto rounded-none font-normal whitespace-normal",
-                      "group flex w-full items-start justify-between gap-4 px-5 py-4 text-left transition-colors duration-200",
-                      isOpen
-                        ? "border-b border-border bg-slate-50/50 dark:bg-[var(--surface-muted)] hover:bg-slate-50/50 dark:hover:bg-[var(--surface-muted)]"
-                        : "hover:bg-slate-50 dark:hover:bg-[var(--surface-muted)]/50",
-                    )}
-                    aria-expanded={isOpen}
+          {/* เริ่มฟอร์มหลัก */}
+          <form onSubmit={onSubmit} className="mt-8 transition-all duration-300">
+            
+            {/* ==========================================
+                STEP 1: หมวดหมู่และประเด็น
+            ========================================== */}
+            {currentStep === 1 && (
+              <div className="rounded-2xl border border-border bg-white p-6 shadow-sm md:p-8 animate-[fadeIn_0.3s_ease-out_both]">
+                <h2 className="mb-6 border-b pb-4 text-lg font-bold text-[#0f284a]">
+                  หมวดหมู่และประเด็นที่เกี่ยวข้อง <span className="text-destructive">*</span>
+                </h2>
+                
+                <div className="grid gap-6">
+                  {/* เลือกหมวดหมู่หลัก */}
+                  <div>
+                    <Label className="text-sm font-bold text-foreground/80">
+                      เลือกหมวดหมู่การแจ้งเรื่อง (Select Reporting Category)
+                    </Label>
+                    <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+                      {complaintTypes.map((category) => {
+                        const active = form.category_id === category.id;
+                        return (
+                          <Button
+                            key={category.id}
+                            type="button"
+                            variant="ghost"
+                            onClick={() => {
+                              update("category_id", category.id);
+                              update("subtopic_id", "");
+                            }}
+                            className={cn(
+                              "h-auto w-full flex-col items-start justify-start whitespace-normal rounded-xl border p-4 text-left transition-all",
+                              active
+                                ? "border-[#0f284a] bg-[#0f284a] text-white shadow-md hover:bg-[#0f284a] hover:text-white"
+                                : "border-border bg-card text-foreground hover:border-[#0f284a]/30 hover:bg-slate-50"
+                            )}
+                          >
+                            <div className="font-semibold text-base">{category.name}</div>
+                            {category.nameEn && <div className="mt-1 text-xs opacity-80">{category.nameEn}</div>}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    <FieldError msg={errors.category_id} />
+                  </div>
+
+                  {/* เลือกประเด็น (หัวข้อย่อย) */}
+                  <div className={cn("transition-opacity", !selectedCategory && "pointer-events-none opacity-50")}>
+                    <Label className="text-sm font-bold text-foreground/80">
+                      เลือกประเด็นที่เกี่ยวข้อง (Select Related Issue)
+                    </Label>
+                    <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                      {subtopics.map((subtopic) => {
+                        const active = form.subtopic_id === subtopic.id;
+                        return (
+                          <Button
+                            key={subtopic.id}
+                            type="button"
+                            variant="ghost"
+                            onClick={() => update("subtopic_id", subtopic.id)}
+                            className={cn(
+                              "h-auto w-full flex-col items-start justify-start whitespace-normal rounded-xl border p-4 text-left transition-all",
+                              active
+                                ? "border-[#0f284a] bg-[#0f284a] text-white shadow-md hover:bg-[#0f284a] hover:text-white"
+                                : "border-border bg-card text-foreground hover:border-[#0f284a]/30 hover:bg-slate-50"
+                            )}
+                          >
+                            <div className="font-semibold text-sm">{subtopic.name}</div>
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    <FieldError msg={errors.subtopic_id} />
+                  </div>
+                </div>
+
+                <div className="mt-10 flex justify-end">
+                  <Button 
+                    type="button" 
+                    className="bg-[#d49a26] hover:bg-[#b58320] text-white px-8 h-11"
+                    onClick={() => handleNextStep(1)} // ฟังก์ชันตรวจสอบว่ากรอกครบไหมก่อนไป Step 2
                   >
-                    <div className="flex min-w-0 items-start gap-4">
-                      {/* Step Number Indicator */}
-                      <span
-                        className={cn(
-                          "mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-xl text-sm font-bold transition-all duration-300",
-                          isOpen
-                            ? "bg-accent text-primary-foreground shadow-md scale-105"
-                            : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary",
-                        )}
-                      >
-                        {step}
-                      </span>
+                    ถัดไป <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
 
-                      {/* Titles & Summary */}
-                      <div className="min-w-0 pt-0.5">
-                        <div className="flex items-center gap-1.5 font-display text-base font-semibold text-foreground">
-                          {stepInfo.th}
-                          {stepInfo.required && (
-                            <span className="text-destructive">*</span>
-                          )}
+            {/* ==========================================
+                STEP 2: รายละเอียดเหตุการณ์
+            ========================================== */}
+            {currentStep === 2 && (
+              <div className="rounded-2xl border border-border bg-white p-6 shadow-sm md:p-8 animate-[fadeIn_0.3s_ease-out_both]">
+                <h2 className="mb-6 border-b pb-4 text-lg font-bold text-[#0f284a]">
+                  รายละเอียดเหตุการณ์ <span className="text-destructive">*</span>
+                </h2>
+                
+                {/* --- เริ่มเนื้อหาฟอร์ม Step 2 --- */}
+                <div className="space-y-8">
+                  
+                  {/* แถวที่ 1: วันที่เวลา และ สาขา */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* คอลัมน์ซ้าย: วันที่และเวลาที่เกิดเหตุ */}
+                    <div className="flex flex-col h-full">
+                      <Label className="text-sm font-semibold text-foreground block mb-0">
+                        วันที่และเวลาที่เกิดเหตุ (Date and Time of Incident){" "}
+                        <span className="text-destructive">*</span>
+                      </Label>
+                      <div className="grid gap-4 md:grid-cols-2 mt-3">
+                        <div className="flex flex-col">
+                          <Input
+                            type="date"
+                            className={cn(
+                              "relative w-full h-[52px] rounded-lg px-3 text-sm focus-visible:ring-2 focus-visible:ring-primary/20",
+                              "[&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-4 [&::-webkit-calendar-picker-indicator]:cursor-pointer",
+                              errors.occurred_date
+                                ? "border-red-500 bg-red-50 text-[#111827]"
+                                : "border-border text-foreground",
+                            )}
+                            value={form.occurred_date}
+                            onChange={(e) => update("occurred_date", e.target.value)}
+                          />
+                          <div className="min-h-[24px] mt-1"><FieldError msg={errors.occurred_date} /></div>
                         </div>
 
-                        <div className="mt-0.5 text-xs text-muted-foreground">
-                          {stepInfo.en}
+                        <div className="flex flex-col">
+                          <Input
+                            type="time"
+                            className={cn(
+                              "relative w-full h-[52px] rounded-lg px-3 text-sm focus-visible:ring-2 focus-visible:ring-primary/20",
+                              "[&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-4 [&::-webkit-calendar-picker-indicator]:cursor-pointer",
+                              errors.occurred_time
+                                ? "border-red-500 bg-red-50 text-[#111827]"
+                                : "border-border text-foreground",
+                            )}
+                            value={form.occurred_time}
+                            onChange={(e) => update("occurred_time", e.target.value)}
+                          />
+                          <div className="min-h-[24px] mt-1"><FieldError msg={errors.occurred_time} /></div>
                         </div>
-
-                        {!isOpen && stepSummary && (
-                          <div className="mt-2.5 flex items-center">
-                            <div className="border-l-2 border-primary/40 pl-2.5 text-sm font-medium text-foreground/80 line-clamp-1">
-                              {stepSummary}
-                            </div>
-                          </div>
-                        )}
                       </div>
                     </div>
 
-                    {!isOpen && (
-                      <span className="mt-1 shrink-0 rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-1 text-[11px] font-medium text-muted-foreground transition-colors group-hover:bg-slate-200 dark:group-hover:bg-slate-700">
-                        แตะเพื่อแก้ไข
-                      </span>
-                    )}
-                  </Button>
-
-                  {/* Content Body */}
-                  <div
-                    className={cn(
-                      "grid transition-all duration-300 ease-in-out",
-                      isOpen
-                        ? "grid-rows-[1fr] opacity-100"
-                        : "grid-rows-[0fr] opacity-0",
-                    )}
-                    style={{ willChange: "max-height, opacity, transform" }}
-                  >
-                    <div className="overflow-hidden">
-                      <div className="p-3 md:p-6">
-                        {/* Step 1: ประเภทเรื่องร้องเรียน (ยังเหมือนเดิม) */}
-                        {step === 1 && (
-                          <Section
-                            icon={<Tag className="h-4 w-4" />}
-                            step="1"
-                            title="ประเภทเรื่องร้องเรียน"
-                            required
-                            hideHeader
+                    {/* คอลัมน์ขวา: สาขา (Branch Location) */}
+                    <div className="flex flex-col h-full">
+                      <Label className="text-sm font-semibold text-foreground block mb-0">
+                        สาขาที่เกิดเหตุ (Branch Location){" "}
+                        <span className="text-destructive">*</span>
+                      </Label>
+                      <div className="mt-3 flex flex-col">
+                        <Select
+                          value={form.location}
+                          onValueChange={(value) => update("location", value)}
+                        >
+                          <SelectTrigger
+                            className={cn(
+                              "w-full h-[52px] rounded-lg bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20",
+                              errors.location
+                                ? "border-red-500 bg-red-50 text-[#111827]"
+                                : "border-border text-foreground",
+                            )}
                           >
-                            <div className="grid gap-5">
-                              <div>
-                                <Label className="text-xs font-medium font-bold text-foreground/80">
-                                  เลือกหมวดหมู่การแจ้งเรื่อง (Select Reporting Category)
-                                </Label>
-                                <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-3">
-                                  {complaintTypes.map((category) => {
-                                    const active =
-                                      form.category_id === category.id;
-                                    return (
-                                      <Button
-                                        key={category.id}
-                                        type="button"
-                                        variant="ghost"
-                                        onClick={() => {
-                                          update("category_id", category.id);
-                                          update("subtopic_id", "");
-                                          update("subtopic_other", "");
-                                          update("subcategory_other", "");
-                                          update("product_type", "");
-                                          update("product_type_other", "");
-                                          update("lot_reference", "");
-                                          update("contract_number", "");
-                                          update("delivery_date", "");
-                                          setErrors((prev) => ({
-                                            ...prev,
-                                            category_id: undefined,
-                                            subtopic_id: undefined,
-                                          }));
-                                        }}
-                                        className={cn(
-                                          "gap-0 h-auto w-full flex-col items-start justify-start whitespace-normal font-normal",
-                                          "rounded-lg border px-3 py-2 text-left text-sm transition-colors",
-                                          active
-                                            ? "border-primary bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary"
-                                            : "border-border bg-card text-foreground hover:bg-muted",
-                                        )}
-                                        aria-pressed={active}
-                                      >
-                                        <div className="font-medium text-base sm:text-sm">
-                                          {category.name}
-                                        </div>
-
-                                        {category.nameEn && (
-                                          <div className="mt-0 text-xs text-muted-foreground">
-                                            {category.nameEn}
-                                          </div>
-                                        )}
-
-                                        {category.description && (
-                                          <div className="mt-0 text-xs opacity-80 leading-relaxed">
-                                            {category.description}
-                                          </div>
-                                        )}
-                                      </Button>
-                                    );
-                                  })}
-                                </div>
-                                <FieldError msg={errors.category_id} />
-                              </div>
-
-                              <div>
-                                <Label className="text-xs font-medium font-bold text-foreground/80">
-                                  เลือกประเด็นที่เกี่ยวข้อง (Select Related Issue)
-                                </Label>
-                                <div
-                                  className={cn(
-                                    "mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3",
-                                    !selectedCategory
-                                      ? "opacity-60 pointer-events-none"
-                                      : "",
-                                  )}
-                                >
-                                  {subtopics.map((subtopic) => {
-                                    const active =
-                                      form.subtopic_id === subtopic.id;
-                                    return (
-                                      <Button
-                                        key={subtopic.id}
-                                        type="button"
-                                        variant="ghost"
-                                        onClick={() => {
-                                          update("subtopic_id", subtopic.id);
-                                          update("subtopic_other", "");
-                                          update("subcategory_other", "");
-                                        }}
-                                        className={cn(
-                                          "gap-0 h-auto w-full flex-col items-start justify-start whitespace-normal font-normal",
-                                          "rounded-lg border px-3 py-2 text-left text-sm transition-colors",
-                                          active
-                                            ? "border-primary bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary"
-                                            : "border-border bg-card text-foreground hover:bg-muted",
-                                        )}
-                                        aria-pressed={active}
-                                      >
-                                        <div className="font-medium text-base sm:text-sm">
-                                          {subtopic.name}
-                                        </div>
-
-                                        {subtopic.nameEn && (
-                                          <div className="mt-0.5 text-xs text-muted-foreground">
-                                            {subtopic.nameEn}
-                                          </div>
-                                        )}
-                                      </Button>
-                                    );
-                                  })}
-                                </div>
-                                <FieldError msg={errors.subtopic_id} />
-                              </div>
-
-                              {form.subtopic_id.endsWith("_other") && (
-                                <div>
-                                  <FieldGroup
-                                    label="กรุณาระบุรายละเอียด"
-                                    required
-                                    error={errors.subtopic_other}
-                                  >
-                                    <Input
-                                      className="rounded-lg"
-                                      value={form.subtopic_other}
-                                      onChange={(e) =>
-                                        update("subtopic_other", e.target.value)
-                                      }
-                                      placeholder="ระบุรายละเอียดเพิ่มเติม"
-                                    />
-                                  </FieldGroup>
-                                </div>
-                              )}
-                            </div>
-                            <div className="mt-4 flex justify-end pt-4">
-                              <Button
-                                type="button"
-                                disabled={Object.keys(stepErrors(1)).length > 0}
-                                onClick={() => handleNextStep(1)}
-                              >
-                                ถัดไป
-                              </Button>
-                            </div>
-                          </Section>
-                        )}
-
-                        {/* Step 2: ยุบรวมรายละเอียดที่เหลือทั้งหมด */}
-                        {step === 2 && (
-                          <Section
-                            icon={<MessageSquareText className="h-4 w-4" />}
-                            step="2"
-                            title="รายละเอียด, ผู้ร้องเรียน และยืนยัน"
-                            required
-                            hideHeader
-                          >
-                            <div className="space-y-10">
-                              <div className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                  {/* คอลัมน์ซ้าย: วันที่และเวลาที่เกิดเหตุ */}
-                                  <div className="flex flex-col h-full">
-                                    <Label className="text-sm font-semibold text-foreground block mb-0">
-                                      วันที่และเวลาที่เกิดเหตุ (Date and Time of
-                                      Incident){" "}
-                                      <span className="text-destructive">
-                                        *
-                                      </span>
-                                    </Label>
-                                    <div className="grid gap-4 md:grid-cols-2 mt-3">
-                                      <div className="flex flex-col">
-                                        <Input
-                                          type="date"
-                                          className={cn(
-                                            "relative w-full h-[52px] rounded-lg px-3 text-sm focus-visible:ring-2 focus-visible:ring-primary/20",
-                                            // บังคับไอคอนปฏิทินของเบราว์เซอร์ให้ชิดขวา
-                                            "[&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-4 [&::-webkit-calendar-picker-indicator]:cursor-pointer",
-                                            errors.occurred_date
-                                              ? "border-red-500 bg-red-50 text-[#111827]"
-                                              : "border-border text-foreground",
-                                          )}
-                                          value={form.occurred_date}
-                                          onChange={(e) =>
-                                            update(
-                                              "occurred_date",
-                                              e.target.value,
-                                            )
-                                          }
-                                        />
-                                        {/* เผื่อที่ว่างด้านล่างให้เท่ากับ Error ฝั่งขวา กล่องจะได้ไม่ขยับหนีกัน */}
-                                        <div className="min-h-[24px] mt-1"></div>
-                                      </div>
-
-                                      <div className="flex flex-col">
-                                        <Input
-                                          type="time"
-                                          className={cn(
-                                            "relative w-full h-[52px] rounded-lg px-3 text-sm focus-visible:ring-2 focus-visible:ring-primary/20",
-                                            // บังคับไอคอนนาฬิกาของเบราว์เซอร์ให้ชิดขวา
-                                            "[&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-4 [&::-webkit-calendar-picker-indicator]:cursor-pointer",
-                                            errors.occurred_time
-                                              ? "border-red-500 bg-red-50 text-[#111827]"
-                                              : "border-border text-foreground",
-                                          )}
-                                          value={form.occurred_time}
-                                          onChange={(e) =>
-                                            update(
-                                              "occurred_time",
-                                              e.target.value,
-                                            )
-                                          }
-                                        />
-                                        <div className="min-h-[24px] mt-1"></div>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  {/* คอลัมน์ขวา: สาขา (Branch Location) */}
-                                  <div className="flex flex-col h-full">
-                                    <Label className="text-sm font-semibold text-foreground block mb-0">
-                                      สาขาที่เกิดเหตุ (Branch Location){" "}
-                                      <span className="text-destructive">
-                                        *
-                                      </span>
-                                    </Label>
-                                    <div className="mt-3 flex flex-col">
-                                      <Select
-                                        value={form.location}
-                                        onValueChange={(value) =>
-                                          update("location", value)
-                                        }
-                                      >
-                                        <SelectTrigger
-                                          className={cn(
-                                            "w-full h-[52px] rounded-lg bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20",
-                                            errors.location
-                                              ? "border-slate-300 bg-white text-[#111827]"
-                                              : "border-border text-foreground",
-                                          )}
-                                        >
-                                          <SelectValue placeholder="-- กรุณาเลือกสาขา (Select Branch) --" />
-                                        </SelectTrigger>
-
-                                        <SelectContent>
-                                          {complaintLocations.map(
-                                            (location) => (
-                                              <SelectItem
-                                                key={location.id}
-                                                value={location.id}
-                                              >
-                                                {location.name}
-                                              </SelectItem>
-                                            ),
-                                          )}
-                                        </SelectContent>
-                                      </Select>
-
-                                      {/* จัดการพื้นที่ Error ให้มีความสูงคงที่ เพื่อไม่ให้ดัน Select ลอยขึ้น */}
-                                      <div className="min-h-[24px] mt-1">
-                                        <FieldError msg={errors.location} />
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div className="rounded-xl border border-border bg-slate-50 dark:bg-[var(--surface-muted)] p-4 md:p-5">
-                                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                                    <div className="flex-1">
-                                      <Label className="text-sm font-semibold text-foreground">
-                                        มีพยานหรือไม่? (Are there witnesses?)
-                                      </Label>
-                                      <p className="mt-1 text-xs text-muted-foreground leading-relaxed max-w-sm">
-                                        ระบุได้หากมีผู้เห็นเหตุการณ์หรือผู้เกี่ยวข้องเพิ่มเติม
-                                      </p>
-                                    </div>
-
-                                    <RadioGroup
-                                      className="flex items-center gap-6 shrink-0 p-2"
-                                      value={
-                                        form.has_witness ? "true" : "false"
-                                      }
-                                      onValueChange={(v) =>
-                                        update("has_witness", v === "true")
-                                      }
-                                    >
-                                      <div className="flex items-center gap-2">
-                                        <RadioGroupItem
-                                          value="true"
-                                          id="witness_yes"
-                                        />
-                                        <Label
-                                          htmlFor="witness_yes"
-                                          className="text-sm font-medium cursor-pointer"
-                                        >
-                                          มี{" "}
-                                          <span className="text-muted-foreground font-normal ml-0.5">
-                                            (Yes)
-                                          </span>
-                                        </Label>
-                                      </div>
-
-                                      <div className="flex items-center gap-2">
-                                        <RadioGroupItem
-                                          value="false"
-                                          id="witness_no"
-                                        />
-                                        <Label
-                                          htmlFor="witness_no"
-                                          className="text-sm font-medium cursor-pointer"
-                                        >
-                                          ไม่มี{" "}
-                                          <span className="text-muted-foreground font-normal ml-0.5">
-                                            (No)
-                                          </span>
-                                        </Label>
-                                      </div>
-                                    </RadioGroup>
-                                  </div>
-
-                                  <div
-                                    className={cn(
-                                      "grid transition-all duration-300 ease-in-out",
-                                      form.has_witness
-                                        ? "grid-rows-[1fr] opacity-100 mt-5 pt-5 border-t border-border"
-                                        : "grid-rows-[0fr] opacity-0 mt-0",
-                                    )}
-                                  >
-                                    <div className="overflow-hidden">
-                                      <div className="mb-3 text-sm font-medium text-foreground">
-                                        รายชื่อพยาน{" "}
-                                        <span className="text-xs text-muted-foreground ml-1">
-                                          (Witness List)
-                                        </span>
-                                      </div>
-                                      <div className="space-y-3 pb-1 px-1">
-                                        {form.witnesses?.map(
-                                          (witness, index) => (
-                                            <div
-                                              key={index}
-                                              className="flex flex-col sm:flex-row items-start sm:items-center gap-3"
-                                            >
-                                              <Input
-                                                className="rounded-lg flex-1 bg-white"
-                                                value={witness.name}
-                                                onChange={(e) => {
-                                                  const updated = [
-                                                    ...form.witnesses!,
-                                                  ];
-                                                  updated[index] = {
-                                                    ...updated[index],
-                                                    name: e.target.value,
-                                                  };
-                                                  update("witnesses", updated);
-                                                }}
-                                                placeholder="ชื่อ-นามสกุล (Name)"
-                                              />
-
-                                              <div className="flex items-center gap-2 w-full sm:w-auto flex-1">
-                                                <Input
-                                                  className="rounded-lg w-full bg-white"
-                                                  value={witness.phone}
-                                                  onChange={(e) => {
-                                                    const updated = [
-                                                      ...form.witnesses!,
-                                                    ];
-                                                    updated[index] = {
-                                                      ...updated[index],
-                                                      phone: e.target.value,
-                                                    };
-                                                    update(
-                                                      "witnesses",
-                                                      updated,
-                                                    );
-                                                  }}
-                                                  placeholder="เบอร์โทรศัพท์ (Phone)"
-                                                />
-
-                                                {index === 0 ? (
-                                                  <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    className="shrink-0 w-10 sm:w-24"
-                                                    onClick={() => {
-                                                      update("witnesses", [
-                                                        ...(form.witnesses ||
-                                                          []),
-                                                        { name: "", phone: "" },
-                                                      ]);
-                                                    }}
-                                                  >
-                                                    <Plus className="h-4 w-4 sm:mr-2" />
-                                                    <span className="hidden sm:inline">
-                                                      เพิ่ม
-                                                    </span>
-                                                  </Button>
-                                                ) : (
-                                                  <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    className="shrink-0 w-10 sm:w-24 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                                    onClick={() => {
-                                                      update(
-                                                        "witnesses",
-                                                        form.witnesses!.filter(
-                                                          (_, i) => i !== index,
-                                                        ),
-                                                      );
-                                                    }}
-                                                  >
-                                                    <X className="h-4 w-4 sm:mr-2" />
-                                                    <span className="hidden sm:inline">
-                                                      ลบ
-                                                    </span>
-                                                  </Button>
-                                                )}
-                                              </div>
-                                            </div>
-                                          ),
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div>
-                                  <Label className="text-sm font-semibold text-foreground block mb-0.5">
-                                    รายละเอียดเพิ่มเติม
-                                  </Label>
-                                  <div className="text-xs text-muted-foreground mb-2 flex items-center justify-between">
-                                    <span>
-                                      Additional Information{" "}
-                                      <span className="ml-1 opacity-70">
-                                        (ไม่บังคับ / Optional)
-                                      </span>
-                                    </span>
-                                  </div>
-
-                                  <Textarea
-                                    className="min-h-[120px] resize-y rounded-xl bg-white p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                    maxLength={1000}
-                                    placeholder="สามารถระบุรายละเอียดเพิ่มเติม เช่น บุคคลที่เกี่ยวข้อง เหตุการณ์เพิ่มเติม หรือข้อมูลอื่น ๆ..."
-                                    value={form.description}
-                                    onChange={(e) =>
-                                      update("description", e.target.value)
-                                    }
-                                  />
-                                  <div className="mt-2 flex items-center justify-end">
-                                    <span
-                                      className={cn(
-                                        "text-xs font-medium",
-                                        form.description.length === 0
-                                          ? "text-muted-foreground/60"
-                                          : "text-primary/70",
-                                      )}
-                                    >
-                                      {form.description.length} / 1000
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <hr className="border-border" />
-
-                              {/* --- Section: แนบไฟล์ --- */}
-                              <div className="space-y-4">
-                                <h3 className="text-base font-semibold text-primary">
-                                  แนบไฟล์ / Attach Files (ถ้ามี)
-                                </h3>
-                                <label
-                                  onDragOver={(e) => {
-                                    e.preventDefault();
-                                  }}
-                                  onDrop={(e) => {
-                                    e.preventDefault();
-                                    addFiles(e.dataTransfer.files);
-                                  }}
-                                  className={cn(
-                                    "flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed py-10 text-center transition",
-                                    "border-border bg-[var(--surface-muted)] hover:border-primary/40",
-                                  )}
-                                >
-                                  <Upload className="h-7 w-7 text-muted-foreground" />
-                                  <div className="mt-3 text-sm font-medium">
-                                    ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือก
-                                  </div>
-                                  <div className="mt-1 text-sm font-medium">
-                                    Drag and drop files here, or click to select
-                                  </div>
-
-                                  <div className="mt-2 text-xs text-muted-foreground">
-                                    รองรับ PDF, DOCX, PNG, JPG, MP4, MOV ·
-                                    สูงสุด 5 ไฟล์
-                                  </div>
-                                  <input
-                                    type="file"
-                                    multiple
-                                    accept=".pdf,.docx,.doc,.png,.jpg,.jpeg,video/mp4,video/quicktime" // เพิ่มบรรทัดนี้
-                                    className="hidden"
-                                    onChange={(e) => addFiles(e.target.files)}
-                                  />
-                                </label>
-                                {form.files.length > 0 && (
-                                  <ul className="mt-3 space-y-2">
-                                    {form.files.map((file, index) => (
-                                      <li
-                                        key={`${file.name}-${index}`}
-                                        className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-2.5 text-sm"
-                                      >
-                                        <div className="flex min-w-0 items-center gap-2">
-                                          <FileText className="h-4 w-4 flex-none text-primary" />
-                                          <span className="truncate">
-                                            {file.name}
-                                          </span>
-                                          <span className="text-xs text-muted-foreground">
-                                            ({Math.round(file.size / 1024)} KB)
-                                          </span>
-                                        </div>
-                                        <button
-                                          type="button"
-                                          onClick={() =>
-                                            update(
-                                              "files",
-                                              form.files.filter(
-                                                (_, itemIndex) =>
-                                                  itemIndex !== index,
-                                              ),
-                                            )
-                                          }
-                                          className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-destructive"
-                                          aria-label="ลบไฟล์"
-                                        >
-                                          <X className="h-4 w-4" />
-                                        </button>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                )}
-                              </div>
-
-                              <hr className="border-border" />
-
-                              {/* --- Section: ข้อมูลผู้ร้องเรียน --- */}
-                              <div className="space-y-4">
-                                <h3 className="text-base font-semibold text-primary flex items-center gap-2">
-                                  ข้อมูลผู้ร้องเรียน (Reporter Information)
-                                </h3>
-                                <label className="group flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-border bg-slate-50 dark:bg-[var(--surface-muted)] p-4 transition-colors hover:border-primary/40">
-                                  <div className="flex items-start gap-3">
-                                    <div className="mt-0.5 rounded-lg border border-border bg-white p-1.5 text-slate-700 shadow-sm">
-                                      <Lock className="h-4 w-4" />
-                                    </div>
-                                    <div>
-                                      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                                        ไม่เปิดเผยตัวตน (Anonymous)
-                                      </div>
-                                      <div className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                                        หากเปิดใช้งาน
-                                        ระบบจะข้ามการกรอกข้อมูลส่วนตัวทั้งหมดทันที
-                                        <br />
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <Switch
-                                    className="mt-1"
-                                    checked={form.is_anonymous}
-                                    onCheckedChange={(v) => {
-                                      update("is_anonymous", v);
-                                      if (v) {
-                                        update("reporter_name", "");
-                                        update("reporter_email", "");
-                                        update("reporter_phone", "");
-                                      }
-                                    }}
-                                  />
-                                </label>
-
-                                <div className="mt-4 grid gap-5 md:grid-cols-2">
-                                  {!form.is_anonymous && (
-                                    <>
-                                      <FieldGroup
-                                        label="ชื่อ-นามสกุล"
-                                        required
-                                        error={errors.reporter_name}
-                                      >
-                                        <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">
-                                          Full Name
-                                        </div>
-                                        <Input
-                                          className={cn(
-                                            "rounded-lg bg-background",
-                                            errors.reporter_name &&
-                                              "border-slate-300 bg-white",
-                                          )}
-                                          value={form.reporter_name}
-                                          onChange={(e) =>
-                                            update(
-                                              "reporter_name",
-                                              e.target.value,
-                                            )
-                                          }
-                                          placeholder="ระบุชื่อ-สกุล"
-                                        />
-                                      </FieldGroup>
-
-                                      <FieldGroup
-                                        label="อีเมล"
-                                        required
-                                        error={errors.reporter_email}
-                                      >
-                                        <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">
-                                          Email Address
-                                        </div>
-                                        <Input
-                                          type="email"
-                                          className={cn(
-                                            "rounded-lg bg-background",
-                                            errors.reporter_email &&
-                                              "border-slate-300 bg-white",
-                                          )}
-                                          value={form.reporter_email}
-                                          onChange={(e) =>
-                                            update(
-                                              "reporter_email",
-                                              e.target.value,
-                                            )
-                                          }
-                                          placeholder="ระบุอีเมล"
-                                          autoComplete="email"
-                                        />
-                                      </FieldGroup>
-
-                                      <FieldGroup
-                                        label="เบอร์โทรศัพท์"
-                                        full
-                                        error={errors.reporter_phone}
-                                      >
-                                        <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">
-                                          Phone Number
-                                        </div>
-                                        <Input
-                                          className={cn(
-                                            "rounded-lg bg-background",
-                                            errors.reporter_phone &&
-                                              "border-destructive/50 bg-destructive/5",
-                                          )}
-                                          value={form.reporter_phone}
-                                          onChange={(e) =>
-                                            update(
-                                              "reporter_phone",
-                                              e.target.value,
-                                            )
-                                          }
-                                          placeholder="ระบุเบอร์โทรศํัพท์"
-                                        />
-                                      </FieldGroup>
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-
-                              <hr className="border-border" />
-
-                              {/* --- Section: การยืนยัน (Submit) --- */}
-                              <div className="space-y-4">
-                                <h3 className="text-base font-semibold text-primary">
-                                  การยืนยัน (Confirmation)
-                                </h3>
-                                {/* --- ส่วนสรุป --- */}
-                                <div className="mb-6 rounded-xl border border-border bg-[#f8f9fa] p-6 text-sm shadow-sm">
-                                  <div className="space-y-3 text-foreground">
-                                    <div>
-                                      <span className="font-bold text-[#1e3989]">
-                                        ประเภทเรื่องร้องเรียน :{" "}
-                                      </span>
-                                      <span>
-                                        {summaryCategory}
-                                        {summarySubtopic
-                                          ? ` > ${summarySubtopic}`
-                                          : ""}
-                                        {summarySubtopicDetail
-                                          ? ` (${summarySubtopicDetail})`
-                                          : ""}
-                                      </span>
-                                    </div>
-
-                                    <div>
-                                      <span className="font-bold text-[#1e3989]">
-                                        สาขาที่เกิดเหตุ :{" "}
-                                      </span>
-                                      <span>{summaryLocation}</span>
-                                    </div>
-
-                                    <div>
-                                      <span className="font-bold text-[#1e3989]">
-                                        วันที่และเวลาที่เกิดเหตุ :{" "}
-                                      </span>
-                                      <span>
-                                        วันที่{" "}
-                                        {form.occurred_date
-                                          ? form.occurred_date
-                                          : "-"}{" "}
-                                        เวลา{" "}
-                                        {form.occurred_time
-                                          ? form.occurred_time
-                                          : "-"}{" "}
-                                        น.
-                                      </span>
-                                    </div>
-
-                                    <div>
-                                      <span className="font-bold text-[#1e3989]">
-                                        พยาน :{" "}
-                                      </span>
-                                      {/* แก้ไขให้เช็คจาก boolean และจำนวนรายการใน array */}
-                                      <span>
-                                        {form.has_witness
-                                          ? `มี (${form.witnesses?.length || 0} คน)`
-                                          : "ไม่มี"}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                                <label
-                                  className={cn(
-                                    "flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors",
-                                    errors.consent_truth
-                                      ? "border-slate-300 bg-slate-50"
-                                      : "border-border bg-slate-50 dark:bg-[var(--surface-muted)] hover:border-primary/40",
-                                  )}
-                                >
-                                  <Checkbox
-                                    className="mt-1"
-                                    checked={form.consent_truth}
-                                    onCheckedChange={(v) =>
-                                      update("consent_truth", v === true)
-                                    }
-                                  />
-                                  <div className="flex-1">
-                                    <div className="text-sm text-foreground/90 leading-relaxed">
-                                      ข้าพเจ้ายืนยันว่า{" "}
-                                      <span className="font-semibold text-foreground">
-                                        ข้อมูลที่ให้เป็นความจริง
-                                      </span>{" "}
-                                      และส่งด้วยเจตนาสุจริต
-                                    </div>
-                                    <div className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                                      I confirm that the information provided is
-                                      true and submitted in good faith.
-                                    </div>
-                                  </div>
-                                </label>
-                                <FieldError msg={errors.consent_truth} />
-                              </div>
-
-                              {/* --- Submit Button --- */}
-                              <div className="mt-6 flex justify-end">
-                                <Button
-                                  type="submit"
-                                  size="lg"
-                                  disabled={
-                                    submitting ||
-                                    !form.consent_truth ||
-                                    Object.keys(stepErrors(2)).length > 0
-                                  }
-                                >
-                                  <Send className="mr-1.5 h-4 w-4" />{" "}
-                                  {submitting
-                                    ? "กำลังส่ง…"
-                                    : "ส่งเรื่องร้องเรียน"}
-                                </Button>
-                              </div>
-                            </div>
-                          </Section>
-                        )}
+                            <SelectValue placeholder="-- กรุณาเลือกสาขา (Select Branch) --" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {complaintLocations.map((location) => (
+                              <SelectItem key={location.id} value={location.id}>
+                                {location.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <div className="min-h-[24px] mt-1">
+                          <FieldError msg={errors.location} />
+                        </div>
                       </div>
                     </div>
                   </div>
+
+                  {/* แถวที่ 2: พยาน */}
+                  <div className="rounded-xl border border-border bg-slate-50 dark:bg-[var(--surface-muted)] p-4 md:p-5">
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                      <div className="flex-1">
+                        <Label className="text-sm font-semibold text-foreground">
+                          มีพยานหรือไม่? (Are there witnesses?)
+                        </Label>
+                        <p className="mt-1 text-xs text-muted-foreground leading-relaxed max-w-sm">
+                          ระบุได้หากมีผู้เห็นเหตุการณ์หรือผู้เกี่ยวข้องเพิ่มเติม
+                        </p>
+                      </div>
+
+                      <RadioGroup
+                        className="flex items-center gap-6 shrink-0 p-2"
+                        value={form.has_witness ? "true" : "false"}
+                        onValueChange={(v) => update("has_witness", v === "true")}
+                      >
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="true" id="witness_yes" />
+                          <Label htmlFor="witness_yes" className="text-sm font-medium cursor-pointer">
+                            มี <span className="text-muted-foreground font-normal ml-0.5">(Yes)</span>
+                          </Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="false" id="witness_no" />
+                          <Label htmlFor="witness_no" className="text-sm font-medium cursor-pointer">
+                            ไม่มี <span className="text-muted-foreground font-normal ml-0.5">(No)</span>
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+
+                    <div
+                      className={cn(
+                        "grid transition-all duration-300 ease-in-out",
+                        form.has_witness
+                          ? "grid-rows-[1fr] opacity-100 mt-5 pt-5 border-t border-border"
+                          : "grid-rows-[0fr] opacity-0 mt-0",
+                      )}
+                    >
+                      <div className="overflow-hidden">
+                        <div className="mb-3 text-sm font-medium text-foreground">
+                          รายชื่อพยาน <span className="text-xs text-muted-foreground ml-1">(Witness List)</span>
+                        </div>
+                        <div className="space-y-3 pb-1 px-1">
+                          {form.witnesses?.map((witness, index) => (
+                            <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                              <Input
+                                className="rounded-lg flex-1 bg-white"
+                                value={witness.name}
+                                onChange={(e) => {
+                                  const updated = [...form.witnesses!];
+                                  updated[index] = { ...updated[index], name: e.target.value };
+                                  update("witnesses", updated);
+                                }}
+                                placeholder="ชื่อ-นามสกุล (Name)"
+                              />
+                              <div className="flex items-center gap-2 w-full sm:w-auto flex-1">
+                                <Input
+                                  className="rounded-lg w-full bg-white"
+                                  value={witness.phone}
+                                  onChange={(e) => {
+                                    const updated = [...form.witnesses!];
+                                    updated[index] = { ...updated[index], phone: e.target.value };
+                                    update("witnesses", updated);
+                                  }}
+                                  placeholder="เบอร์โทรศัพท์ (Phone)"
+                                />
+                                {index === 0 ? (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="shrink-0 w-10 sm:w-24"
+                                    onClick={() => {
+                                      update("witnesses", [...(form.witnesses || []), { name: "", phone: "" }]);
+                                    }}
+                                  >
+                                    <Plus className="h-4 w-4 sm:mr-2" />
+                                    <span className="hidden sm:inline">เพิ่ม</span>
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    className="shrink-0 w-10 sm:w-24 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                    onClick={() => {
+                                      update("witnesses", form.witnesses!.filter((_, i) => i !== index));
+                                    }}
+                                  >
+                                    <X className="h-4 w-4 sm:mr-2" />
+                                    <span className="hidden sm:inline">ลบ</span>
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* แถวที่ 3: รายละเอียดเพิ่มเติม */}
+                  <div>
+                    <Label className="text-sm font-semibold text-foreground block mb-0.5">
+                      รายละเอียดเพิ่มเติม
+                    </Label>
+                    <div className="text-xs text-muted-foreground mb-2 flex items-center justify-between">
+                      <span>
+                        Additional Information <span className="ml-1 opacity-70">(ไม่บังคับ / Optional)</span>
+                      </span>
+                    </div>
+
+                    <Textarea
+                      className="min-h-[120px] resize-y rounded-xl bg-white p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      maxLength={1000}
+                      placeholder="สามารถระบุรายละเอียดเพิ่มเติม เช่น บุคคลที่เกี่ยวข้อง เหตุการณ์เพิ่มเติม หรือข้อมูลอื่น ๆ..."
+                      value={form.description}
+                      onChange={(e) => update("description", e.target.value)}
+                    />
+                    <div className="mt-2 flex items-center justify-end">
+                      <span
+                        className={cn(
+                          "text-xs font-medium",
+                          form.description.length === 0 ? "text-muted-foreground/60" : "text-primary/70",
+                        )}
+                      >
+                        {form.description.length} / 1000
+                      </span>
+                    </div>
+                  </div>
+
                 </div>
-              );
-            })}
+
+                {/* --- ปุ่ม ถัดไป / ย้อนกลับ --- */}
+                <div className="mt-10 flex flex-col-reverse justify-between gap-4 border-t border-border pt-6 sm:flex-row">
+                  <Button type="button" variant="outline" className="h-11 w-full px-8 sm:w-auto" onClick={() => openStep(1)}> {/* แก้เลข openStep ตามหน้าที่อยู่ */}
+                    <ArrowLeft className="mr-2 h-4 w-4" /> ย้อนกลับ
+                  </Button>
+                  
+                  <Button type="button" className="h-11 w-full bg-[#d49a26] px-8 text-white hover:bg-[#b58320] sm:w-auto" onClick={() => handleNextStep(2)}> {/* แก้เลข handleNextStep ตามหน้าที่อยู่ */}
+                    ถัดไป <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* ==========================================
+                STEP 3: แนบไฟล์ และ ข้อมูลผู้ร้องเรียน
+            ========================================== */}
+            {currentStep === 3 && (
+              <div className="rounded-2xl border border-border bg-white p-6 shadow-sm md:p-8 animate-[fadeIn_0.3s_ease-out_both]">
+                <h2 className="mb-6 border-b pb-4 text-lg font-bold text-[#0f284a]">
+                  ข้อมูลเพิ่มเติมและผู้ร้องเรียน
+                </h2>
+                
+                <div className="space-y-8">
+                  {/* --- Section: แนบไฟล์ --- */}
+                  <div className="space-y-4">
+                    <h3 className="text-base font-semibold text-primary">
+                      แนบไฟล์ / Attach Files (ถ้ามี)
+                    </h3>
+                    <label
+                      onDragOver={(e) => { e.preventDefault(); }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        addFiles(e.dataTransfer.files);
+                      }}
+                      className={cn(
+                        "flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed py-10 text-center transition",
+                        "border-border bg-[var(--surface-muted)] hover:border-primary/40",
+                      )}
+                    >
+                      <Upload className="h-7 w-7 text-muted-foreground" />
+                      <div className="mt-3 text-sm font-medium">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือก</div>
+                      <div className="mt-1 text-sm font-medium">Drag and drop files here, or click to select</div>
+                      <div className="mt-2 text-xs text-muted-foreground">
+                        รองรับ PDF, DOCX, PNG, JPG, MP4, MOV · สูงสุด 5 ไฟล์
+                      </div>
+                      <input
+                        type="file"
+                        multiple
+                        accept=".pdf,.docx,.doc,.png,.jpg,.jpeg,video/mp4,video/quicktime"
+                        className="hidden"
+                        onChange={(e) => addFiles(e.target.files)}
+                      />
+                    </label>
+                    {form.files.length > 0 && (
+                      <ul className="mt-3 space-y-2">
+                        {form.files.map((file, index) => (
+                          <li
+                            key={`${file.name}-${index}`}
+                            className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-2.5 text-sm"
+                          >
+                            <div className="flex min-w-0 items-center gap-2">
+                              <FileText className="h-4 w-4 flex-none text-primary" />
+                              <span className="truncate">{file.name}</span>
+                              <span className="text-xs text-muted-foreground">({Math.round(file.size / 1024)} KB)</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => update("files", form.files.filter((_, itemIndex) => itemIndex !== index))}
+                              className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-destructive"
+                              aria-label="ลบไฟล์"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+
+                  <hr className="border-border" />
+
+                  {/* --- Section: ข้อมูลผู้ร้องเรียน --- */}
+                  <div className="space-y-4">
+                    <h3 className="text-base font-semibold text-primary flex items-center gap-2">
+                      ข้อมูลผู้ร้องเรียน (Reporter Information)
+                    </h3>
+                    <label className="group flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-border bg-slate-50 dark:bg-[var(--surface-muted)] p-4 transition-colors hover:border-primary/40">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 rounded-lg border border-border bg-white p-1.5 text-slate-700 shadow-sm">
+                          <Lock className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                            ไม่เปิดเผยตัวตน (Anonymous)
+                          </div>
+                          <div className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                            หากเปิดใช้งาน ระบบจะข้ามการกรอกข้อมูลส่วนตัวทั้งหมดทันที
+                          </div>
+                        </div>
+                      </div>
+                      <Switch
+                        className="mt-1"
+                        checked={form.is_anonymous}
+                        onCheckedChange={(v) => {
+                          update("is_anonymous", v);
+                          if (v) {
+                            update("reporter_name", "");
+                            update("reporter_email", "");
+                            update("reporter_phone", "");
+                          }
+                        }}
+                      />
+                    </label>
+
+                    <div className="mt-4 grid gap-5 md:grid-cols-2">
+                      {!form.is_anonymous && (
+                        <>
+                          <FieldGroup label="ชื่อ-นามสกุล" required error={errors.reporter_name}>
+                            <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">Full Name</div>
+                            <Input
+                              className={cn("rounded-lg bg-background", errors.reporter_name && "border-slate-300 bg-white")}
+                              value={form.reporter_name}
+                              onChange={(e) => update("reporter_name", e.target.value)}
+                              placeholder="ระบุชื่อ-สกุล"
+                            />
+                          </FieldGroup>
+
+                          <FieldGroup label="อีเมล" required error={errors.reporter_email}>
+                            <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">Email Address</div>
+                            <Input
+                              type="email"
+                              className={cn("rounded-lg bg-background", errors.reporter_email && "border-slate-300 bg-white")}
+                              value={form.reporter_email}
+                              onChange={(e) => update("reporter_email", e.target.value)}
+                              placeholder="ระบุอีเมล"
+                              autoComplete="email"
+                            />
+                          </FieldGroup>
+
+                          <FieldGroup label="เบอร์โทรศัพท์" full error={errors.reporter_phone}>
+                            <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">Phone Number</div>
+                            <Input
+                              className={cn("rounded-lg bg-background", errors.reporter_phone && "border-destructive/50 bg-destructive/5")}
+                              value={form.reporter_phone}
+                              onChange={(e) => update("reporter_phone", e.target.value)}
+                              placeholder="ระบุเบอร์โทรศัพท์"
+                            />
+                          </FieldGroup>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* --- ปุ่ม ถัดไป / ย้อนกลับ --- */}
+                <div className="mt-10 flex flex-col-reverse justify-between gap-4 border-t border-border pt-6 sm:flex-row">
+                  <Button type="button" variant="outline" className="h-11 w-full px-8 sm:w-auto" onClick={() => openStep(1)}> {/* แก้เลข openStep ตามหน้าที่อยู่ */}
+                    <ArrowLeft className="mr-2 h-4 w-4" /> ย้อนกลับ
+                  </Button>
+                  
+                  <Button type="button" className="h-11 w-full bg-[#d49a26] px-8 text-white hover:bg-[#b58320] sm:w-auto" onClick={() => handleNextStep(3)}> {/* แก้เลข handleNextStep ตามหน้าที่อยู่ */}
+                    ถัดไป <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* ==========================================
+                STEP 4: ตรวจสอบและยืนยันข้อมูล (ตามรูปภาพเป๊ะๆ)
+            ========================================== */}
+            {currentStep === 4 && (
+              <div className="rounded-2xl border border-border bg-white p-6 shadow-sm md:p-8 animate-[fadeIn_0.3s_ease-out_both]">
+                {/* หัวข้อหลัก */}
+                <div className="mb-6 border-b border-border pb-4">
+                  <h2 className="text-xl font-bold text-[#0f284a]">
+                    ตรวจสอบและยืนยันข้อมูล (Review & Confirmation) <span className="text-destructive">*</span>
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    กรุณาตรวจสอบความถูกต้องของข้อมูลแจ้งเรื่อง และยืนยันว่าข้อมูลดังกล่าวเป็นความจริงและถูกต้องครบถ้วน
+                  </p>
+                </div>
+
+                {/* กล่องสีฟ้าตามดีไซน์ */}
+                <div className="rounded-xl border-[1px] border-[#D6D7D9] p-6 md:p-8">
+                  <h3 className="mb-4 text-base font-bold text-[#0f284a]">
+                    การยืนยัน (Confirmation) <span className="text-destructive">*</span>
+                  </h3>
+
+                  {/* กล่องสรุปข้อมูลสีเทาอ่อน */}
+                  <div className="mb-6 rounded-xl border border-slate-200 bg-[#f8fafc] p-6 text-sm text-slate-700 leading-relaxed">
+                    <div className="flex flex-col gap-3">
+                      <div>
+                        <span className="font-bold text-[#0f284a]">หมวดหมู่การแจ้งเรื่อง : </span>
+                        {summaryCategory} {summarySubtopic ? `> ${summarySubtopic}` : ""}
+                      </div>
+                      <div>
+                        <span className="font-bold text-[#0f284a]">สาขาที่เกิดเหตุ : </span>
+                        {summaryLocation}
+                      </div>
+                      <div>
+                        <span className="font-bold text-[#0f284a]">วันที่และเวลาที่เกิดเหตุ : </span>
+                        วันที่ {form.occurred_date || "-"} เวลา {form.occurred_time || "-"} น.
+                      </div>
+                      <div>
+                        <span className="font-bold text-[#0f284a]">พยาน : </span>
+                        {form.has_witness ? `มี (${form.witnesses?.length || 0} คน)` : "ไม่มี"}
+                      </div>
+                      <div>
+                        <span className="font-bold text-[#0f284a]">วันที่และเวลาที่ร้องเรียน : </span>
+                        {/* สมมติวันที่ปัจจุบันให้ดูเหมือนในรูป */}
+                        วันที่ {new Date().toLocaleDateString('th-TH')} เวลา {new Date().toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'})} น.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Checkbox ยืนยัน */}
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <Checkbox
+                      className="mt-0.5 border-slate-400 data-[state=checked]:bg-[#d49a26] data-[state=checked]:border-[#d49a26]"
+                      checked={form.consent_truth}
+                      onCheckedChange={(v) => update("consent_truth", v === true)}
+                    />
+                    <div className="text-sm">
+                      ข้าพเจ้ายืนยันว่า <span className="font-bold text-black">ข้อมูลที่ให้เป็นความจริง</span> และส่งด้วยเจตนาสุจริต
+                    </div>
+                  </label>
+                  
+                  {/* Error Message (แสดงถ้ายังไม่กดติ๊กถูก) */}
+                  {!form.consent_truth && (
+                    <div className="mt-2 ml-7 flex items-center gap-1.5 text-xs text-red-500 font-medium">
+                      <AlertCircle className="h-3.5 w-3.5" /> กรุณายืนยันความถูกต้องของข้อมูล
+                    </div>
+                  )}
+
+                  {/* ปุ่ม Submit */}
+                  <div className="mt-8 flex flex-col-reverse items-center justify-between gap-4 sm:flex-row">
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      className="w-full text-muted-foreground sm:w-auto" 
+                      onClick={() => openStep(3)}
+                    >
+                      <ArrowLeft className="mr-2 h-4 w-4" /> กลับไปแก้ไข
+                    </Button>
+                    
+                    <Button
+                      type="submit"
+                      disabled={submitting || !form.consent_truth}
+                      className="w-full h-11 bg-[#d49a26] px-8 text-white hover:bg-[#b58320] sm:w-auto"
+                    >
+                      {submitting ? "กำลังส่ง..." : "ส่งเรื่องร้องเรียน"} <Send className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
           </form>
         </MainLayout>
       </section>
@@ -1646,4 +2323,74 @@ function priorityLabel(priority: ComplaintPriority): string {
     critical: "Critical (วิกฤต)",
   };
   return labels[priority];
+}
+
+// นำโค้ดนี้ไปวางล่างสุดของไฟล์ เพื่อสร้างตัว Stepper แนวนอน
+function HorizontalStepper({ 
+  currentStep, 
+  maxVisibleStep, 
+  onStepClick 
+}: { 
+  currentStep: number;
+  maxVisibleStep: number;
+  onStepClick: (step: number) => void;
+}) {
+  const STEPS = [
+  { id: 1, labelTh: "หมวดหมู่และประเด็น", labelEn: "(Category & Related Issue)", icon: BookOpen },
+  { id: 2, labelTh: "รายละเอียดเหตุการณ์", labelEn: "(Incident Information & Details)", icon: FileText },
+  { id: 3, labelTh: "ข้อมูลผู้ร้องเรียน", labelEn: "(Reporter Information)", icon: Edit },
+  { id: 4, labelTh: "ตรวจสอบและยืนยันข้อมูล", labelEn: "(Review & Confirmation)", icon: ShieldCheck },
+];
+
+  return (
+    // ตรง return บรรทัดแรกของ HorizontalStepper
+    <div className="mb-8 rounded-2xl border border-border bg-white px-4 pt-10 pb-8 shadow-sm md:px-10 md:pt-12 md:pb-10">
+      <div className="relative flex w-full justify-between items-start">
+        
+        {/* เส้นเชื่อมพื้นหลัง (ยังคงใช้ absolute ได้เพราะอยู่หลังสุด) */}
+        <div className="absolute left-[10%] right-[10%] top-6 h-1 bg-slate-100 -z-0"></div>
+        <div
+          className="absolute left-[10%] right-[10%] top-6 h-1 bg-[#09A129] transition-all duration-300 -z-0"
+          style={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 80}%` }}
+        ></div>
+
+        {STEPS.map((step) => {
+          const isActive = currentStep === step.id;
+          const isCompleted = currentStep > step.id;
+          const isClickable = step.id <= maxVisibleStep;
+
+          return (
+            <div 
+              key={step.id} 
+              className={cn(
+                "relative z-10 flex flex-1 flex-col items-center transition-transform", // ใช้ flex-1 เพื่อกระจายพื้นที่เท่ากัน
+                isClickable ? "cursor-pointer hover:scale-105" : "cursor-not-allowed opacity-80"
+              )}
+              onClick={() => isClickable && onStepClick(step.id)}
+            >
+              {/* วงกลม */}
+              <div
+                className={cn(
+                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-[3px] bg-white transition-colors duration-300 md:h-12 md:w-12 md:border-4",
+                  isCompleted || isActive ? "border-[#09A129] text-white bg-[#09A129]" : "border-slate-200 text-slate-300"
+                )}
+              >
+                {isCompleted ? <Check className="h-5 w-5 md:h-6 md:w-6" /> : <step.icon className="h-5 w-5 md:h-6 md:w-6" />}
+              </div>
+
+              {/* ข้อความ (เอา absolute ออก แล้วใช้ margin แทน) */}
+              <div className="mt-3 text-center w-full px-1">
+                <div className={cn("text-[11px] font-bold leading-tight md:text-[13px]", isActive || isCompleted ? "text-slate-800" : "text-slate-400")}>
+                  {step.labelTh}
+                </div>
+                <div className="text-[9px] md:text-[10px] font-medium opacity-60 mt-0.5 text-slate-500">
+                  {step.labelEn}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
