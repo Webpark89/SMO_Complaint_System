@@ -155,8 +155,8 @@ export const Route = createFileRoute("/SubmitComplaintRoute")({
 
 const schema = z
   .object({
-    category_id: z.string().min(1, "กรุณาเลือกประเภทเรื่องร้องเรียน"),
-    subtopic_id: z.string().min(1, "กรุณาเลือกหัวข้อย่อย"),
+    category_id: z.string().min(1, "กรุณาเลือกประเภทเรื่องร้องเรียน (Please select a complaint category)"),
+    subtopic_id: z.string().min(1, "กรุณาเลือกหัวข้อย่อย (Please select a subtopic)"),
     subtopic_other: z.string().optional(),
     subcategory_other: z.string().optional(),
     product_type: z.enum(["CPO", "PK", "OTHER", ""]),
@@ -164,9 +164,9 @@ const schema = z
     lot_reference: z.string().optional(),
     contract_number: z.string().optional(),
     delivery_date: z.string().optional(),
-    occurred_date: z.string().min(1, "กรุณาเลือกวันที่เกิดเหตุ"),
-    occurred_time: z.string().min(1, "กรุณาเลือกเวลาที่เกิดเหตุ"),
-    location: z.string().min(1, "กรุณาเลือกสาขา"),
+    occurred_date: z.string().min(1, "กรุณาเลือกวันที่เกิดเหตุ (Please select the incident date)"),
+    occurred_time: z.string().min(1, "กรุณาเลือกเวลาที่เกิดเหตุ (Please select the incident time)"),
+    location: z.string().min(1, "กรุณาเลือกสาขา (Please select a branch)"),
     priority: z.enum(["low", "medium", "high", "critical"]),
     has_witness: z.boolean(),
     witness_name: z.string().optional(),
@@ -180,7 +180,7 @@ const schema = z
     reporter_name: z.string().optional(),
     reporter_phone: z.string().optional(),
     consent_truth: z.literal(true, {
-      errorMap: () => ({ message: "กรุณายืนยันความถูกต้องของข้อมูล" }),
+      errorMap: () => ({ message: "กรุณายืนยันความถูกต้องของข้อมูล (Please confirm the accuracy of the information)" }),
     }),
   })
   .superRefine((v, ctx) => {
@@ -189,7 +189,7 @@ const schema = z
         ctx.addIssue({
           code: "custom",
           path: ["reporter_email"],
-          message: "กรุณาระบุอีเมลที่ถูกต้อง",
+          message: "กรุณาระบุอีเมลที่ถูกต้อง (Please enter a valid email)",
         });
       }
     }
@@ -198,7 +198,7 @@ const schema = z
       ctx.addIssue({
         code: "custom",
         path: ["subtopic_other"],
-        message: "กรุณาระบุรายละเอียดเพิ่มเติม",
+        message: "กรุณาระบุรายละเอียดเพิ่มเติม (Please provide additional details)",
       });
     }
 
@@ -207,7 +207,7 @@ const schema = z
         ctx.addIssue({
           code: "custom",
           path: ["subcategory_other"],
-          message: "กรุณาระบุรายละเอียดเพิ่มเติม",
+          message: "กรุณาระบุรายละเอียดเพิ่มเติม (Please provide additional details)",
         });
       }
     }
@@ -397,42 +397,42 @@ function ComplaintForm() {
     setMaxVisibleStep((value) => Math.max(value, step));
   }
 
-  // ยุบรวม Validation ของทุกส่วนที่เหลือมาไว้ที่ Step 2
+// ยุบรวม Validation ของทุกส่วนที่เหลือมาไว้ที่ Step 2
   function stepErrors(step: number): StepErrors {
     const next: StepErrors = {};
     
     // Step 1: หมวดหมู่และประเด็น
     if (step === 1) {
-      if (!form.category_id) next.category_id = "กรุณาเลือกประเภทเรื่องร้องเรียน";
-      if (!form.subtopic_id) next.subtopic_id = "กรุณาเลือกหัวข้อย่อย";
+      if (!form.category_id) next.category_id = "กรุณาเลือกประเภทเรื่องร้องเรียน (Please select a complaint category)";
+      if (!form.subtopic_id) next.subtopic_id = "กรุณาเลือกหัวข้อย่อย (Please select a subtopic)";
       if (form.subtopic_id.endsWith("_other") && !form.subtopic_other.trim())
-        next.subtopic_other = "กรุณาระบุรายละเอียดเพิ่มเติม";
+        next.subtopic_other = "กรุณาระบุรายละเอียดเพิ่มเติม (Please provide additional details)";
     }
     
     // Step 2: รายละเอียดเหตุการณ์ (วันที่ เวลา สาขา)
     if (step === 2) {
-      if (!form.occurred_date) next.occurred_date = "กรุณาเลือกวันที่เกิดเหตุ";
-      if (!form.occurred_time) next.occurred_time = "กรุณาเลือกเวลาที่เกิดเหตุ";
-      if (!form.location) next.location = "กรุณาเลือกสาขา";
+      if (!form.occurred_date) next.occurred_date = "กรุณาเลือกวันที่เกิดเหตุ (Please select the incident date)";
+      if (!form.occurred_time) next.occurred_time = "กรุณาเลือกเวลาที่เกิดเหตุ (Please select the incident time)";
+      if (!form.location) next.location = "กรุณาเลือกสาขา (Please select a branch)";
     }
 
     // Step 3: ข้อมูลผู้ร้องเรียน
     if (step === 3) {
       if (!form.is_anonymous) {
         if (!form.reporter_name || !form.reporter_name.trim()) {
-          next.reporter_name = "กรุณาระบุชื่อ-นามสกุล";
+          next.reporter_name = "กรุณาระบุชื่อ-นามสกุล (Please enter your full name)";
         }
         if (!form.reporter_email || !form.reporter_email.trim()) {
-          next.reporter_email = "กรุณาระบุอีเมล";
+          next.reporter_email = "กรุณาระบุอีเมล (Please enter your email)";
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.reporter_email)) {
-          next.reporter_email = "กรุณาระบุอีเมลที่ถูกต้อง";
+          next.reporter_email = "กรุณาระบุอีเมลที่ถูกต้อง (Please enter a valid email)";
         }
       }
     }
 
     // Step 4: ตรวจสอบและยืนยันข้อมูล
     if (step === 4) {
-      if (!form.consent_truth) next.consent_truth = "กรุณายืนยันความถูกต้องของข้อมูล";
+      if (!form.consent_truth) next.consent_truth = "กรุณายืนยันความถูกต้องของข้อมูล (Please confirm the accuracy of the information)";
     }
     
     return next;
@@ -451,7 +451,7 @@ function ComplaintForm() {
 
     if (Object.keys(currentErrors).length > 0) {
       setErrors((prev) => ({ ...prev, ...currentErrors }));
-      toast.error("กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วนก่อนไปหน้าถัดไป");
+      toast.error("กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วนก่อนไปหน้าถัดไป (Please complete all required fields before proceeding)");
       return;
     }
     openStep(stepToValidate + 1);
@@ -464,7 +464,7 @@ function ComplaintForm() {
     const finalErrors = stepErrors(2);
     if (Object.keys(finalErrors).length > 0) {
       setErrors((prev) => ({ ...prev, ...finalErrors }));
-      toast.error("กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วนก่อนส่งแบบฟอร์ม");
+      toast.error("กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วนก่อนส่งแบบฟอร์ม (Please complete all required fields before submitting)");
       return;
     }
 
@@ -476,7 +476,7 @@ function ComplaintForm() {
       }
       setErrors((prev) => ({ ...prev, ...next }));
       toast.error(
-        parsed.error.issues[0]?.message ?? "กรุณากรอกข้อมูลให้ครบถ้วน",
+        parsed.error.issues[0]?.message ?? "กรุณากรอกข้อมูลให้ครบถ้วน (Please complete all fields)",
       );
       return;
     }
@@ -493,7 +493,7 @@ function ComplaintForm() {
       setSuccess({ ref: fakeRef });
     } catch (err: unknown) {
       toast.error(
-        err instanceof Error ? err.message : "การส่งล้มเหลว กรุณาลองใหม่",
+        err instanceof Error ? err.message : "การส่งล้มเหลว กรุณาลองใหม่ (Submission failed, please try again)",
       );
     } finally {
       setSubmitting(false);
@@ -755,6 +755,32 @@ function ComplaintForm() {
                       })}
                     </div>
                     <FieldError msg={errors.subtopic_id} />
+
+                    {/* ==========================================
+                        เพิ่มช่องกรอกข้อความสำหรับ "อื่นๆ" ตรงนี้
+                    ========================================== */}
+                    {form.subtopic_id.endsWith("_other") && (
+                      <div className="mt-4 animate-[fadeIn_0.2s_ease-out_both] rounded-xl border border-border bg-[#FFFFFF] p-4 md:p-5">
+                        <Label className="text-sm font-bold text-[#002856]">
+                          โปรดระบุรายละเอียดเพิ่มเติม (Please specify additional details) <span className="text-destructive">*</span>
+                        </Label>
+                        <Input
+                          className={cn(
+                            "mt-3 w-full h-[48px] rounded-lg transition-all outline-none",
+                            "border-[#D6D7D9] bg-white text-[#002856]",
+                            "hover:border-[#D29E0E]",
+                            "focus-visible:border-[#002856] focus-visible:ring-1 focus-visible:ring-[#002856]",
+                            errors.subtopic_other && "border-[#FF4D00] bg-[#FF4D00]/10 text-[#FF4D00] hover:border-[#FF4D00] focus-visible:border-[#FF4D00] focus-visible:ring-[#FF4D00]"
+                          )}
+                          value={form.subtopic_other}
+                          onChange={(e) => update("subtopic_other", e.target.value)}
+                          placeholder="ระบุรายละเอียดเพิ่มเติม..."
+                        />
+                        <div className="mt-1">
+                          <FieldError msg={errors.subtopic_other} />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1128,9 +1154,16 @@ function ComplaintForm() {
                 
                 <div className="space-y-4">
                   <label className="group flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-border bg-slate-50 dark:bg-[var(--surface-muted)] p-4 transition-colors hover:border-primary/40">
-                    <div className="flex items-start gap-3">
-                      <div className="mt-0.5 rounded-lg border border-border bg-white p-1.5 text-slate-700 shadow-sm">
-                        <Lock className="h-4 w-4" />
+                    <div className="flex items-center gap-3">
+                      {/* 1. เพิ่ม shrink-0 เพื่อไม่ให้กลายเป็นวงรีบนมือถือ */}
+                      {/* 2. นำ mt-0.5 ออก และเพิ่ม flex items-center justify-center เพื่อให้รูปอยู่ตรงกลางวงกลมเป๊ะๆ */}
+                      <div className="flex shrink-0 items-center justify-center rounded-full border border-border bg-[#D29E0E] p-1.5 text-slate-700 shadow-sm">
+                        <img 
+                          src="/src/assets/Frame.svg" 
+                          alt="Anonymous Icon" 
+                          // 3. เอา bg กับ rounded ออกจาก img เพราะตัวกรอบ (div ด้านบน) จัดการให้หมดแล้ว
+                          className="h-4 w-4 object-contain" 
+                        />
                       </div>
                       <div>
                         <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
@@ -1158,8 +1191,7 @@ function ComplaintForm() {
                   <div className="mt-4 grid gap-5 md:grid-cols-2">
                     {!form.is_anonymous && (
                       <>
-                        <FieldGroup label="ชื่อ-นามสกุล" required full error={errors.reporter_name}>
-                          <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">Full Name</div>
+                        <FieldGroup label="ชื่อ-นามสกุล (Full Name)" required full error={errors.reporter_name}>
                           <Input
                             className={cn(
                               "flex-1 rounded-lg transition-all outline-none",
@@ -1177,8 +1209,7 @@ function ComplaintForm() {
                           />
                         </FieldGroup>
 
-                        <FieldGroup label="อีเมล" required error={errors.reporter_email}>
-                          <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">Email Address</div>
+                        <FieldGroup label="อีเมล (Email Address)" required error={errors.reporter_email}>
                           <Input
                             type="email"
                             className={cn(
@@ -1198,8 +1229,7 @@ function ComplaintForm() {
                           />
                         </FieldGroup>
 
-                        <FieldGroup label="เบอร์โทรศัพท์" error={errors.reporter_phone}>
-                          <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">Phone Number</div>
+                        <FieldGroup label="เบอร์โทรศัพท์ (Phone Number)" error={errors.reporter_phone}>
                           <Input
                             className={cn("flex-1 rounded-lg transition-all outline-none",
                                   "border-[#D6D7D9] bg-white text-[#002856]",
