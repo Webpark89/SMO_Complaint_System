@@ -1158,13 +1158,13 @@ function ComplaintForm() {
                   <div className="mt-4 grid gap-5 md:grid-cols-2">
                     {!form.is_anonymous && (
                       <>
-                        <FieldGroup label="ชื่อ-นามสกุล" required error={errors.reporter_name}>
+                        <FieldGroup label="ชื่อ-นามสกุล" required full error={errors.reporter_name}>
                           <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">Full Name</div>
                           <Input
                             className={cn(
                               "flex-1 rounded-lg transition-all outline-none",
                               // สถานะปกติ: กรอบเทา พื้นขาว ข้อความตอนพิมพ์สีน้ำเงิน และ Placeholder สีเทา #D6D7D9
-                              "border-[#D6D7D9] bg-white text-[#002856] placeholder:text-[#D6D7D9]",
+                              "border-[#D6D7D9] bg-white text-[#002856]",
                               "hover:border-[#D29E0E]",
                               "focus-visible:border-[#002856] focus-visible:ring-1 focus-visible:ring-[#002856]",
                               "disabled:cursor-not-allowed disabled:bg-[#F9FAFB] disabled:text-[#898F98] disabled:border-[#D6D7D9]",
@@ -1184,7 +1184,7 @@ function ComplaintForm() {
                             className={cn(
                               "flex-1 rounded-lg transition-all outline-none",
                               // สถานะปกติ: กรอบเทา พื้นขาว ข้อความตอนพิมพ์สีน้ำเงิน และ Placeholder สีเทา #D6D7D9
-                              "border-[#D6D7D9] bg-white text-[#002856] placeholder:text-[#D6D7D9]",
+                              "border-[#D6D7D9] bg-white text-[#002856]",
                               "hover:border-[#D29E0E]",
                               "focus-visible:border-[#002856] focus-visible:ring-1 focus-visible:ring-[#002856]",
                               "disabled:cursor-not-allowed disabled:bg-[#F9FAFB] disabled:text-[#898F98] disabled:border-[#D6D7D9]", 
@@ -1198,7 +1198,7 @@ function ComplaintForm() {
                           />
                         </FieldGroup>
 
-                        <FieldGroup label="เบอร์โทรศัพท์" full error={errors.reporter_phone}>
+                        <FieldGroup label="เบอร์โทรศัพท์" error={errors.reporter_phone}>
                           <div className="-mt-1 mb-1.5 text-xs text-muted-foreground">Phone Number</div>
                           <Input
                             className={cn("flex-1 rounded-lg transition-all outline-none",
