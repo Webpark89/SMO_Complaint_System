@@ -221,6 +221,21 @@ const complaintStore = createMockCrudStore<Complaint>([
     witnessNames: ["มาลี รักสงบ"],
     requestFollowUp: false,
   }),
+  createSeedComplaint({
+    id: "CMP-0009",
+    reference_number: "CMP-2026-0009",
+    title: "[จรรยาบรรณทางธุรกิจ] การปฏิบัติต่อผู้มีส่วนได้เสีย",
+    description: "ทดสอบข้อมูลสถานะยาวๆ ตามแบบในภาพอ้างอิง",
+    category_id: "ethics", // หมวดหมู่จรรยาบรรณ
+    priority: "medium",
+    status: "closed", // สถานะปัจจุบันคือ ปิดเรื่อง
+    is_sensitive: false,
+    created_at: "2026-06-09T15:48:55+07:00",
+    updated_at: "2026-06-19T10:20:31+07:00",
+    occurred_date: "2026-05-02",
+    occurred_time: "15:42",
+    location: "สาขาท่าชนะ",
+  }),
 ]);
 
 // 2. ดึง Comment ที่หลุดไปอยู่ใน createComplaint() กลับมาอยู่ใน Store
@@ -381,6 +396,17 @@ const historyStore = createMockCrudStore<ComplaintStatusHistory>([
     "in_progress",
     daysAgo(3),
   ),
+  createHistory("history-0021", "CMP-0009", null, "รอพิจารณา" as ComplaintStatus, "2026-06-09T15:48:55+07:00"),
+  createHistory("history-0022", "CMP-0009", "รอพิจารณา" as ComplaintStatus, "รับเรื่องและคัดกรองแล้ว" as ComplaintStatus, "2026-06-10T15:48:55+07:00"),
+  createHistory("history-0023", "CMP-0009", "รับเรื่องและคัดกรองแล้ว" as ComplaintStatus, "รอมอบหมายผู้รับผิดชอบ" as ComplaintStatus, "2026-06-11T15:48:55+07:00"),
+  createHistory("history-0024", "CMP-0009", "รอมอบหมายผู้รับผิดชอบ" as ComplaintStatus, "มอบหมายผู้รับผิดชอบแล้ว" as ComplaintStatus, "2026-06-12T15:48:55+07:00"),
+  createHistory("history-0025", "CMP-0009", "มอบหมายผู้รับผิดชอบแล้ว" as ComplaintStatus, "อยู่ระหว่างดำเนินการ" as ComplaintStatus, "2026-06-13T15:48:55+07:00"),
+  createHistory("history-0026", "CMP-0009", "อยู่ระหว่างดำเนินการ" as ComplaintStatus, "อยู่ระหว่างสอบสวน" as ComplaintStatus, "2026-06-14T15:48:55+07:00"),
+  createHistory("history-0027", "CMP-0009", "อยู่ระหว่างสอบสวน" as ComplaintStatus, "รอสรุปผลสอบสวน" as ComplaintStatus, "2026-06-15T15:48:55+07:00"),
+  createHistory("history-0028", "CMP-0009", "รอสรุปผลสอบสวน" as ComplaintStatus, "สรุปผลสอบสวนแล้ว" as ComplaintStatus, "2026-06-16T15:48:55+07:00"),
+  createHistory("history-0029", "CMP-0009", "สรุปผลสอบสวนแล้ว" as ComplaintStatus, "รออนุมัติผล" as ComplaintStatus, "2026-06-17T15:48:55+07:00"),
+  createHistory("history-0030", "CMP-0009", "รออนุมัติผล" as ComplaintStatus, "อนุมัติแล้ว" as ComplaintStatus, "2026-06-18T15:48:55+07:00"),
+  createHistory("history-0031", "CMP-0009", "อนุมัติแล้ว" as ComplaintStatus, "ปิดเรื่อง" as ComplaintStatus, "2026-06-19T10:20:31+07:00"),
 ]);
 
 export const mockCategories = {
@@ -508,7 +534,12 @@ export async function trackComplaint(referenceNumber: string) {
     (item) => item.reference_number.toUpperCase() === normalized,
   );
   if (!complaint) return null;
+  
   const history = await listStatusHistory(complaint.id);
+
+  // ดึงชื่อหมวดหมู่ (ประเภทเรื่องร้องเรียน) จาก category_id
+  const category = categories.find((c) => c.id === complaint.category_id);
+
   return {
     reference_number: complaint.reference_number,
     title: complaint.title,
@@ -517,6 +548,14 @@ export async function trackComplaint(referenceNumber: string) {
     is_sensitive: complaint.is_sensitive,
     created_at: complaint.created_at,
     updated_at: complaint.updated_at,
+    
+    // --- เพิ่มฟิลด์ที่ขาดหายไปตรงนี้ ---
+    complaint_type_name: category ? category.name : "-",
+    branch_name: complaint.location, // ใน Mock data ใช้ location ในการเก็บชื่อสาขา
+    incident_date: complaint.occurred_date,
+    incident_time: complaint.occurred_time,
+    // --------------------------------
+    
     history,
   };
 }
