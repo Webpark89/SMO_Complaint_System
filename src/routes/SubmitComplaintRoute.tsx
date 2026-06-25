@@ -12,7 +12,6 @@ import {
   Copy,
   Upload,
   X,
-  FileText,
   Tag,
   MessageSquareText,
   Clock,
@@ -47,8 +46,13 @@ import {
 import { complaintLocations } from "@/mock/organization";
 import { cn } from "@/lib/utils";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Check, BookOpen, Edit, ShieldCheck } from "lucide-react";
-
+import { 
+  FileText,    // ขั้นที่ 1
+  SquarePen,   // ขั้นที่ 2
+  User,        // ขั้นที่ 3
+  ShieldCheck, // ขั้นที่ 4
+  Check 
+} from "lucide-react";
 interface TermsAndPrivacyContentProps {}
 export const TermsAndPrivacyContent = forwardRef<
   HTMLDivElement,
@@ -57,15 +61,10 @@ export const TermsAndPrivacyContent = forwardRef<
   return (
     <div>
       <div className="flex flex-col items-center gap-3 text-center md:flex-row md:items-start md:gap-4 md:text-left">
-        <div className="flex-none">
-          <div className="rounded-full bg-primary/10 p-2 text-primary">
-            <AlertCircle className="h-5 w-5" />
-          </div>
-        </div>
         <div className="min-w-0">
           <div className="flex justify-center md:justify-start">
             <h1 className="font-display text-lg font-bold text-primary">
-              เงื่อนไขการใช้งานและการรักษาความปลอดภัยของข้อมูลส่วนบุคคล
+              เงื่อนไขการใช้งานและการคุ้มครองข้อมูลส่วนบุคคล (Terms of Use & Personal Data Protection)
             </h1>
           </div>
           <div className="mt-1 text-sm text-muted-foreground">05 พ.ค. 2569</div>
@@ -263,7 +262,7 @@ function ComplaintForm() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [maxVisibleStep, setMaxVisibleStep] = useState(1);
-  const sectionRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const topOfFormRef = useRef<HTMLDivElement | null>(null);
   const [form, setForm] = useState<ComplaintFormData>({
     is_anonymous: false,
     reporter_name: "",
@@ -343,7 +342,7 @@ function ComplaintForm() {
   }, [currentStep]);
 
   useEffect(() => {
-    sectionRefs.current[currentStep - 1]?.scrollIntoView({
+    topOfFormRef.current?.scrollIntoView({
       behavior: "smooth",
       block: "start",
     });
@@ -360,7 +359,7 @@ function ComplaintForm() {
 
       setForm((f) => ({
         ...f,
-        occurred_date: `${yyyy}-${mm}-${dd}`,
+        occurred_date: `${dd}/${mm}/${yyyy}`,
         occurred_time: `${hh}:${mins}`,
       }));
       setInitialFillDone(true);
@@ -505,31 +504,31 @@ function ComplaintForm() {
       <PageContainer>
         <section className="min-h-[80vh] py-16 flex flex-col items-center justify-center">
           <MainLayout narrow>
-            <div className="text-center animate-[fadeInUp_0.4s_ease-out_both] flex flex-col items-center">
-              
+            <div className="rounded-2xl border border-border bg-white p-6 shadow-sm md:p-8 animate-[fadeIn_0.3s_ease-out_both]">
+
               {/* ไอคอน Check วงกลมสีเขียวอ่อน */}
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#09A129]/10 text-[#09A129] shadow-sm md:h-20 md:w-20">
                 <CheckCircle2 className="h-8 w-8 md:h-10 md:w-10" />
               </div>
               
               {/* หัวข้อหลัก */}
-              <h1 className="mt-6 font-display text-2xl font-bold text-[#002856] md:text-3xl">
+              <h1 className="mt-6 text-center font-display text-2xl font-bold text-[#002856] md:text-3xl">
                 ระบบได้รับเรื่องของท่านเรียบร้อยแล้ว
               </h1>
               
               {/* คำอธิบาย */}
-              <p className="mt-3 text-sm text-muted-foreground md:text-base">
+              <p className="mt-3 text-center text-sm text-[#002856] md:text-base">
                 เจ้าหน้าที่จะดำเนินการตามนโยบายคุ้มครองผู้แจ้งเบาะแส
               </p>
               
               {/* การ์ดแสดงหมายเลขอ้างอิง (กล่องสีขาว) */}
               <div className="mx-auto mt-8 w-full max-w-[600px] rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
-                <div className="text-xs font-bold tracking-wide text-[#002856] md:text-sm">
+                <div className="text-xs font-bold text-center tracking-wide text-[#002856] md:text-sm">
                   หมายเลขอ้างอิง / Reference Number
                 </div>
                 
                 {/* ตัวเลขหมายเลขอ้างอิง (ขยายให้ใหญ่และหนาขึ้น) */}
-                <div className="mt-4 font-display text-3xl font-black tracking-wider text-[#002856] md:text-4xl">
+                <div className="mt-4 font-display text-center text-3xl font-black tracking-wider text-[#002856] md:text-4xl">
                   {success.ref}
                 </div>
                 
@@ -559,7 +558,7 @@ function ComplaintForm() {
                 </div>
                 
                 {/* ข้อความแจ้งเตือนสีส้ม */}
-                <div className="mt-6 space-y-1">
+                <div className="mt-6 space-y-1 items-center justify-center text-center">
                   <p className="text-xs font-medium text-[#FF4D00] md:text-sm">
                     โปรดเก็บหมายเลขนี้ไว้สำหรับติดตามสถานะ
                   </p>
@@ -605,7 +604,7 @@ function ComplaintForm() {
             <div className="mb-6 flex items-center justify-between">
               <Link
                 to="/"
-                className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                className="inline-flex items-center text-sm font-medium text-[#002856] hover:text-primary transition-colors"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" /> กลับสู่หน้าแรก
               </Link>
@@ -614,7 +613,7 @@ function ComplaintForm() {
             <div className="rounded-2xl border border-border bg-white p-6 shadow-sm md:p-8 animate-[fadeIn_0.3s_ease-out_both]">
               <TermsAndPrivacyContent ref={contentRef} />
 
-              <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-t pt-6">
+              <div className=" flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between pt-6">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <Checkbox
                     disabled={!scrolledToBottom}
@@ -630,14 +629,14 @@ function ComplaintForm() {
                 )}
               </div>
 
-              <div className="mt-8 flex justify-end gap-3 border-t border-border pt-6">
+              <div className="mt-8 flex justify-end gap-3 pt-6">
                 <Button
                   type="button"
                   className="bg-[#D29E0E] hover:bg-[#002856] disabled:bg-[#B8BBBF] text-white px-8 h-11"
                   disabled={!isTermsAccepted}
                   onClick={() => setHasAcceptedTerms(true)}
                 >
-                  ดำเนินการต่อ <ArrowRight className="ml-2 h-4 w-4" />
+                  ถัดไป <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -649,13 +648,13 @@ function ComplaintForm() {
 
   return (
     <PageContainer>
-      <section className="py-12 md:py-8">
-        <div className="mx-auto w-full max-w-7xl px-4 md:px-6 lg:px-8">
+      <section className="py-12 md:py-8 bg-white">
+        <div ref={topOfFormRef} className="mx-auto w-full max-w-7xl px-4 md:px-6 lg:px-8">
           {/* ส่วนหัว: ปุ่มกลับหน้าแรก */}
           <div className="mb-6 flex items-center justify-between">
             <Link
               to="/"
-              className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+              className="inline-flex items-center text-sm font-medium text-[#002856] hover:text-primary transition-colors"
             >
               <ArrowLeft className="mr-2 h-4 w-4" /> กลับสู่หน้าแรก
             </Link>
@@ -673,7 +672,7 @@ function ComplaintForm() {
             {currentStep === 1 && (
               <div className="rounded-2xl border border-border bg-white p-6 shadow-sm md:p-8 animate-[fadeIn_0.3s_ease-out_both]">
                 
-                <div className="mb-6 border-b border-border pb-4">
+                <div className="mb-2 border-b border-border pb-4">
                   <h2 className="text-lg font-bold text-[#002856]">
                     หมวดหมู่และประเด็นที่เกี่ยวข้อง (Category & Related Issue) <span className="text-destructive">*</span>
                   </h2>
@@ -682,13 +681,13 @@ function ComplaintForm() {
                   </p>
                 </div>
                 
-                <div className="grid gap-6">
+                <div className="grid gap-3">
                   {/* เลือกหมวดหมู่หลัก */}
-                  <div>
-                    <Label className="text-sm font-bold text-[#002856]">
+                  <div className="border-b-2 border-border">
+                    <Label className="text-sm font-normal text-[#002856]">
                       เลือกหมวดหมู่การแจ้งเรื่อง (Select Reporting Category) <span className="text-destructive">*</span>
                     </Label>
-                    <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+                    <div className="mt-3 mb-4 grid grid-cols-1 gap-3 md:grid-cols-3">
                       {complaintTypes.map((category) => {
                         const active = form.category_id === category.id;
                         return (
@@ -724,7 +723,7 @@ function ComplaintForm() {
 
                   {/* เลือกประเด็น (หัวข้อย่อย) */}
                   <div className={cn("transition-opacity", !selectedCategory && "pointer-events-none opacity-50")}>
-                    <Label className="text-sm font-bold text-[#002856]">
+                    <Label className="text-sm font-normal text-[#002856]">
                       เลือกประเด็นที่เกี่ยวข้อง (Select Related Issue) <span className="text-destructive">*</span>
                     </Label>
                     <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -802,7 +801,10 @@ function ComplaintForm() {
             {currentStep === 2 && (
               <div className="rounded-2xl border border-border bg-white p-6 shadow-sm md:p-8 animate-[fadeIn_0.3s_ease-out_both]">
                 <h2 className="mb-6 border-b pb-4 text-lg font-bold text-[#002856]">
-                  รายละเอียดเหตุการณ์ <span className="text-destructive">*</span>
+                  ข้อมูลและรายละเอียดเหตุการณ์ (Incident Information & Details) <span className="text-destructive">*</span>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    กรุณาเลือกหมวดหมู่การแจ้งเรื่องและประเด็นที่เกี่ยวข้อง เพื่อให้บริษัทสามารถจัดประเภทและดำเนินการตรวจสอบได้อย่างเหมาะสม
+                </p>
                 </h2>
                 
                 <div className="space-y-8">
@@ -917,7 +919,7 @@ function ComplaintForm() {
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                       <div className="flex-1">
                         <Label className="text-sm font-semibold text-foreground">
-                          มีพยานหรือไม่? (Are there witnesses?)
+                          มีพยานหรือไม่? (Are there witnesses?)<span className="text-destructive">*</span>
                         </Label>
                         <p className="mt-1 text-xs text-muted-foreground leading-relaxed max-w-sm">
                           ระบุได้หากมีผู้เห็นเหตุการณ์หรือผู้เกี่ยวข้องเพิ่มเติม
@@ -1011,7 +1013,7 @@ function ComplaintForm() {
                                   <Button
                                     type="button"
                                     variant="outline"
-                                    className="shrink-0 w-10 sm:w-24"
+                                    className="shrink-0 w-10 sm:w-24 bg-[#D29E0E] text-white hover:bg-[#002856]/90 hover:text-white"
                                     onClick={() => {
                                       update("witnesses", [...(form.witnesses || []), { name: "", phone: "" }]);
                                     }}
@@ -1042,19 +1044,14 @@ function ComplaintForm() {
 
                   {/* แถวที่ 3: รายละเอียดเพิ่มเติม */}
                   <div>
-                    <Label className="text-sm font-semibold text-foreground block mb-0.5">
-                      รายละเอียดเพิ่มเติม
+                    <Label className="text-sm font-semibold text-foreground block mb-0">
+                      รายละเอียดเพิ่มเติม (Additional Information)
                     </Label>
-                    <div className="text-xs text-muted-foreground mb-2 flex items-center justify-between">
-                      <span>
-                        Additional Information <span className="ml-1 opacity-70">(ไม่บังคับ / Optional)</span>
-                      </span>
-                    </div>
 
                     <Textarea
-                      className="min-h-[120px] resize-y rounded-xl bg-white p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="mt-2 min-h-[120px] resize-y rounded-xl bg-white p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                       maxLength={1000}
-                      placeholder="สามารถระบุรายละเอียดเพิ่มเติม เช่น บุคคลที่เกี่ยวข้อง เหตุการณ์เพิ่มเติม หรือข้อมูลอื่น ๆ..."
+                      placeholder="กรุณาระบุรายละเอียดเหตุการณ์ เช่น ลำดับเหตุการณ์ บุคคลที่เกี่ยวข้อง สถานที่ หรือข้อมูลอื่น ๆ ที่เป็นประโยชน์"
                       value={form.description}
                       onChange={(e) => update("description", e.target.value)}
                     />
@@ -1075,7 +1072,7 @@ function ComplaintForm() {
                   {/* --- ฟังก์ชั่นแนบไฟล์ --- */}
                   <div className="space-y-4">
                     <h3 className="text-base font-semibold text-[#002856]">
-                      แนบไฟล์ / Attach Files (ถ้ามี)
+                      แนบหลักฐานหรือเอกสารประกอบ (ถ้ามี) (Attach Supporting Files, if any)
                     </h3>
                     <label
                       onDragOver={(e) => { e.preventDefault(); }}
@@ -1091,7 +1088,7 @@ function ComplaintForm() {
                       <Upload className="h-7 w-7 text-muted-foreground" />
                       <div className="mt-3 text-sm font-medium">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือก</div>
                       <div className="mt-1 text-sm font-medium">Drag and drop files here, or click to select</div>
-                      <div className="mt-2 text-xs text-muted-foreground">
+                      <div className="mt-2 text-xs text-[#002856]">
                         รองรับ PDF, DOCX, PNG, JPG, MP4, MOV · สูงสุด 5 ไฟล์
                       </div>
                       <input
@@ -1131,7 +1128,7 @@ function ComplaintForm() {
                 </div>
 
                 {/* --- ปุ่ม ถัดไป / ย้อนกลับ --- */}
-                <div className="mt-10 flex flex-col-reverse justify-between gap-4 border-t border-border pt-6 sm:flex-row">
+                <div className="mt-10 flex flex-col-reverse justify-between gap-4 pt-6 sm:flex-row">
                   <Button type="button" variant="outline" className="h-11 w-full px-8 sm:w-auto" onClick={() => openStep(1)}>
                     <ArrowLeft className="mr-2 h-4 w-4" /> ย้อนกลับ
                   </Button>
@@ -1248,7 +1245,7 @@ function ComplaintForm() {
                 </div>
 
                 {/* --- ปุ่ม ถัดไป / ย้อนกลับ --- */}
-                <div className="mt-10 flex flex-col-reverse justify-between gap-4 border-t border-border pt-6 sm:flex-row">
+                <div className="mt-10 flex flex-col-reverse justify-between gap-4 pt-6 sm:flex-row">
                   <Button type="button" variant="outline" className="h-11 w-full px-8 sm:w-auto" onClick={() => openStep(2)}>
                     <ArrowLeft className="mr-2 h-4 w-4" /> ย้อนกลับ
                   </Button>
@@ -1330,8 +1327,8 @@ function ComplaintForm() {
                   <div className="mt-8 flex flex-col-reverse items-center justify-between gap-4 sm:flex-row">
                     <Button 
                       type="button" 
-                      variant="ghost" 
-                      className="w-full text-muted-foreground sm:w-auto" 
+                      variant="outline" 
+                      className="h-11 w-full px-8 sm:w-auto" 
                       onClick={() => openStep(3)}
                     >
                       <ArrowLeft className="mr-2 h-4 w-4" /> กลับไปแก้ไข
@@ -1414,7 +1411,7 @@ function FieldGroup({
 }) {
   return (
     <div className={full ? "md:col-span-2" : ""}>
-      <Label className="text-xs font-medium text-foreground/80">
+      <Label className="text-xs font-bold text-foreground/80">
         {label}
         {required && <span className="ml-0.5 text-destructive">*</span>}
       </Label>
@@ -1454,25 +1451,22 @@ function HorizontalStepper({
   onStepClick: (step: number) => void;
 }) {
   const STEPS = [
-    { id: 1, labelTh: "หมวดหมู่และประเด็น", labelEn: "(Category & Related Issue)", icon: BookOpen },
-    { id: 2, labelTh: "รายละเอียดเหตุการณ์", labelEn: "(Incident Information & Details)", icon: FileText },
-    { id: 3, labelTh: "ข้อมูลผู้ร้องเรียน", labelEn: "(Reporter Information)", icon: Edit },
+    { id: 1, labelTh: "หมวดหมู่และประเด็น", labelEn: "(Category & Related Issue)", icon: FileText },
+    { id: 2, labelTh: "รายละเอียดเหตุการณ์", labelEn: "(Incident Information & Details)", icon: SquarePen },
+    { id: 3, labelTh: "ข้อมูลผู้ร้องเรียน", labelEn: "(Reporter Information)", icon: User },
     { id: 4, labelTh: "ตรวจสอบและยืนยันข้อมูล", labelEn: "(Review & Confirmation)", icon: ShieldCheck },
   ];
 
   return (
-    // ปรับ Padding ในมือถือให้ลดลง (px-2 py-6) และขยายกลับในจอใหญ่ (sm:px-5)
-    <div className="mb-8 rounded-2xl border border-border bg-white px-2 py-6 sm:px-5 sm:pt-10 sm:pb-8 shadow-sm">
+    // เปลี่ยนพื้นหลังเป็นสี #D6D7D9 และปรับ Padding
+    <div className="mb-8 rounded-2xl bg-[#F9FAFB] px-2 py-8 sm:px-5 shadow-sm">
       <div className="relative z-0 flex w-full justify-between items-start">
         
-        {/* ปรับกล่องคุมเส้น (Line Wrapper):
-          - ใช้ left-[12.5%] right-[12.5%] เพื่อให้เส้นเริ่มต้นและจบที่ "กึ่งกลาง" ของ Step เสมอ (กรณีมี 4 Step)
-          - ปรับ top-4 ในมือถือ (กึ่งกลางของวงกลมขนาด 8) และ top-6 ใน Desktop (กึ่งกลางของวงกลมขนาด 12)
-        */}
-        <div className="absolute top-4 md:top-6 left-[12.5%] right-[12.5%] h-1 -translate-y-1/2 z-0 pointer-events-none">
-          {/* เส้นสีเทา (รองพื้น) */}
-          <div className="absolute inset-0 w-full h-full bg-slate-100"></div>
-          {/* เส้นสีเขียว (สถานะ) */}
+        {/* เส้นเชื่อม (Connector Line) */}
+        <div className="absolute top-[42px] md:top-14 left-[12.5%] right-[12.5%] h-[5px] -translate-y-1/2 z-0 pointer-events-none">
+          {/* เส้นสีเทา (Inactive) */}
+          <div className="absolute inset-0 w-full h-full bg-slate-300"></div>
+          {/* เส้นสีเขียว (Active/Completed) */}
           <div
             className="absolute left-0 top-0 h-full bg-[#09A129] transition-all duration-500 ease-in-out"
             style={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%` }}
@@ -1487,42 +1481,47 @@ function HorizontalStepper({
           return (
             <div 
               key={step.id} 
-              // ใช้ flex-1 เพื่อให้แต่ละ Step แบ่งพื้นที่ความกว้างเท่าๆ กัน 100%
               className={cn(
                 "relative z-10 flex flex-col items-center flex-1",
                 isClickable ? "cursor-pointer" : "cursor-default"
               )}
               onClick={() => isClickable && onStepClick(step.id)}
             >
-              {/* วงกลม (ปรับลดขนาดในมือถือเป็น h-8 w-8 และขยายเป็น h-12 w-12 ในจอใหญ่) */}
+              {/* ข้อความ "ขั้นตอนที่ x" ด้านบนสุด */}
+              <div className={cn(
+                "mb-2 text-[10px] md:text-sm font-bold transition-colors",
+                isActive || isCompleted ? "text-slate-700" : "text-slate-500"
+              )}>
+                ขั้นตอนที่ {step.id}
+              </div>
+
+              {/* วงกลม Icon */}
               <div
                 className={cn(
-                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-[2px] bg-white transition-colors duration-300 md:h-12 md:w-12 md:border-[3px]",
+                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-[2px] transition-colors duration-300 md:h-14 md:w-14 md:border-[3px]",
                   isCompleted || isActive 
                     ? "border-[#09A129] bg-[#09A129] text-white" 
-                    : "border-slate-200 bg-white text-slate-300"
+                    : "border-slate-400 bg-white text-slate-400"
                 )}
               >
+                {/* เพิ่มเงื่อนไขตรงนี้: ถ้าเสร็จแล้วให้แสดง Check ถ้ายังให้แสดง Icon ประจำ Step */}
                 {isCompleted ? (
-                  <Check className="h-4 w-4 md:h-6 md:w-6" /> 
+                  <Check className="h-5 w-5 md:h-7 md:w-7" strokeWidth={3} />
                 ) : (
-                  <step.icon className="h-4 w-4 md:h-6 md:w-6" />
+                  <step.icon className="h-5 w-5 md:h-7 md:w-7" />
                 )}
               </div>
 
-              {/* ข้อความกำกับ */}
-              <div className="mt-2 md:mt-3 flex flex-col items-center w-full px-1">
-                <div className="w-full max-w-[80px] md:max-w-none text-center flex flex-col items-center">
-                  {/* ภาษาไทย: เอา whitespace-nowrap ออก เพื่อให้ข้อความตัดขึ้นบรรทัดใหม่ได้เมื่อจอกว้างไม่พอ */}
+              {/* ข้อความกำกับด้านล่าง */}
+              <div className="mt-3 flex flex-col items-center w-full px-1">
+                <div className="text-center">
                   <div className={cn(
-                    "text-[9px] sm:text-[10px] md:text-xs font-bold leading-[1.2] break-words md:whitespace-nowrap", 
-                    isActive || isCompleted ? "text-slate-800" : "text-slate-400"
+                    "text-[9px] sm:text-[10px] md:text-xs font-bold leading-tight", 
+                    isActive || isCompleted ? "text-slate-800" : "text-slate-500"
                   )}>
                     {step.labelTh}
                   </div>
-                  
-                  {/* ภาษาอังกฤษ: ซ่อนในมือถือ (hidden) และแสดงตั้งแต่จอ sm ขึ้นไป (sm:block) เพื่อลดความรก */}
-                  <div className="hidden sm:block text-[9px] md:text-[10px] font-medium opacity-60 mt-0.5 text-slate-500 leading-tight md:whitespace-nowrap">
+                  <div className="text-[8px] md:text-[10px] font-medium opacity-70 mt-0.5 text-slate-600 leading-tight">
                     {step.labelEn}
                   </div>
                 </div>

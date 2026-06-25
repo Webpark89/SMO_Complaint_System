@@ -1,7 +1,7 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
-import { ArrowLeft, FileSearch, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowLeft, FileSearch, AlertTriangle, ChevronDown, ChevronUp, Link as LinkIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { MainLayout } from "@/components/CMS/CMSLayout";
 import { Button } from "@/components/ui/button";
@@ -188,14 +188,17 @@ function TrackPage() {
 
   return (
     <PageContainer>
-      <div className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-3 text-xs text-muted-foreground">
-          <span className="mx-1.5">›</span>{" "}
-          <span className="text-foreground">ติดตามสถานะ</span>
-        </div>
-      </div>
-      <section className="py-3">
+      <section className="py-3 md:py-8">
         <MainLayout>
+          <div className="mb-6">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 text-sm font-medium text-[#002856] hover:text-primary transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>กลับสู่หน้าแรก</span>
+            </Link>
+          </div>
 
           {/* =======================
               VIEW 1: หน้าฟอร์มค้นหา
@@ -205,8 +208,8 @@ function TrackPage() {
               <h1 className="mt-4 font-display text-3xl font-bold text-primary md:text-4xl">
                 ติดตามสถานะเรื่องร้องเรียน
               </h1>
-              <div className="mt-3 h-px w-12 bg-primary" />
-              <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+              <div className="mt-3 h-px w-24 bg-[#D29E0E]" />
+              <p className="mt-4 text-sm leading-relaxed text-[#002856]">
                 กรุณากรอกหมายเลขอ้างอิงที่ได้รับเมื่อส่งเรื่อง (รูปแบบ{" "}
                 <span className="font-mono">CMP-YYYY-XXXX</span>)
                 เพื่อความเป็นส่วนตัว ระบบจะแสดงเฉพาะข้อมูลสรุปเท่านั้น

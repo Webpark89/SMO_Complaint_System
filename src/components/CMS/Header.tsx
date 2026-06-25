@@ -79,7 +79,7 @@ export function SiteHeader() {
         </div> */}
          {/* Utility bar — light */}
       
-        <div className="container mx-auto flex h-7 items-center justify-end px-4 text-[11px]">
+        <div className="container mx-auto flex h-7 items-center justify-end px-4 text-[11px] text-[#6B7280]">
           <div className="flex items-center gap-4">
             <span className="hidden items-center gap-1.5 sm:inline-flex">
               <Phone className="h-3 w-3" /> {t("header.hotline")}
