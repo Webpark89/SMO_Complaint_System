@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   mockDashboardComplaints,
   type DashboardComplaintRow,
@@ -12,9 +12,9 @@ import {
   FilePen,
   Hourglass,
   FilePlusIcon,
-  BarChart3,
+  ArrowUpFromLine,
   Search as SearchIcon,
-  Calendar,
+  Calendar as CalendarIcon,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -44,6 +44,13 @@ import {
   Bar,
 } from "recharts";
 
+// ─── Import เพิ่มเติมสำหรับการจัดการวันที่ (shadcn/ui & date-fns) ────────────
+import { format, subMonths, subWeeks, subDays, differenceInMonths, startOfDay, endOfDay, isSameDay } from "date-fns";
+import { th } from "date-fns/locale";
+import { DateRange } from "react-day-picker";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type ComplaintStatus =
@@ -55,7 +62,6 @@ type ComplaintStatus =
   | "เกิน SLA";
 
 type Priority = "สูง" | "กลาง" | "ต่ำ";
-type TimeFilter = "all" | "day" | "week" | "month" | "year";
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -79,14 +85,6 @@ const PRIORITY_BADGE_CLASS: Record<Priority, string> = {
   ต่ำ: "border border-[rgba(16,185,129,0.25)] bg-[rgba(16,185,129,0.12)] text-[var(--success)]",
 };
 
-const TIME_FILTERS: { id: TimeFilter; label: string }[] = [
-  { id: "all", label: "ทั้งหมด" },
-  { id: "day", label: "วันนี้" },
-  { id: "week", label: "สัปดาห์นี้" },
-  { id: "month", label: "เดือนนี้" },
-  { id: "year", label: "ปีนี้" },
-];
-
 const EARTH_COLORS = [
   "#EF4444", // แดง (Bright Red)
   "#3B82F6", // น้ำเงิน (Digital Blue)
@@ -101,61 +99,90 @@ const EARTH_COLORS = [
 
 export function DashboardPage() {
   const [searchQ, setSearchQ] = useState("");
-  const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
+  
+  // Default State: เป็นวันปัจจุบันตาม Requirement
+  const today = new Date();
+  const minAllowedDate = startOfDay(subMonths(today, 6));
+
+  // 🌟 ปรับปรุง: ครอบ startOfDay และ endOfDay ไว้ตั้งแต่แรก
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: startOfDay(today),
+    to: endOfDay(today),
+  });
 
   const nowThaiText = useMemo(() => {
     const d = new Date();
     const day = d.getDate();
-    const monthIndex = d.getMonth(); // 0-11
+    const monthIndex = d.getMonth();
     const yearBE = d.getFullYear() + 543;
     const monthsTH = [
-      "มกราคม",
-      "กุมภาพันธ์",
-      "มีนาคม",
-      "เมษายน",
-      "พฤษภาคม",
-      "มิถุนายน",
-      "กรกฎาคม",
-      "สิงหาคม",
-      "กันยายน",
-      "ตุลาคม",
-      "พฤศจิกายน",
-      "ธันวาคม",
+      "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+      "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม",
     ];
 
     return `${day} ${monthsTH[monthIndex]} ${yearBE}`;
   }, []);
 
-  // 1. ประมวลผลข้อมูลที่ถูก Filter ก่อนเป็นอันดับแรก
+  // Validation & Console Log สำหรับเตรียมต่อ API
+  useEffect(() => {
+    if (dateRange?.from) {
+      const fromStr = format(dateRange.from, "yyyy-MM-dd");
+      const toStr = dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : fromStr;
+      
+      // ตัวอย่างจำลองการยิง Request ในอนาคต
+      console.log(`GET /admin/dashboard/ranking?startDate=${fromStr}&endDate=${toStr}`);
+    }
+  }, [dateRange]);
+
+  const handleDateSelect = (range: DateRange | undefined) => {
+    // 🌟 ดักบั๊ก: ถ้าค่ากลายเป็น undefined (เกิดจากกดคลิกซ้ำ) ให้ตั้งกลับเป็นวันปัจจุบัน
+    if (!range || !range.from) {
+      setDateRange({
+        from: startOfDay(new Date()),
+        to: endOfDay(new Date()),
+      });
+      return;
+    }
+
+    if (range.from && range.to) {
+      // Validate: ช่วงเวลาต้องไม่เกิน 6 เดือน
+      if (differenceInMonths(range.to, range.from) > 6) {
+        alert("ไม่สามารถเลือกช่วงวันที่เกิน 6 เดือนได้");
+        return;
+      }
+    }
+    setDateRange(range);
+  };
+
+  const handlePresetClick = (amount: number, unit: "days" | "weeks" | "months") => {
+    const toDate = endOfDay(today);
+    let fromDate = today;
+
+    if (unit === "days") {
+      fromDate = startOfDay(subDays(today, amount)); // <-- เพิ่มเงื่อนไขนี้
+    } else if (unit === "weeks") {
+      fromDate = startOfDay(subWeeks(today, amount));
+    } else if (unit === "months") {
+      fromDate = startOfDay(subMonths(today, amount));
+    }
+
+    setDateRange({ from: fromDate, to: toDate });
+  };
+
+  // 1. ประมวลผลข้อมูลที่ถูก Filter (กรองด้วย Date Range และค้นหา)
   const filtered = useMemo(() => {
     let result = mockDashboardComplaints;
 
-    if (timeFilter !== "all") {
-      const now = new Date();
+    if (dateRange?.from) {
+      const fromDate = startOfDay(dateRange.from);
+      const toDate = dateRange.to ? endOfDay(dateRange.to) : endOfDay(dateRange.from);
 
       result = result.filter((r: DashboardComplaintRow) => {
         const [datePart] = r.submittedAt.split(" ");
         const [day, month, year] = datePart.split("-").map(Number);
         const itemDate = new Date(year, month - 1, day);
 
-        if (timeFilter === "day") {
-          return itemDate.toDateString() === now.toDateString();
-        }
-        if (timeFilter === "week") {
-          const diffTime = now.getTime() - itemDate.getTime();
-          const diffDays = diffTime / (1000 * 60 * 60 * 24);
-          return diffDays >= 0 && diffDays <= 7;
-        }
-        if (timeFilter === "month") {
-          return (
-            itemDate.getMonth() === now.getMonth() &&
-            itemDate.getFullYear() === now.getFullYear()
-          );
-        }
-        if (timeFilter === "year") {
-          return itemDate.getFullYear() === now.getFullYear();
-        }
-        return true;
+        return itemDate >= fromDate && itemDate <= toDate;
       });
     }
 
@@ -171,42 +198,28 @@ export function DashboardPage() {
     }
 
     return result;
-  }, [searchQ, timeFilter]);
+  }, [searchQ, dateRange]);
 
   // 2. คำนวณ KPI จาก filtered
-  const trendByTimeFilter = useMemo(() => {
-    const map: Record<TimeFilter, string> = {
-      all: "ทั้งหมด",
-      day: "ต่อวัน",
-      week: "ต่อสัปดาห์",
-      month: "ต่อเดือน",
-      year: "ต่อปี",
-    };
-    return map[timeFilter];
-  }, [timeFilter]);
-
   const kpis = useMemo(() => {
     return [
       {
         label: "เรื่องร้องเรียนทั้งหมด",
         value: filtered.length,
         icon: ClipboardList,
-        trend: trendByTimeFilter,
-        iconColor: "bg-blue-100 text-blue-600", // 1. Blue
+        iconColor: "bg-blue-100 text-blue-600",
       },
       {
         label: "เรื่องร้องเรียนใหม่",
         value: filtered.filter((c) => c.status === "ใหม่").length,
         icon: FilePlusIcon,
-        trend: trendByTimeFilter,
-        iconColor: "bg-cyan-100 text-cyan-600", // 2. Cyan
+        iconColor: "bg-cyan-100 text-cyan-600",
       },
       {
         label: "เกิน SLA",
         value: filtered.filter((c) => c.status === "เกิน SLA").length,
         icon: TriangleAlert,
-        trend: trendByTimeFilter,
-        iconColor: "bg-red-100 text-red-600", // 3. Red
+        iconColor: "bg-red-100 text-red-600",
       },
       {
         label: "ใกล้ครบ SLA",
@@ -215,39 +228,34 @@ export function DashboardPage() {
             c.status === "กำลังดำเนินการ" || c.status === "อยู่ระหว่างตรวจสอบ",
         ).length,
         icon: Hourglass,
-        trend: trendByTimeFilter,
-        iconColor: "bg-orange-100 text-orange-600", // 4. Orange
+        iconColor: "bg-orange-100 text-orange-600",
       },
       {
         label: "อยู่ระหว่างดำเนินการ",
         value: filtered.filter((c) => c.status === "กำลังดำเนินการ").length,
         icon: RefreshCcw,
-        trend: trendByTimeFilter,
-        iconColor: "bg-indigo-100 text-indigo-600", // 5. Indigo
+        iconColor: "bg-indigo-100 text-indigo-600",
       },
       {
         label: "อยู่ระหว่างตรวจสอบ",
         value: filtered.filter((c) => c.status === "อยู่ระหว่างตรวจสอบ").length,
         icon: FileSearchIcon,
-        trend: trendByTimeFilter,
-        iconColor: "bg-purple-100 text-purple-600", // 6. Purple
+        iconColor: "bg-purple-100 text-purple-600",
       },
       {
         label: "รออนุมัติ",
         value: filtered.filter((c) => c.status === "รออนุมัติ").length,
         icon: FilePen,
-        trend: trendByTimeFilter,
-        iconColor: "bg-amber-100 text-amber-600", // 7. Amber
+        iconColor: "bg-amber-100 text-amber-600",
       },
       {
         label: "ปิดเรื่องแล้ว",
         value: filtered.filter((c) => c.status === "ปิดเรื่องแล้ว").length,
         icon: ClipboardCheck,
-        trend: trendByTimeFilter,
-        iconColor: "bg-green-100 text-green-600", // 8. Green
+        iconColor: "bg-green-100 text-green-600",
       },
     ];
-  }, [filtered, trendByTimeFilter]);
+  }, [filtered]);
 
   // 3. คำนวณกราฟรายเดือน จาก filtered
   const dynamicMonthlyData = useMemo(() => {
@@ -345,41 +353,82 @@ export function DashboardPage() {
 
         {/* Filter & Actions */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          {/* 1. Quick Time Filters */}
-          <div className="flex items-center gap-1 rounded-xl bg-white p-1 border border-[var(--border)]/50">
-            {TIME_FILTERS.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setTimeFilter(t.id)}
-                className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${
-                  timeFilter === t.id
-                    ? "bg-white text-[#111827] shadow-sm ring-1 ring-slate-200"
-                    : "text-slate-500 hover:text-[#111827] hover:bg-slate-200/50"
-                }`}
+          
+          {/* Custom Date Range Picker */}
+          <Popover>
+            <PopoverTrigger asChild>
+              {/* ปุ่ม Trigger เดิม (ไม่ต้องแก้) */}
+              <Button
+                variant="outline"
+                className="gap-2 border-[var(--border)] bg-white text-[#111827] justify-start w-full sm:w-[220px]"
               >
-                {t.label}
-              </button>
-            ))}
-          </div>
+                <CalendarIcon className="h-4 w-4 text-primary" />
+                <span className="text-xs font-semibold">
+                  {dateRange?.from ? (
+                    dateRange.to && !isSameDay(dateRange.from, dateRange.to)
+                      ? `${format(dateRange.from, "dd/MM/yyyy")} - ${format(dateRange.to, "dd/MM/yyyy")}`
+                      : format(dateRange.from, "dd/MM/yyyy", { locale: th })
+                  ) : (
+                    "เลือกวันที่" // ถึงแม้จะมีข้อความนี้ไว้ แต่จริงๆ จะไม่แสดงแล้วเพราะเราดักไม่ให้เป็นค่าว่างได้แล้ว
+                  )}
+                </span>
+              </Button>
+            </PopoverTrigger>
 
-          {/* เส้นคั่นบางๆ (Divider) เฉพาะจอใหญ่ */}
-          <div className="hidden h-8 w-px bg-slate-200 sm:block"></div>
+            {/* 🌟 ปรับแก้ PopoverContent ตรงนี้ */}
+            <PopoverContent className="w-auto p-0 flex flex-col sm:flex-row items-stretch" align="end">
+              
+              {/* แถบด้านซ้าย: ปุ่ม Quick Select */}
+              <div className="flex flex-col gap-1 border-b sm:border-b-0 sm:border-r border-[var(--border)] p-3 w-full sm:w-[160px] bg-slate-50">
+                <div className="mb-2 px-2 text-xs font-bold text-slate-500">เลือกช่วงเวลาแบบด่วน</div>
+                {/* 🌟 3 ปุ่มที่เพิ่มเข้ามาใหม่ แปะไว้บนสุดเลยครับ */}
+                <Button variant="ghost" size="sm" className="justify-start text-xs font-medium text-slate-700" onClick={() => handlePresetClick(0, "days")}>
+                  วันนี้
+                </Button>
+                <Button variant="ghost" size="sm" className="justify-start text-xs font-medium text-slate-700" onClick={() => handlePresetClick(3, "days")}>
+                  ย้อนหลัง 3 วัน
+                </Button>
+                <Button variant="ghost" size="sm" className="justify-start text-xs font-medium text-slate-700" onClick={() => handlePresetClick(5, "days")}>
+                  ย้อนหลัง 5 วัน
+                </Button>
+                <Button variant="ghost" size="sm" className="justify-start text-xs font-medium text-slate-700" onClick={() => handlePresetClick(1, "weeks")}>
+                  ย้อนหลัง 1 สัปดาห์
+                </Button>
+                <Button variant="ghost" size="sm" className="justify-start text-xs font-medium text-slate-700" onClick={() => handlePresetClick(2, "weeks")}>
+                  ย้อนหลัง 2 สัปดาห์
+                </Button>
+                <Button variant="ghost" size="sm" className="justify-start text-xs font-medium text-slate-700" onClick={() => handlePresetClick(1, "months")}>
+                  ย้อนหลัง 1 เดือน
+                </Button>
+                <Button variant="ghost" size="sm" className="justify-start text-xs font-medium text-slate-700" onClick={() => handlePresetClick(3, "months")}>
+                  ย้อนหลัง 3 เดือน
+                </Button>
+                <Button variant="ghost" size="sm" className="justify-start text-xs font-medium text-slate-700" onClick={() => handlePresetClick(6, "months")}>
+                  ย้อนหลัง 6 เดือน
+                </Button>
+              </div>
 
-          {/* 2. ปุ่มเลือกวันที่แบบ Custom (Date Picker) */}
-          <Button
-            variant="outline"
-            className="gap-2 border-[var(--border)] bg-white text-slate-600 hover:text-[#111827] justify-start w-full sm:w-auto"
-          >
-            <Calendar className="h-4 w-4 text-primary" />
-            <span className="text-xs font-semibold">เลือกวันที่</span>
-          </Button>
+              {/* แถบด้านขวา: ปฏิทินเดิม */}
+              <div className="p-2">
+                <Calendar
+                  mode="range"
+                  defaultMonth={dateRange?.from}
+                  selected={dateRange}
+                  onSelect={handleDateSelect}
+                  numberOfMonths={2}
+                  disabled={(date) => date > today || date < minAllowedDate}
+                />
+              </div>
 
-          {/* 3. ปุ่มส่งออก */}
+            </PopoverContent>
+          </Popover>
+
+          {/* ปุ่มส่งออก */}
           <Button
             variant="outline"
             className="gap-2 border-[var(--border)] bg-white text-[#111827] font-semibold w-full sm:w-auto ml-auto sm:ml-0"
           >
-            <BarChart3 className="h-4 w-4" />
+            <ArrowUpFromLine className="h-4 w-4" />
             ส่งออก
           </Button>
         </div>
@@ -402,11 +451,7 @@ export function DashboardPage() {
                   <div className="text-3xl font-bold tracking-tight text-[#111827]">
                     {kpi.value}
                   </div>
-                  <div className="text-xs font-semibold text-slate-400">
-                    {kpi.trend}
-                  </div>
                 </div>
-                {/* เปลี่ยนสีพื้นหลังและตัวอักษรของไอคอนให้ตรงตาม KPI color class */}
                 <span
                   className={`flex h-11 w-11 items-center justify-center rounded-xl ${kpi.iconColor}`}
                 >

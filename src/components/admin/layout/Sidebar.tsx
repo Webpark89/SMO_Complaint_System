@@ -248,7 +248,7 @@ export function Sidebar({ activeKey }: SidebarProps) {
                     >
                       {isActive && (
                         <span
-                          className="absolute left-0 top-2.5 h-7 w-[3px] rounded-full bg-[var(--gold)]"
+                          className="absolute left-0 top-1/2 h-7 w-[3px] -translate-y-1/2 rounded-full bg-[var(--gold)]"
                           aria-hidden
                         />
                       )}
