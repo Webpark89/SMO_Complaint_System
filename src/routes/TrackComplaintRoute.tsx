@@ -186,19 +186,28 @@ function TrackPage() {
     return "bg-[#484D57]"; // สีเทา (อื่นๆ)
   };
 
+  const formatThaiDate = (dateStr: string) => {
+  const d = new Date(dateStr);
+  return isNaN(d.getTime())
+    ? dateStr
+    : d.toLocaleDateString("th-TH");
+  };
+
   return (
     <PageContainer>
       <section className="py-3 md:py-8">
         <MainLayout>
-          <div className="mb-6">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 text-sm font-medium text-[#002856] hover:text-primary transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>กลับสู่หน้าแรก</span>
-            </Link>
-          </div>
+          {!showResult && (
+            <div className="mb-6">
+              <Link
+                to="/"
+                className="inline-flex items-center gap-2 text-sm font-medium text-[#002856] hover:text-primary transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>กลับสู่หน้าแรก</span>
+              </Link>
+            </div>
+          )}
 
           {/* =======================
               VIEW 1: หน้าฟอร์มค้นหา
@@ -208,7 +217,7 @@ function TrackPage() {
               <h1 className="mt-4 font-display text-3xl font-bold text-primary md:text-4xl">
                 ติดตามสถานะเรื่องร้องเรียน
               </h1>
-              <div className="mt-3 h-px w-24 bg-[#D29E0E]" />
+              <div className="mt-3 h-0.5 w-48 rounded-full bg-[#D29E0E]"/>
               <p className="mt-4 text-sm leading-relaxed text-[#002856]">
                 กรุณากรอกหมายเลขอ้างอิงที่ได้รับเมื่อส่งเรื่อง (รูปแบบ{" "}
                 <span className="font-mono">CMP-YYYY-XXXX</span>)
@@ -274,7 +283,7 @@ function TrackPage() {
             <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
               <button
                 onClick={handleBackToSearch}
-                className="inline-flex items-center text-sm font-medium text-slate-600 hover:text-primary transition-colors"
+                className="inline-flex items-center text-sm font-normal text-[#002856] hover:text-white transition-colors rounded-full px-3 py-1.5 hover:bg-[#002856]"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" /> กลับสู่หน้าติดตามสถานะเรื่องร้องเรียน
               </button>
@@ -282,6 +291,7 @@ function TrackPage() {
               <h1 className="mt-6 font-display text-3xl font-bold text-primary md:text-4xl">
                 ติดตามสถานะเรื่องร้องเรียน
               </h1>
+              <div className="mt-3 h-0.5 w-48 rounded-full bg-[#D29E0E]"/>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                 กรุณากรอกหมายเลขอ้างอิงที่ได้รับเมื่อส่งเรื่อง (รูปแบบ CMP-YYYY-XXXX) เพื่อความเป็นส่วนตัว ระบบจะแสดงเฉพาะข้อมูลสรุปเท่านั้น
               </p>
@@ -318,8 +328,10 @@ function TrackPage() {
                     <div className="flex flex-wrap items-baseline gap-x-2 text-sm text-slate-700">
                       <span className="font-bold">วันที่และเวลาที่เกิดเหตุ :</span>
                       <span>
-                        {result.incident_date 
-                          ? `วันที่ ${result.incident_date} ${result.incident_time ? `เวลา ${result.incident_time} น.` : ''}` 
+                        {result.incident_date
+                          ? `วันที่ ${formatThaiDate(result.incident_date)} ${
+                              result.incident_time ? `เวลา ${result.incident_time} น.` : ""
+                            }`
                           : "-"}
                       </span>
                     </div>
