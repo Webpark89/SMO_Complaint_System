@@ -1,0 +1,16 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { AdminLayout } from "@/components/admin/layout";
+import { CategoriesPage } from "@/components/admin/pages/settings/CategoriesPage";
+
+export const Route = createFileRoute("/admin/settings/categories/")({
+  component: RouteComponent,
+});
+
+function RouteComponent() {
+  return (
+    <AdminLayout>
+      {/* 2. เปลี่ยนเป็น CategoriesPage */}
+      <CategoriesPage />
+    </AdminLayout>
+  );
+}

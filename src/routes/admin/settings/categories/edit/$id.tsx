@@ -1,0 +1,201 @@
+import { useState, useEffect } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+// สมมติฐานว่าคุณดึง mockCategories มาจากที่นี่
+import { mockCategories } from "@/mock/organization"; 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Save, Loader2 } from "lucide-react";
+
+// กำหนด Route สำหรับหน้าแก้ไขหมวดหมู่
+export const Route = createFileRoute("/admin/settings/categories/edit/$id")({
+  component: EditCategoryPage,
+});
+
+const STATUS_OPTIONS = ["เปิดใช้งาน", "ระงับ"];
+
+function EditCategoryPage() {
+  const { id } = Route.useParams();
+  const navigate = useNavigate();
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    status: "",
+  });
+
+  useEffect(() => {
+    setIsLoading(true);
+    // จำลองการดึงข้อมูล
+    setTimeout(() => {
+      const category = mockCategories.find((c) => c.id === id);
+      if (category) {
+        setFormData({
+          name: category.name,
+          description: category.description,
+          status: category.status,
+        });
+      } else {
+        setError("ไม่พบข้อมูลหมวดหมู่รหัสนี้");
+      }
+      setIsLoading(false);
+    }, 500);
+  }, [id]);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    // จำลองการบันทึกข้อมูล
+    setTimeout(() => {
+      const catIndex = mockCategories.findIndex((c) => c.id === id);
+      if (catIndex !== -1) {
+        mockCategories[catIndex] = {
+          ...mockCategories[catIndex],
+          name: formData.name,
+          description: formData.description,
+          status: formData.status as any,
+        };
+      }
+      
+      setIsLoading(false);
+      // เปลี่ยน path กลับไปยังหน้ารายการที่คุณต้องการ
+      navigate({ to: "/admin/settings/categories" }); 
+    }, 800);
+  };
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[50vh] space-y-4">
+        <p className="text-red-500 font-medium text-lg">{error}</p>
+        <Button variant="outline" onClick={() => navigate({ to: "/admin/settings/categories" })}>
+          กลับไปหน้าหมวดหมู่
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-120px)] p-4 md:p-8">
+      <div className="w-full max-w-3xl space-y-6">
+        
+        {/* Header */}
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate({ to: "/admin/settings/categories" })}
+            className="h-10 w-10 border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5 text-slate-600" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">แก้ไขหมวดหมู่</h1>
+            <p className="text-sm text-slate-500">
+              แก้ไขข้อมูลหมวดหมู่รหัส: <span className="font-semibold text-slate-700">{id}</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Form */}
+        <Card className="border-[var(--border)] bg-white shadow-soft">
+          <CardHeader className="border-b border-slate-100 pb-4">
+            <CardTitle className="text-lg text-slate-700">ข้อมูลรายละเอียด</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              
+              {/* ชื่อหมวดหมู่ */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-slate-700">
+                  ชื่อหมวดหมู่ <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  required
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="w-full flex h-10 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#b08730] focus:border-transparent transition-all"
+                  placeholder="เช่น ร้องเรียนการบริการ"
+                />
+              </div>
+
+              {/* คำอธิบาย */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-slate-700">
+                  คำอธิบาย <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  name="description"
+                  required
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows={4}
+                  className="w-full flex rounded-md border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#b08730] focus:border-transparent transition-all resize-none"
+                  placeholder="กรอกคำอธิบายหมวดหมู่"
+                />
+              </div>
+
+              {/* สถานะ */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-slate-700">
+                  สถานะ <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="status"
+                  required
+                  value={formData.status}
+                  onChange={handleChange}
+                  className="w-full h-10 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#b08730] focus:border-transparent transition-all"
+                >
+                  <option value="" disabled>เลือกสถานะ</option>
+                  {STATUS_OPTIONS.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 mt-6">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+                  onClick={() => navigate({ to: "/admin/settings/categories" })}
+                  disabled={isLoading}
+                >
+                  ยกเลิก
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-[#b08730] hover:bg-[#8e6c25] text-white gap-2 transition-colors shadow-sm"
+                  disabled={isLoading || !formData.name || !formData.description}
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
+                  บันทึกการแก้ไข
+                </Button>
+              </div>
+
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

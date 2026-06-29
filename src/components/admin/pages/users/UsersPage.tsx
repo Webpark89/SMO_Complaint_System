@@ -1,4 +1,5 @@
 import { useMemo, useState, useCallback } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import {
   mockUsers,
   DEPARTMENTS as DEPARTMENTS_CANONICAL,
@@ -20,7 +21,8 @@ import {
   Mail,
   Lock,
   Unlock,
-  Key,
+  Eye, // 2. นำเข้า Eye
+  Key, // 3. นำเข้า Key สำหรับปุ่มจัดการสิทธิ์
   UserCheck,
   UserX,
   CheckCircle,
@@ -57,7 +59,6 @@ type UserRow = {
 };
 
 const ROLES = ROLES_CANONICAL;
-
 const DEPARTMENTS = DEPARTMENTS_CANONICAL;
 
 const STATUS_OPTIONS = [
@@ -116,56 +117,19 @@ const CREATE_FIELDS: FormField[] = [
   },
 ];
 
-const EDIT_FIELDS: FormField[] = [
-  {
-    key: "name",
-    label: "ชื่อ-นามสกุล",
-    type: "text",
-    placeholder: "กรอกชื่อ-นามสกุล",
-    required: true,
-  },
-  {
-    key: "email",
-    label: "อีเมล",
-    type: "email",
-    placeholder: "กรอกอีเมล",
-    required: true,
-  },
-  {
-    key: "role",
-    label: "บทบาท",
-    type: "select",
-    placeholder: "เลือกบทบาท",
-    required: true,
-    options: ROLES,
-  },
-  {
-    key: "department",
-    label: "แผนก",
-    type: "select",
-    placeholder: "เลือกแผนก",
-    required: true,
-    options: DEPARTMENTS,
-  },
-  {
-    key: "status",
-    label: "สถานะ",
-    type: "select",
-    required: true,
-    options: STATUS_OPTIONS.slice(1),
-  },
-];
+// ลบ EDIT_FIELDS ออกเพราะเราย้ายไปทำในหน้าใหม่แล้ว
 
 export function UsersPage() {
+  const navigate = useNavigate(); // 4. เรียกใช้งาน React Router
+
   const [state, actions] = useCRUD<UserRow>(mockUsers);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
+  // ลบ editModalOpen และ editValues ออก
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<UserRow | null>(null);
   const [createValues, setCreateValues] = useState<Record<string, unknown>>({});
-  const [editValues, setEditValues] = useState<Record<string, unknown>>({});
-  const [detailAction, setDetailAction] = useState<string | null>(null);
+  const [, setDetailAction] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = state.searchQuery.trim().toLowerCase();
@@ -219,24 +183,12 @@ export function UsersPage() {
     setModalOpen(false);
   }, [actions, createValues, state.items.length]);
 
+  // 5. เปลี่ยนจากการเปิด Modal เป็นการนำทาง (Navigate) ไปหน้าอื่น
   const handleEdit = useCallback((row: UserRow) => {
-    setSelectedItem(row);
-    setEditValues({ ...row });
-    setEditModalOpen(true);
-  }, []);
-
-  const handleSubmitEdit = useCallback(() => {
-    if (!selectedItem) return;
-    actions.updateItem(selectedItem.id, {
-      name: editValues.name as string,
-      email: editValues.email as string,
-      role: editValues.role as string,
-      department: editValues.department as string,
-      status: editValues.status as UserStatus,
+    navigate({ 
+      to: `/admin/settings/users/edit/${row.id}` 
     });
-    setEditModalOpen(false);
-    setSelectedItem(null);
-  }, [actions, selectedItem, editValues]);
+  }, [navigate]);
 
   const handleDelete = useCallback((row: UserRow) => {
     setSelectedItem(row);
@@ -276,18 +228,25 @@ export function UsersPage() {
     [actions],
   );
 
-  const handleActivate = useCallback(
-    (row: UserRow) => {
-      actions.updateItem(row.id, { status: "เปิดใช้งาน" });
-    },
-    [actions],
-  );
-
-  const handleAssignRole = useCallback((row: UserRow) => {
-    alert(`มอบหมายบทบาทให้ ${row.name} (จำลอง)`);
-  }, []);
-
   const columns: Column<UserRow>[] = [
+    // 6. เพิ่มคอลัมน์ดวงตา (View) ไว้หน้าสุด
+    {
+      key: "view",
+      header: "",
+      render: (r) => (
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-8 w-8 text-slate-500 hover:text-[var(--gold)]"
+          onClick={(e) => {
+            e.stopPropagation(); // ป้องกันไม่ให้คลิกทะลุไปโดนแถว
+            handleView(r);
+          }}
+        >
+          <Eye className="h-4 w-4" />
+        </Button>
+      ),
+    },
     {
       key: "id",
       header: "รหัส",
@@ -343,7 +302,7 @@ export function UsersPage() {
     {
       label: "แก้ไข",
       icon: <Edit className="h-4 w-4" />,
-      onClick: handleEdit,
+      onClick: handleEdit, // ผูกกับฟังก์ชัน handleEdit ตัวใหม่ที่ใช้ navigate
     },
     {
       label: "ลบ",
@@ -446,19 +405,7 @@ export function UsersPage() {
         submitLabel="เพิ่มผู้ใช้"
       />
 
-      {/* Edit Modal */}
-      <CreateEditModal
-        open={editModalOpen}
-        onOpenChange={setEditModalOpen}
-        title="แก้ไขผู้ใช้"
-        description={`แก้ไขข้อมูลผู้ใช้: ${selectedItem?.name ?? ""}`}
-        fields={EDIT_FIELDS}
-        values={editValues}
-        onValuesChange={setEditValues}
-        onSubmit={handleSubmitEdit}
-        mode="edit"
-        submitLabel="บันทึก"
-      />
+      {/* ลบ Edit Modal ทิ้งแล้ว */}
 
       {/* Delete Dialog */}
       <DeleteDialog
@@ -480,26 +427,42 @@ export function UsersPage() {
         size="md"
         actions={
           selectedItem && (
-            <div className="flex flex-wrap gap-2">
-              {selectedItem.status === "ระงับ" ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="gap-1 border-[var(--border)]"
-                  onClick={() => handleUnlock(selectedItem)}
+            <div className="flex flex-col w-full gap-4 mt-2">
+              
+              {/* 7. เพิ่มพื้นที่จัดการสิทธิ์ */}
+              <div className="flex w-full justify-between items-center bg-slate-50 p-3 rounded-md border border-slate-200">
+                <span className="text-sm font-medium text-slate-700">การกำหนดสิทธิ์ผู้ใช้งาน</span>
+                <Button 
+                  size="sm" 
+                  className="bg-[#b08730] hover:bg-[#8e6c25] text-white gap-1"
+                  onClick={() => alert('เปิดหน้าต่าง/ส่วนจัดการสิทธิ์ (จะเพิ่มในภายหลัง)')}
                 >
-                  <Unlock className="h-3 w-3" /> ปลดล็อก
+                  <Key className="h-4 w-4" /> จัดการสิทธิ์
                 </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="gap-1 border-[var(--border)]"
-                  onClick={() => handleLock(selectedItem)}
-                >
-                  <Lock className="h-3 w-3" /> ล็อก
-                </Button>
-              )}
+              </div>
+
+              {/* ปุ่ม Lock/Unlock เดิม */}
+              <div className="flex flex-wrap gap-2 justify-end pt-2 border-t border-slate-100">
+                {selectedItem.status === "ระงับ" ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1 border-[var(--border)]"
+                    onClick={() => handleUnlock(selectedItem)}
+                  >
+                    <Unlock className="h-4 w-4" /> ปลดล็อกผู้ใช้
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                    onClick={() => handleLock(selectedItem)}
+                  >
+                    <Lock className="h-4 w-4" /> ล็อกผู้ใช้
+                  </Button>
+                )}
+              </div>
             </div>
           )
         }

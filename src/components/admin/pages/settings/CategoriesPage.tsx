@@ -3,7 +3,8 @@ import { mockCategories } from "@/mock/organization";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, FolderOpen } from "lucide-react";
+import { Edit, Trash2,Eye, FolderOpen } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import {
   PageHeader,
   ActionToolbar,
@@ -67,39 +68,17 @@ const CREATE_FIELDS: FormField[] = [
   },
 ];
 
-const EDIT_FIELDS: FormField[] = [
-  {
-    key: "name",
-    label: "ชื่อหมวดหมู่",
-    type: "text",
-    placeholder: "กรอกชื่อหมวดหมู่",
-    required: true,
-  },
-  {
-    key: "description",
-    label: "คำอธิบาย",
-    type: "textarea",
-    placeholder: "กรอกคำอธิบายหมวดหมู่",
-    required: true,
-  },
-  {
-    key: "status",
-    label: "สถานะ",
-    type: "select",
-    required: true,
-    options: STATUS_OPTIONS.slice(1),
-  },
-];
+
 
 export function CategoriesPage() {
+  const navigate = useNavigate();
   const [state, actions] = useCRUD<CategoryRow>(mockCategories);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<CategoryRow | null>(null);
   const [createValues, setCreateValues] = useState<Record<string, unknown>>({});
-  const [editValues, setEditValues] = useState<Record<string, unknown>>({});
+  
 
   const filtered = useMemo(() => {
     const q = state.searchQuery.trim().toLowerCase();
@@ -140,21 +119,10 @@ export function CategoriesPage() {
   }, [actions, createValues, state.items.length]);
 
   const handleEdit = useCallback((row: CategoryRow) => {
-    setSelectedItem(row);
-    setEditValues({ ...row });
-    setEditModalOpen(true);
-  }, []);
-
-  const handleSubmitEdit = useCallback(() => {
-    if (!selectedItem) return;
-    actions.updateItem(selectedItem.id, {
-      name: editValues.name as string,
-      description: editValues.description as string,
-      status: editValues.status as CategoryStatus,
+    navigate({ 
+      to: `/admin/settings/categories/edit/${row.id}` 
     });
-    setEditModalOpen(false);
-    setSelectedItem(null);
-  }, [actions, selectedItem, editValues]);
+  }, [navigate]);
 
   const handleDelete = useCallback((row: CategoryRow) => {
     setSelectedItem(row);
@@ -186,6 +154,23 @@ export function CategoriesPage() {
   );
 
   const columns: Column<CategoryRow>[] = [
+    {
+      key: "view",
+      header: "",
+      render: (r) => (
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-8 w-8 text-slate-500 hover:text-[var(--gold)]"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleView(r); // เรียกใช้ฟังก์ชัน handleView เพื่อเปิด DetailDrawer
+          }}
+        >
+          <Eye className="h-4 w-4" />
+        </Button>
+      ),
+    },
     {
       key: "id",
       header: "รหัส",
@@ -314,19 +299,6 @@ export function CategoriesPage() {
         onSubmit={handleSubmitCreate}
         mode="create"
         submitLabel="เพิ่มหมวดหมู่"
-      />
-
-      <CreateEditModal
-        open={editModalOpen}
-        onOpenChange={setEditModalOpen}
-        title="แก้ไขหมวดหมู่"
-        description={`แก้ไขหมวดหมู่: ${selectedItem?.name ?? ""}`}
-        fields={EDIT_FIELDS}
-        values={editValues}
-        onValuesChange={setEditValues}
-        onSubmit={handleSubmitEdit}
-        mode="edit"
-        submitLabel="บันทึก"
       />
 
       <DeleteDialog
