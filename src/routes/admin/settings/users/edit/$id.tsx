@@ -8,6 +8,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { PageHeader } from "@/components/admin/crud";
 
 // 1. กำหนด Route สำหรับ TanStack Router
 export const Route = createFileRoute("/admin/settings/users/edit/$id")({
@@ -93,6 +94,11 @@ function EditUserPage() {
   return (
     // เพิ่ม Wrapper นี้เพื่อจัดให้อยู่ตรงกลางหน้าจอในแนวตั้ง (เหลือที่เผื่อ Header ไว้ 120px)
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-120px)] p-4 md:p-8">
+      <PageHeader
+              title="ผู้ใช้งาน"
+              description="จัดการผู้ใช้งานระบบ (ข้อมูลจำลอง)"
+              breadcrumbs={[{ label: "ตั้งค่าระบบ" }, { label: "ผู้ใช้งาน" }]}
+      />
       
       {/* กำหนดความกว้างสูงสุดและจัดให้อยู่กึ่งกลาง */}
       <div className="w-full max-w-3xl space-y-6">

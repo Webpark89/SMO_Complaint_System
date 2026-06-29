@@ -98,7 +98,7 @@ function AuthPage() {
       </div>
 
       {/* Right Form Panel */}
-      <div className="flex flex-col justify-center bg-background p-6 md:p-12">
+      <div className="flex flex-col justify-center p-6 md:p-12">
         <div className="mx-auto w-full max-w-md">
           <Link
             to="/"
