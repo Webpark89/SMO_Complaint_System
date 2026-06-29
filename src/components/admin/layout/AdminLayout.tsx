@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, memo, type ReactNode } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
 import { Sidebar } from "./Sidebar";
+import type { AppRole } from "@/hooks/useAuth";
 import {
   Bell,
   LayoutDashboard,
@@ -37,6 +38,7 @@ type NavItem = {
   path: string;
   icon: React.ComponentType<{ className?: string }> | React.ElementType;
   group: string;
+  allowedRoles?: AppRole[]; // เพิ่มฟิลด์สำหรับจัดการสิทธิ์
 };
 
 const NAV: NavItem[] = [
@@ -63,6 +65,7 @@ const NAV: NavItem[] = [
     path: "/admin/complaints/intake",
     icon: FilePlus,
     group: "COMPLAINTS",
+    allowedRoles: ["super-admin", "admin", "manager"],
   },
   {
     key: "complaint_assignment",
@@ -70,13 +73,15 @@ const NAV: NavItem[] = [
     path: "/admin/complaints/assignment",
     icon: Users,
     group: "COMPLAINTS",
+    allowedRoles: ["super-admin", "admin", "manager"],
   },
   {
     key: "complaint_investigation",
     label: "ตรวจสอบและสอบสวน",
     path: "/admin/complaints/investigation",
-    icon: Search,
+    icon: FileSearch,
     group: "COMPLAINTS",
+    allowedRoles: ["super-admin", "admin", "manager"],
   },
   {
     key: "complaint_approval",
@@ -84,6 +89,7 @@ const NAV: NavItem[] = [
     path: "/admin/complaints/approval",
     icon: CheckCircle,
     group: "COMPLAINTS",
+    allowedRoles: ["super-admin", "admin", "manager"],
   },
   {
     key: "complaint_extension",
@@ -91,6 +97,7 @@ const NAV: NavItem[] = [
     path: "/admin/complaints/extensions",
     icon: Clock3,
     group: "COMPLAINTS",
+    allowedRoles: ["super-admin", "admin", "manager"],
   },
   {
     key: "sensitive_cases",
@@ -98,6 +105,7 @@ const NAV: NavItem[] = [
     path: "/admin/complaints/sensitive",
     icon: ShieldAlert,
     group: "COMPLAINTS",
+    allowedRoles: ["super-admin", "admin", "compliance"], // ตัวอย่างการจำกัดสิทธิ์
   },
   {
     key: "documents_evidence",
@@ -105,6 +113,7 @@ const NAV: NavItem[] = [
     path: "/admin/complaints/documents",
     icon: FolderOpen,
     group: "COMPLAINTS",
+    allowedRoles: ["super-admin", "admin", "manager"],
   },
 
   // Reports
@@ -114,6 +123,7 @@ const NAV: NavItem[] = [
     path: "/admin/reports/summary",
     icon: BarChart3,
     group: "REPORTS",
+    allowedRoles: ["super-admin", "admin", "manager"],
   },
   {
     key: "report_sla",
@@ -121,6 +131,7 @@ const NAV: NavItem[] = [
     path: "/admin/reports/sla",
     icon: Timer,
     group: "REPORTS",
+    allowedRoles: ["super-admin", "admin", "manager"],
   },
   {
     key: "report_investigation",
@@ -128,6 +139,7 @@ const NAV: NavItem[] = [
     path: "/admin/reports/investigation",
     icon: FileSearch,
     group: "REPORTS",
+    allowedRoles: ["super-admin", "admin",],
   },
   {
     key: "report_executive",
@@ -135,6 +147,7 @@ const NAV: NavItem[] = [
     path: "/admin/reports/executive",
     icon: BriefcaseBusiness,
     group: "REPORTS",
+    allowedRoles: ["super-admin", "admin", "manager"], // ตัวอย่างการจำกัดสิทธิ์
   },
   {
     key: "report_audit_log",
@@ -142,6 +155,7 @@ const NAV: NavItem[] = [
     path: "/admin/reports/audit-log",
     icon: ClipboardCheck,
     group: "REPORTS",
+    allowedRoles: ["super-admin", "admin", "auditor"], // ตัวอย่างการจำกัดสิทธิ์
   },
 
   // System Settings
@@ -151,6 +165,7 @@ const NAV: NavItem[] = [
     path: "/admin/settings/users",
     icon: Users,
     group: "SETTINGS",
+    allowedRoles: ["super-admin", "admin"],
   },
   {
     key: "roles_permissions",
@@ -158,6 +173,7 @@ const NAV: NavItem[] = [
     path: "/admin/settings/roles",
     icon: ShieldCheck,
     group: "SETTINGS",
+    allowedRoles: ["super-admin", "admin"],
   },
   {
     key: "categories",
@@ -165,6 +181,7 @@ const NAV: NavItem[] = [
     path: "/admin/settings/categories",
     icon: Layers,
     group: "SETTINGS",
+    allowedRoles: ["super-admin", "admin"],
   },
   {
     key: "subcategories",
@@ -172,6 +189,7 @@ const NAV: NavItem[] = [
     path: "/admin/settings/subcategories",
     icon: Layers3,
     group: "SETTINGS",
+    allowedRoles: ["super-admin", "admin"],
   },
   {
     key: "forms",
@@ -179,34 +197,7 @@ const NAV: NavItem[] = [
     path: "/admin/settings/forms",
     icon: FileText,
     group: "SETTINGS",
-  },
-  {
-    key: "sla",
-    label: "SLA",
-    path: "/admin/settings/sla",
-    icon: AlarmClock,
-    group: "SETTINGS",
-  },
-  {
-    key: "notifications",
-    label: "การแจ้งเตือน",
-    path: "/admin/settings/notifications",
-    icon: Bell,
-    group: "SETTINGS",
-  },
-  {
-    key: "organizations",
-    label: "หน่วยงานและโครงสร้างงองค์กร",
-    path: "/admin/settings/organizations",
-    icon: Building2,
-    group: "SETTINGS",
-  },
-  {
-    key: "audit_logs",
-    label: "Audit Log",
-    path: "/admin/settings/audit-logs",
-    icon: History,
-    group: "SETTINGS",
+    allowedRoles: ["super-admin", "admin"],
   },
   {
     key: "termandprivacy",
@@ -214,25 +205,31 @@ const NAV: NavItem[] = [
     path: "/admin/settings/Term-Privacy",
     icon: FileText,
     group: "SETTINGS",
-  },
-];
-
-const GROUPS: Array<{ title: string; keys: NavItem["group"][] }> = [
-  {
-    title: "แดชบอร์ด",
-    keys: ["MAIN"],
+    allowedRoles: ["super-admin", "admin"],
   },
   {
-    title: "จัดการเรื่องร้องเรียน",
-    keys: ["COMPLAINTS"],
+    key: "sla",
+    label: "SLA",
+    path: "/admin/settings/sla",
+    icon: AlarmClock,
+    group: "SETTINGS",
+    allowedRoles: ["super-admin", "admin"],
   },
   {
-    title: "รายงาน",
-    keys: ["REPORTS"],
+    key: "organizations",
+    label: "หน่วยงานและโครงสร้างงองค์กร",
+    path: "/admin/settings/organizations",
+    icon: Building2,
+    group: "SETTINGS",
+    allowedRoles: ["super-admin", "admin"],
   },
   {
-    title: "ตั้งค่าระบบ",
-    keys: ["SETTINGS"],
+    key: "audit_logs",
+    label: "Audit Log",
+    path: "/admin/settings/audit-logs",
+    icon: History,
+    group: "SETTINGS",
+    allowedRoles: ["super-admin", "admin", "auditor"],
   },
 ];
 

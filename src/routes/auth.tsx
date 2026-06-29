@@ -43,7 +43,7 @@ function AuthPage() {
   useEffect(() => {
     if (user && isAdmin) {
       clearPostLoginRedirectState();
-      navigate({ to: "/admin", replace: true });
+      navigate({ to: "/admin/dashboard", replace: true });
     }
   }, [isAdmin, user, navigate]);
 
@@ -57,7 +57,7 @@ function AuthPage() {
       await signIn(email, password);
       clearPostLoginRedirectState();
       toast.success("ยินดีต้อนรับกลับ");
-      navigate({ to: "/admin", replace: true });
+      navigate({ to: "/admin/dashboard", replace: true });
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "เข้าสู่ระบบไม่สำเร็จ");
     } finally {

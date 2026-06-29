@@ -33,6 +33,7 @@ interface AuthCtx {
   signInMock?: () => void;
   signInAdminMock?: () => void;
   signOutMock?: () => void;
+  hasAnyRole: (allowed: AppRole[]) => boolean;
 }
 
 const Ctx = createContext<AuthCtx | undefined>(undefined);
@@ -63,13 +64,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const isStaff = roles.some((r) =>
-    ["super-admin", "admin", "hr", "compliance", "manager", "auditor"].includes(
-      r,
-    ),
+    ["super-admin", "admin", "hr", "compliance", "manager", "auditor"].includes(r)
   );
+  
   const canViewSensitive = roles.some((r) =>
-    ["super-admin", "admin", "compliance"].includes(r),
+    ["super-admin", "admin", "compliance"].includes(r)
   );
+
+  // ฟังก์ชันเช็คสิทธิ์ที่เพิ่มเข้ามาใหม่
+  const hasAnyRole = (allowed: AppRole[]) => {
+    return roles.some((r) => allowed.includes(r));
+  };
 
   async function signIn(email: string, password: string) {
     await mockAuth.signIn(email, password);
@@ -95,6 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void signOut();
   }
 
+  // Return แค่ครั้งเดียว ด้านล่างสุดของ Component
   return (
     <Ctx.Provider
       value={{
@@ -110,6 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signInMock,
         signInAdminMock,
         signOutMock,
+        hasAnyRole, // ส่งฟังก์ชันลง Provider ตรงนี้
       }}
     >
       {children}
