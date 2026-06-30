@@ -45,6 +45,7 @@ import {
   useCRUD,
 } from "@/components/admin/crud";
 import { TABLE_LABELS } from "@/components/admin/constants/tableLabels";
+import { createViewColumn, createStandardRowActions } from "@/components/admin/layout/tableActions";
 
 type UserStatus = "เปิดใช้งาน" | "ระงับ" | "รอยืนยัน";
 
@@ -230,23 +231,7 @@ export function UsersPage() {
 
   const columns: Column<UserRow>[] = [
     // 6. เพิ่มคอลัมน์ดวงตา (View) ไว้หน้าสุด
-    {
-      key: "view",
-      header: "",
-      render: (r) => (
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-8 w-8 text-[#B8BABF] hover:text-[#8e6c25]"
-          onClick={(e) => {
-            e.stopPropagation(); // ป้องกันไม่ให้คลิกทะลุไปโดนแถว
-            handleView(r);
-          }}
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
-      ),
-    },
+    createViewColumn<UserRow>(handleView),
     {
       key: "id",
       header: "รหัส",
@@ -298,19 +283,10 @@ export function UsersPage() {
     },
   ];
 
-  const rowActions: RowAction<UserRow>[] = [
-    {
-      label: "แก้ไข",
-      icon: <Edit className="h-4 w-4" />,
-      onClick: handleEdit, // ผูกกับฟังก์ชัน handleEdit ตัวใหม่ที่ใช้ navigate
-    },
-    {
-      label: "ลบ",
-      icon: <Trash2 className="h-4 w-4" />,
-      onClick: handleDelete,
-      variant: "danger",
-    },
-  ];
+  const rowActions = createStandardRowActions<UserRow>({
+    onEdit: handleEdit,
+    onDelete: handleDelete,
+  });
 
   return (
     <div className="space-y-6">

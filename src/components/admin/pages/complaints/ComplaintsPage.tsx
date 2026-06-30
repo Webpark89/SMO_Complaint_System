@@ -3,6 +3,7 @@ import { mockComplaintList } from "@/mock/complaints";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Edit,
   Trash2,
@@ -35,6 +36,7 @@ import {
   useCRUD,
 } from "@/components/admin/crud";
 import { TABLE_LABELS } from "@/components/admin/constants/tableLabels";
+import { createViewColumn, createStandardRowActions } from "@/components/admin/layout/tableActions";
 
 type ComplaintRow = {
   id: string;
@@ -175,14 +177,14 @@ const EDIT_FIELDS: FormField[] = [
 ];
 
 export function ComplaintsPage() {
+  const navigate = useNavigate();
   const [state, actions] = useCRUD<ComplaintRow>(mockComplaintList);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ComplaintRow | null>(null);
   const [createValues, setCreateValues] = useState<Record<string, unknown>>({});
-  const [editValues, setEditValues] = useState<Record<string, unknown>>({});
+  
 
   const filtered = useMemo(() => {
     const q = state.searchQuery.trim().toLowerCase();
@@ -235,24 +237,8 @@ export function ComplaintsPage() {
   }, [actions, createValues, state.items.length]);
 
   const handleEdit = useCallback((row: ComplaintRow) => {
-    setSelectedItem(row);
-    setEditValues({ ...row });
-    setEditModalOpen(true);
+    navigate({ to: `/admin/complaints/edit/${row.id}` });
   }, []);
-
-  const handleSubmitEdit = useCallback(() => {
-    if (!selectedItem) return;
-    actions.updateItem(selectedItem.id, {
-      title: editValues.title as string,
-      category: editValues.category as string,
-      location: editValues.location as string,
-      status: editValues.status as string,
-      priority: editValues.priority as string,
-      submittedBy: editValues.submittedBy as string,
-    });
-    setEditModalOpen(false);
-    setSelectedItem(null);
-  }, [actions, selectedItem, editValues]);
 
   const handleDelete = useCallback((row: ComplaintRow) => {
     setSelectedItem(row);
@@ -284,6 +270,7 @@ export function ComplaintsPage() {
   );
 
   const columns: Column<ComplaintRow>[] = [
+    createViewColumn<ComplaintRow>(handleView),
     {
       key: "id",
       header: "รหัสเรื่อง",
@@ -343,15 +330,10 @@ export function ComplaintsPage() {
     },
   ];
 
-  const rowActions: RowAction<ComplaintRow>[] = [
-    { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
-    {
-      label: "ลบ",
-      icon: <Trash2 className="h-4 w-4" />,
-      onClick: handleDelete,
-      variant: "danger",
-    },
-  ];
+  const rowActions = createStandardRowActions<ComplaintRow>({
+    onEdit: handleEdit,
+    onDelete: handleDelete,
+  });
 
   return (
     <div className="space-y-6">
@@ -471,18 +453,6 @@ export function ComplaintsPage() {
         submitLabel="เพิ่มเรื่อง"
       />
 
-      <CreateEditModal
-        open={editModalOpen}
-        onOpenChange={setEditModalOpen}
-        title="แก้ไขเรื่องร้องเรียน"
-        description={`แก้ไขเรื่อง: ${selectedItem?.title ?? ""}`}
-        fields={EDIT_FIELDS}
-        values={editValues}
-        onValuesChange={setEditValues}
-        onSubmit={handleSubmitEdit}
-        mode="edit"
-        submitLabel="บันทึก"
-      />
 
       <DeleteDialog
         open={deleteDialogOpen}

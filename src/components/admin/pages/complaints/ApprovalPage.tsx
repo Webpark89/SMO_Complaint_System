@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2, ChevronDown } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +29,7 @@ import {
   useCRUD,
 } from "@/components/admin/crud";
 import { TABLE_LABELS } from "@/components/admin/constants/tableLabels";
+import { createViewColumn, createStandardRowActions } from "@/components/admin/layout/tableActions";
 
 type ApprovalRow = {
   id: string;
@@ -138,14 +140,13 @@ const EDIT_FIELDS: FormField[] = [
 ];
 
 export function ApprovalPage() {
+  const navigate = useNavigate();
   const [state, actions] = useCRUD<ApprovalRow>(mockApprovals);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ApprovalRow | null>(null);
   const [createValues, setCreateValues] = useState<Record<string, unknown>>({});
-  const [editValues, setEditValues] = useState<Record<string, unknown>>({});
 
   const filtered = useMemo(() => {
     const q = state.searchQuery.trim().toLowerCase();
@@ -197,22 +198,8 @@ export function ApprovalPage() {
   }, [actions, createValues, state.items.length]);
 
   const handleEdit = useCallback((row: ApprovalRow) => {
-    setSelectedItem(row);
-    setEditValues({ ...row });
-    setEditModalOpen(true);
-  }, []);
-
-  const handleSubmitEdit = useCallback(() => {
-    if (!selectedItem) return;
-    actions.updateItem(selectedItem.id, {
-      complaintId: editValues.complaintId as string,
-      complaintTitle: editValues.complaintTitle as string,
-      level: editValues.level as string,
-      status: editValues.status as string,
-    });
-    setEditModalOpen(false);
-    setSelectedItem(null);
-  }, [actions, selectedItem, editValues]);
+    navigate({ to: `/admin/complaints/approval/edit/${row.id}` });
+  }, [navigate]);
 
   const handleDelete = useCallback((row: ApprovalRow) => {
     setSelectedItem(row);
@@ -244,6 +231,7 @@ export function ApprovalPage() {
   );
 
   const columns: Column<ApprovalRow>[] = [
+    createViewColumn<ApprovalRow>(handleView),
     {
       key: "id",
       header: "รหัสอนุมัติ",
@@ -301,15 +289,11 @@ export function ApprovalPage() {
     },
   ];
 
-  const rowActions: RowAction<ApprovalRow>[] = [
-    { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
-    {
-      label: "ลบ",
-      icon: <Trash2 className="h-4 w-4" />,
-      onClick: handleDelete,
-      variant: "danger",
-    },
-  ];
+  const rowActions = createStandardRowActions<ApprovalRow>({
+    onEdit: handleEdit,
+    onDelete: handleDelete,
+  });
+    
 
   return (
     <div className="space-y-6">
@@ -429,19 +413,7 @@ export function ApprovalPage() {
         submitLabel="เพิ่ม"
       />
 
-      <CreateEditModal
-        open={editModalOpen}
-        onOpenChange={setEditModalOpen}
-        title="แก้ไขงานอนุมัติ"
-        description={`แก้ไขงาน: ${selectedItem?.id ?? ""}`}
-        fields={EDIT_FIELDS}
-        values={editValues}
-        onValuesChange={setEditValues}
-        onSubmit={handleSubmitEdit}
-        mode="edit"
-        submitLabel="บันทึก"
-      />
-
+      
       <DeleteDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}

@@ -22,6 +22,7 @@ import {
   useCRUD,
 } from "@/components/admin/crud";
 import { TABLE_LABELS } from "@/components/admin/constants/tableLabels";
+import { createViewColumn, createStandardRowActions } from "@/components/admin/layout/tableActions";
 
 type CategoryStatus = "เปิดใช้งาน" | "ระงับ";
 
@@ -154,23 +155,7 @@ export function CategoriesPage() {
   );
 
   const columns: Column<CategoryRow>[] = [
-    {
-      key: "view",
-      header: "",
-      render: (r) => (
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-8 w-8 text-[#B8BABF] hover:text-[#8e6c25]"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleView(r); // เรียกใช้ฟังก์ชัน handleView เพื่อเปิด DetailDrawer
-          }}
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
-      ),
-    },
+    createViewColumn<CategoryRow>(handleView),
     {
       key: "id",
       header: "รหัส",
@@ -209,15 +194,10 @@ export function CategoriesPage() {
     },
   ];
 
-  const rowActions: RowAction<CategoryRow>[] = [
-    { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
-    {
-      label: "ลบ",
-      icon: <Trash2 className="h-4 w-4" />,
-      onClick: handleDelete,
-      variant: "danger",
-    },
-  ];
+  const rowActions = createStandardRowActions<CategoryRow>({
+    onEdit: handleEdit,
+    onDelete: handleDelete,
+  });
 
   return (
     <div className="space-y-6">

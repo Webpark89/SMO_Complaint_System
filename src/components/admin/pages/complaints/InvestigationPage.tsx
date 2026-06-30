@@ -28,6 +28,7 @@ import {
   useCRUD,
 } from "@/components/admin/crud";
 import { TABLE_LABELS } from "@/components/admin/constants/tableLabels";
+import { createViewColumn, createStandardRowActions } from "@/components/admin/layout/tableActions";
 
 type InvestigationRow = {
   id: string;
@@ -239,6 +240,7 @@ export function InvestigationPage() {
   );
 
   const columns: Column<InvestigationRow>[] = [
+    createViewColumn<InvestigationRow>(handleView),
     {
       key: "id",
       header: "รหัสงาน",
@@ -316,16 +318,11 @@ export function InvestigationPage() {
     },
   ];
 
-  const rowActions: RowAction<InvestigationRow>[] = [
-    { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
-    {
-      label: "ลบ",
-      icon: <Trash2 className="h-4 w-4" />,
-      onClick: handleDelete,
-      variant: "danger",
-    },
-  ];
-
+  const rowActions = createStandardRowActions<InvestigationRow>({
+    onEdit: handleEdit,
+    onDelete: handleDelete,
+  });
+    
   return (
     <div className="space-y-6">
       <PageHeader

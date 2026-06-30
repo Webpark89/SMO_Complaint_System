@@ -1,0 +1,215 @@
+import { useState, useEffect } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { PageHeader } from "@/components/admin/crud";
+import { AdminLayout } from "@/components/admin/layout";
+import { mockComplaints } from "@/mock/complaints/ComplaintsMock";
+
+// กำหนด Route สำหรับหน้าแก้ไขเรื่องร้องเรียน
+export const Route = createFileRoute("/admin/complaints/edit/$id")({
+  component: EditComplaintPage,
+});
+
+const STATUS_OPTIONS = ["เปิดใช้งาน", "ระงับ"];
+
+function EditComplaintPage() {
+  const { id } = Route.useParams();
+  const navigate = useNavigate();
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [formData, setFormData] = useState({
+    id: "",
+    title: "",
+    status: "",
+  });
+
+  useEffect(() => {
+    setIsLoading(true);
+    // จำลองการดึงข้อมูลเรื่องร้องเรียน
+    setTimeout(() => {
+      const complaint = mockComplaints.find((c) => c.id === id);
+      if (complaint) {
+        setFormData({
+          id: complaint.id, 
+          // @ts-ignore
+          title: complaint.title, 
+          status: complaint.status,
+        });
+      } else {
+        setError("ไม่พบข้อมูลเรื่องร้องเรียนรหัสนี้");
+      }
+      setIsLoading(false);
+    }, 500);
+  }, [id]);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    // จำลองการบันทึกข้อมูล
+    setTimeout(() => {
+      const complaintIndex = mockComplaints.findIndex((c) => c.id === id);
+      if (complaintIndex !== -1) {
+        mockComplaints[complaintIndex] = {
+          ...mockComplaints[complaintIndex],
+          id: formData.id, 
+          title: formData.title, 
+          status: formData.status as any,
+        };
+      }
+      
+      setIsLoading(false);
+      // นำทางกลับไปยังหน้ารายการเรื่องร้องเรียน
+      navigate({ to: "/admin/complaints" }); 
+    }, 800);
+  };
+
+  if (error) {
+    return (
+      <AdminLayout>
+        <div className="space-y-6">
+          <PageHeader
+            title="เรื่องร้องเรียน"
+            description="จัดการเรื่องร้องเรียนระบบ (ข้อมูลจำลอง)"
+            breadcrumbs={[{ label: "ระบบเรื่องร้องเรียน" }, { label: "เรื่องร้องเรียน" }]}
+          />
+          <Card className="w-full border-[var(--border)] bg-white shadow-soft">
+            <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
+              <p className="text-red-500 font-medium text-lg">{error}</p>
+              <Button variant="outline" onClick={() => navigate({ to: "/admin/complaints" })}>
+                ย้อนกลับ
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  return (
+    <AdminLayout>
+      <div className="space-y-6">
+        
+        <PageHeader
+          title="เรื่องร้องเรียน"
+          description="จัดการเรื่องร้องเรียนระบบ (ข้อมูลจำลอง)"
+          breadcrumbs={[
+            { label: "ระบบเรื่องร้องเรียน" }, 
+            { label: "เรื่องร้องเรียน" },
+            { label: "แก้ไขข้อมูลเรื่องร้องเรียน" }
+          ]}
+          actionButtons={
+            <Button
+              variant="outline"
+              onClick={() => navigate({ to: "/admin/complaints" })}
+              className="border-slate-300 bg-white text-slate-700 hover:bg-slate-50 gap-2 shadow-sm"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              ย้อนกลับ
+            </Button>
+          }
+        />
+
+        <Card className="w-full border-[var(--border)] bg-white shadow-soft">
+          <CardContent className="p-6">
+            <div className="mb-6 border-b border-slate-100 pb-4">
+              <h2 className="text-lg font-bold text-slate-800">
+                แก้ไขข้อมูลเรื่องร้องเรียนรหัส: <span className="text-[#b08730]">{id}</span>
+              </h2>
+            </div>
+
+            <form onSubmit={handleSubmit} className="w-full space-y-6">
+              
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-slate-700">
+                  รหัสเรื่อง <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="id" 
+                  required
+                  value={formData.id}
+                  onChange={handleChange}
+                  className="w-full flex h-10 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#b08730] focus:border-transparent transition-all"
+                  placeholder="กรอกรหัสเรื่อง เช่น COM-001"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-slate-700">
+                  หัวข้อ <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  name="title" 
+                  required
+                  value={formData.title}
+                  onChange={handleChange}
+                  rows={4}
+                  className="w-full flex rounded-md border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#b08730] focus:border-transparent transition-all resize-none"
+                  placeholder="กรอกรายละเอียดหัวข้อเรื่องร้องเรียน"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-slate-700">
+                  สถานะ <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="status"
+                  required
+                  value={formData.status}
+                  onChange={handleChange}
+                  className="w-full h-10 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#b08730] focus:border-transparent transition-all"
+                >
+                  <option value="" disabled>เลือกสถานะ</option>
+                  {STATUS_OPTIONS.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* ปรับแก้: เพิ่ม justify-end เพื่อดันปุ่มไปชิดขวา และสลับลำดับปุ่มยกเลิกไว้ซ้าย ปุ่มบันทึกไว้ขวา (มาตรฐาน UX) */}
+              <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-slate-100">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+                  onClick={() => navigate({ to: "/admin/complaints" })}
+                  disabled={isLoading}
+                >
+                  ยกเลิก
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-[#b08730] hover:bg-[#8e6c25] text-white gap-2 transition-colors shadow-sm min-w-[140px]"
+                  disabled={isLoading || !formData.id || !formData.title} 
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
+                  บันทึกการแก้ไข
+                </Button>
+              </div>
+
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </AdminLayout>
+  );
+}

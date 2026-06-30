@@ -39,6 +39,7 @@ import {
   getAssignmentStatusVariant,
 } from "@/components/admin/crud";
 import { TABLE_LABELS } from "@/components/admin/constants/tableLabels";
+import { createViewColumn, createStandardRowActions } from "@/components/admin/layout/tableActions";
 import { TEAMS as TEAMS_CANONICAL } from "@/mock/shared/file-types";
 
 type AssignmentRow = {
@@ -238,6 +239,7 @@ export function AssignmentPage() {
   );
 
   const columns: Column<AssignmentRow>[] = [
+    createViewColumn<AssignmentRow>(handleView),
     {
       key: "id",
       header: "รหัสมอบหมาย",
@@ -312,15 +314,10 @@ export function AssignmentPage() {
       ),
     },
   ];
-  const rowActions: RowAction<AssignmentRow>[] = [
-    { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
-    {
-      label: "ลบ",
-      icon: <Trash2 className="h-4 w-4" />,
-      onClick: handleDelete,
-      variant: "danger",
-    },
-  ];
+  const rowActions = createStandardRowActions<AssignmentRow>({
+    onEdit: handleEdit,
+    onDelete: handleDelete,
+  });
 
   return (
     <div className="space-y-6">
