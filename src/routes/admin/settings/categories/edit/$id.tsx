@@ -5,6 +5,10 @@ import { mockCategories } from "@/mock/organization";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { PageHeader } from "@/components/admin/crud";
+
+// สำคัญ: Import AdminLayout เข้ามาใช้งาน (กรุณาตรวจสอบ Path ให้ตรงกับโฟลเดอร์โปรเจกต์ของคุณ)
+import { AdminLayout } from "@/components/admin/layout"
 
 // กำหนด Route สำหรับหน้าแก้ไขหมวดหมู่
 export const Route = createFileRoute("/admin/settings/categories/edit/$id")({
@@ -85,36 +89,36 @@ function EditCategoryPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-120px)] p-4 md:p-8">
-      <div className="w-full max-w-3xl space-y-6">
-        
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate({ to: "/admin/settings/categories" })}
-            className="h-10 w-10 border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5 text-slate-600" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800">แก้ไขหมวดหมู่</h1>
-            <p className="text-sm text-slate-500">
-              แก้ไขข้อมูลหมวดหมู่รหัส: <span className="font-semibold text-slate-700">{id}</span>
-            </p>
-          </div>
-        </div>
+    <AdminLayout>
+      <div className="space-y-6">
+        <PageHeader
+          title="หมวดหมู่"
+          description="จัดการหมวดหมู่ระบบ (ข้อมูลจำลอง)"
+          breadcrumbs={[
+            { label: "ตั้งค่าระบบ" }, 
+            { label: "หมวดหมู่" },
+            { label: "แก้ไขข้อมูลหมวดหมู่" }
+          ]}
+          actionButtons={
+            <Button
+              variant="outline"
+              onClick={() => navigate({ to: "/admin/settings/categories" })}
+              className="border-slate-300 bg-white text-slate-700 hover:bg-slate-50 gap-2 shadow-sm"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              ย้อนกลับ
+            </Button>
+          }
+        />
 
-        {/* Form */}
-        <Card className="border-[var(--border)] bg-white shadow-soft">
-          <CardHeader className="border-b border-slate-100 pb-4">
-            <CardTitle className="text-lg text-slate-700">ข้อมูลรายละเอียด</CardTitle>
-          </CardHeader>
+        <Card className="w-full border-[var(--border)] bg-white shadow-soft">
           <CardContent className="p-6">
+            <div className="mb-6 border-b border-slate-100 pb-4">
+              <h2 className="text-lg font-bold text-slate-800">
+                แก้ไขข้อมูลหมวดหมู่รหัส: <span className="text-[#b08730]">{id}</span>
+              </h2>
+            </div>
             <form onSubmit={handleSubmit} className="space-y-5">
-              
-              {/* ชื่อหมวดหมู่ */}
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-700">
                   ชื่อหมวดหมู่ <span className="text-red-500">*</span>
@@ -129,8 +133,6 @@ function EditCategoryPage() {
                   placeholder="เช่น ร้องเรียนการบริการ"
                 />
               </div>
-
-              {/* คำอธิบาย */}
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-700">
                   คำอธิบาย <span className="text-red-500">*</span>
@@ -145,8 +147,6 @@ function EditCategoryPage() {
                   placeholder="กรอกคำอธิบายหมวดหมู่"
                 />
               </div>
-
-              {/* สถานะ */}
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-700">
                   สถานะ <span className="text-red-500">*</span>
@@ -166,8 +166,6 @@ function EditCategoryPage() {
                   ))}
                 </select>
               </div>
-
-              {/* Actions */}
               <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 mt-6">
                 <Button
                   type="button"
@@ -187,15 +185,13 @@ function EditCategoryPage() {
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <Save className="h-4 w-4" />
-                  )}
-                  บันทึกการแก้ไข
-                </Button>
-              </div>
-
-            </form>
-          </CardContent>
-        </Card>
+                  )}  
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
       </div>
-    </div>
+    </AdminLayout>
   );
 }

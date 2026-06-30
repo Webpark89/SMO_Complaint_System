@@ -161,7 +161,7 @@ export function CategoriesPage() {
         <Button 
           variant="ghost" 
           size="icon" 
-          className="h-8 w-8 text-slate-500 hover:text-[var(--gold)]"
+          className="h-8 w-8 text-[#B8BABF] hover:text-[#8e6c25]"
           onClick={(e) => {
             e.stopPropagation();
             handleView(r); // เรียกใช้ฟังก์ชัน handleView เพื่อเปิด DetailDrawer
