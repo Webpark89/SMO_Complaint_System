@@ -12,7 +12,6 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        // Vite/Rollup in newer versions expects manualChunks to be a function.
         manualChunks(id) {
           if (
             id.includes("node_modules/react") ||
