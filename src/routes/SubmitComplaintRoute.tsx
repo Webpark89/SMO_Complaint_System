@@ -18,6 +18,7 @@ import {
   Edit2,
   Plus,
   ClipboardCheck,
+  Calendar as CalendarIcon,
 } from "lucide-react";
 import {
   Select,
@@ -26,6 +27,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,14 +49,14 @@ import {
 import { complaintLocations } from "@/mock/organization";
 import { cn } from "@/lib/utils";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { 
+import {
   FileText,    // ขั้นที่ 1
   SquarePen,   // ขั้นที่ 2
   User,        // ขั้นที่ 3
   ShieldCheck, // ขั้นที่ 4
-  Check 
+  Check
 } from "lucide-react";
-interface TermsAndPrivacyContentProps {}
+interface TermsAndPrivacyContentProps { }
 export const TermsAndPrivacyContent = forwardRef<
   HTMLDivElement,
   TermsAndPrivacyContentProps
@@ -72,9 +75,9 @@ export const TermsAndPrivacyContent = forwardRef<
       </div>
 
       <p className="mt-4 text-center text-sm text-foreground/80 md:text-left">
-        กรุณากด "เข้าใจและยอมรับเงื่อนไขการใช้งาน"{" "}
+        กรุณากด "เข้าใจและยอมรับเงื่อนไขการใช้งาน (I have read and accept the Terms of Use)"{" "}
         <span className="whitespace-nowrap md:whitespace-normal">
-          ก่อนไปหน้าถัดไป
+          ก่อนไปหน้าถัดไป (before proceeding to the next page)
         </span>
       </p>
 
@@ -256,7 +259,30 @@ type ComplaintFormData = {
   files: File[];
 };
 
-type StepErrors = Partial<Record<keyof ComplaintFormData, string>>;
+type StepErrors = Partial<Record<Exclude<keyof ComplaintFormData, "witnesses">, string>> & {
+  witnesses?: Array<{ name?: string; phone?: string }>;
+};
+
+const parseDateString = (dateStr: string) => {
+  if (!dateStr) return undefined;
+  const parts = dateStr.split("/");
+  if (parts.length === 3) {
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const year = parseInt(parts[2], 10);
+    if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+      return new Date(year, month, day);
+    }
+  }
+  return undefined;
+};
+
+const formatDateToString = (date: Date) => {
+  const dd = String(date.getDate()).padStart(2, "0");
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const yyyy = date.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+};
 
 function ComplaintForm() {
   const navigate = useNavigate();
@@ -293,7 +319,6 @@ function ComplaintForm() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<{ ref: string } | null>(null);
   const [errors, setErrors] = useState<StepErrors>({});
-  const [initialFillDone, setInitialFillDone] = useState(false);
   const [isDateTimeEditMode, setIsDateTimeEditMode] = useState(false);
 
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
@@ -348,23 +373,6 @@ function ComplaintForm() {
     });
   }, [currentStep]);
 
-  useEffect(() => {
-    if (!initialFillDone) {
-      const now = new Date();
-      const yyyy = String(now.getFullYear()).padStart(4, "0");
-      const mm = String(now.getMonth() + 1).padStart(2, "0");
-      const dd = String(now.getDate()).padStart(2, "0");
-      const hh = String(now.getHours()).padStart(2, "0");
-      const mins = String(now.getMinutes()).padStart(2, "0");
-
-      setForm((f) => ({
-        ...f,
-        occurred_date: `${dd}/${mm}/${yyyy}`,
-        occurred_time: `${hh}:${mins}`,
-      }));
-      setInitialFillDone(true);
-    }
-  }, [initialFillDone]);
 
   function update<K extends keyof ComplaintFormData>(
     key: K,
@@ -387,8 +395,8 @@ function ComplaintForm() {
 
   function addFiles(list: FileList | null) {
     if (!list) return;
-    const next = Array.from(list).slice(0, 5 - form.files.length);
-    update("files", [...form.files, ...next].slice(0, 5));
+    const next = Array.from(list).slice(0, 999 - form.files.length);
+    update("files", [...form.files, ...next].slice(0, 999));
   }
 
   function openStep(step: number) {
@@ -396,10 +404,10 @@ function ComplaintForm() {
     setMaxVisibleStep((value) => Math.max(value, step));
   }
 
-// ยุบรวม Validation ของทุกส่วนที่เหลือมาไว้ที่ Step 2
+  // ยุบรวม Validation ของทุกส่วนที่เหลือมาไว้ที่ Step 2
   function stepErrors(step: number): StepErrors {
     const next: StepErrors = {};
-    
+
     // Step 1: หมวดหมู่และประเด็น
     if (step === 1) {
       if (!form.category_id) next.category_id = "กรุณาเลือกประเภทเรื่องร้องเรียน (Please select a complaint category)";
@@ -407,12 +415,24 @@ function ComplaintForm() {
       if (form.subtopic_id.endsWith("_other") && !form.subtopic_other.trim())
         next.subtopic_other = "กรุณาระบุรายละเอียดเพิ่มเติม (Please provide additional details)";
     }
-    
+
+    // Step 2: รายละเอียดเหตุการณ์ (วันที่ เวลา สาขา)
     // Step 2: รายละเอียดเหตุการณ์ (วันที่ เวลา สาขา)
     if (step === 2) {
       if (!form.occurred_date) next.occurred_date = "กรุณาเลือกวันที่เกิดเหตุ (Please select the incident date)";
       if (!form.occurred_time) next.occurred_time = "กรุณาเลือกเวลาที่เกิดเหตุ (Please select the incident time)";
       if (!form.location) next.location = "กรุณาเลือกสาขา (Please select a branch)";
+
+      // ถ้าติ๊ก "มีพยาน" ต้องกรอกชื่อและเบอร์โทรของพยานทุกคนก่อนไปหน้าถัดไป
+      if (form.has_witness) {
+        const witnessErrors = (form.witnesses || []).map((w) => ({
+          name: !w.name?.trim() ? "กรุณาระบุชื่อพยาน (Please enter the witness name)" : undefined,
+          phone: !w.phone?.trim() ? "กรุณาระบุเบอร์โทรศัพท์พยาน (Please enter the witness phone number)" : undefined,
+        }));
+        if (witnessErrors.some((e) => e.name || e.phone)) {
+          next.witnesses = witnessErrors;
+        }
+      }
     }
 
     // Step 3: ข้อมูลผู้ร้องเรียน
@@ -433,7 +453,7 @@ function ComplaintForm() {
     if (step === 4) {
       if (!form.consent_truth) next.consent_truth = "กรุณายืนยันความถูกต้องของข้อมูล (Please confirm the accuracy of the information)";
     }
-    
+
     return next;
   }
 
@@ -471,7 +491,9 @@ function ComplaintForm() {
     if (!parsed.success) {
       const next: StepErrors = {};
       for (const i of parsed.error.issues) {
-        next[i.path[0] as keyof ComplaintFormData] = i.message;
+        const key = i.path[0] as keyof ComplaintFormData;
+        if (key === "witnesses") continue; // witnesses ใช้ error รูปแบบ array แยกต่างหาก ไม่ใช่ string
+        next[key] = i.message;
       }
       setErrors((prev) => ({ ...prev, ...next }));
       toast.error(
@@ -510,28 +532,28 @@ function ComplaintForm() {
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#09A129]/10 text-[#09A129] shadow-sm md:h-20 md:w-20">
                 <CheckCircle2 className="h-8 w-8 md:h-10 md:w-10" />
               </div>
-              
+
               {/* หัวข้อหลัก */}
               <h1 className="mt-6 text-center font-display text-2xl font-bold text-[#002856] md:text-3xl">
                 ระบบได้รับเรื่องของท่านเรียบร้อยแล้ว
               </h1>
-              
+
               {/* คำอธิบาย */}
               <p className="mt-3 text-center text-sm text-[#002856] md:text-base">
                 เจ้าหน้าที่จะดำเนินการตามนโยบายคุ้มครองผู้แจ้งเบาะแส
               </p>
-              
+
               {/* การ์ดแสดงหมายเลขอ้างอิง (กล่องสีขาว) */}
               <div className="mx-auto mt-8 w-full max-w-[600px] rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
                 <div className="text-xs font-bold text-center tracking-wide text-[#002856] md:text-sm">
                   หมายเลขอ้างอิง / Reference Number
                 </div>
-                
+
                 {/* ตัวเลขหมายเลขอ้างอิง (ขยายให้ใหญ่และหนาขึ้น) */}
                 <div className="mt-4 font-display text-center text-3xl font-black tracking-wider text-[#002856] md:text-4xl">
                   {success.ref}
                 </div>
-                
+
                 {/* กลุ่มปุ่ม คัดลอก / บันทึกภาพ แบบ Responsive */}
                 <div className="mt-6 flex w-full flex-row gap-3 sm:justify-center">
                   <button
@@ -552,11 +574,11 @@ function ComplaintForm() {
                       toast.success("คัดลอกแล้ว");
                     }}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500"><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
                     บันทึกภาพ
                   </button>
                 </div>
-                
+
                 {/* ข้อความแจ้งเตือนสีส้ม */}
                 <div className="mt-6 space-y-1 items-center justify-center text-center">
                   <p className="text-xs font-medium text-[#FF4D00] md:text-sm">
@@ -567,17 +589,17 @@ function ComplaintForm() {
                   </p>
                 </div>
               </div>
-              
+
               {/* ปุ่มกลับหน้าแรก (ปุ่มสีทอง) */}
               <div className="mt-8 flex w-full justify-center">
-                <Button 
-                  className="h-12 w-auto px-8 sm:w-auto sm:px-12 rounded-lg bg-[#D29E0E] text-base font-medium text-white hover:bg-[#002856] disabled:bg-[#B8BBBF]" 
+                <Button
+                  className="h-12 w-auto px-8 sm:w-auto sm:px-12 rounded-lg bg-[#D29E0E] text-base font-medium text-white hover:bg-[#002856] disabled:bg-[#B8BBBF]"
                   onClick={() => navigate({ to: "/" })}
                 >
                   กลับสู่หน้าแรก
                 </Button>
               </div>
-              
+
             </div>
           </MainLayout>
         </section>
@@ -620,7 +642,9 @@ function ComplaintForm() {
                     checked={isTermsAccepted}
                     onCheckedChange={(v) => setIsTermsAccepted(v === true)}
                   />
-                  <span className="text-sm font-medium">เข้าใจและยอมรับเงื่อนไขการใช้งาน</span>
+                  <span className="text-sm font-medium">
+                    เข้าใจและยอมรับเงื่อนไขการใช้งาน (I have read and accept the Terms of Use)
+                  </span>
                 </label>
                 {!scrolledToBottom && (
                   <span className="text-xs text-[#FF4D00] font-medium">
@@ -665,22 +689,25 @@ function ComplaintForm() {
 
           {/* เริ่มฟอร์มหลัก */}
           <form onSubmit={onSubmit} className="mt-8 transition-all duration-300">
-            
+
             {/* ==========================================
                 STEP 1: หมวดหมู่และประเด็น
             ========================================== */}
             {currentStep === 1 && (
               <div className="rounded-2xl border border-border bg-white p-6 shadow-sm md:p-8 animate-[fadeIn_0.3s_ease-out_both]">
-                
+
                 <div className="mb-2 border-b border-border pb-4">
                   <h2 className="text-lg font-bold text-[#002856]">
                     หมวดหมู่และประเด็นที่เกี่ยวข้อง (Category & Related Issue) <span className="text-destructive">*</span>
                   </h2>
                   <p className="mt-2 text-sm text-muted-foreground">
                     กรุณาเลือกหมวดหมู่การแจ้งเรื่องและประเด็นที่เกี่ยวข้อง เพื่อให้บริษัทสามารถจัดประเภทและดำเนินการตรวจสอบได้อย่างเหมาะสม
+                    <span className="block">
+                      (Please select the complaint category and related issue so the company can properly classify and investigate the matter)
+                    </span>
                   </p>
                 </div>
-                
+
                 <div className="grid gap-3">
                   {/* เลือกหมวดหมู่หลัก */}
                   <div className="border-b-2 border-border">
@@ -708,7 +735,7 @@ function ComplaintForm() {
                           >
                             <div className="font-bold text-sm md:text-base">{category.name}</div>
                             {category.nameEn && <div className="mt-0 text-xs font-medium opacity-80">{category.nameEn}</div>}
-                            
+
                             {category.description && (
                               <div className="mt-0 text-[11px] md:text-xs opacity-90 leading-relaxed">
                                 {category.description}
@@ -743,7 +770,7 @@ function ComplaintForm() {
                             )}
                           >
                             <div className="font-bold text-sm">{subtopic.name}</div>
-                            
+
                             {subtopic.nameEn && (
                               <div className="mt-1 text-[11px] md:text-xs font-medium opacity-80">
                                 {subtopic.nameEn}
@@ -784,8 +811,8 @@ function ComplaintForm() {
                 </div>
 
                 <div className="mt-10 flex justify-end">
-                  <Button 
-                    type="button" 
+                  <Button
+                    type="button"
                     className="bg-[#D29E0E] hover:bg-[#002856] disabled:bg-[#B8BBBF] text-white px-8 h-11"
                     onClick={() => handleNextStep(1)}
                   >
@@ -804,11 +831,14 @@ function ComplaintForm() {
                   ข้อมูลและรายละเอียดเหตุการณ์ (Incident Information & Details) <span className="text-destructive">*</span>
                   <p className="mt-2 text-sm text-muted-foreground">
                     กรุณาเลือกหมวดหมู่การแจ้งเรื่องและประเด็นที่เกี่ยวข้อง เพื่อให้บริษัทสามารถจัดประเภทและดำเนินการตรวจสอบได้อย่างเหมาะสม
-                </p>
+                    <span className="block">
+                      (Please select the complaint category and related issue so the company can properly classify and investigate the matter)
+                    </span>
+                  </p>
                 </h2>
-                
+
                 <div className="space-y-8">
-                  
+
                   {/* แถวที่ 1: วันที่เวลา และ สาขา */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* คอลัมน์ซ้าย: วันที่และเวลาที่เกิดเหตุ */}
@@ -819,60 +849,122 @@ function ComplaintForm() {
                       </Label>
                       <div className="grid gap-4 md:grid-cols-2 mt-3">
                         <div className="flex flex-col">
-                          <Input
-                            type="date"
-                            className={cn(
-                              // 1. โครงสร้างพื้นฐานและสถานะปกติ (Inactive)
-                              "relative w-full h-[52px] rounded-lg px-3 text-sm transition-all outline-none",
-                              "border-[#D6D7D9] bg-white text-[#002856]",
-                              
-                              // จัดการตำแหน่งไอคอนปฏิทินให้อยู่ชิดขวา
-                              "[&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-4 [&::-webkit-calendar-picker-indicator]:cursor-pointer",
-                              
-                              // 2. สถานะ Hover & Focus
-                              "hover:border-[#D29E0E]",
-                              "focus-visible:border-[#002856] focus-visible:ring-1 focus-visible:ring-[#002856]",
-                              
-                              // 3. สถานะ Disabled (เผื่อระบบมีการปิดไม่ให้แก้)
-                              "disabled:cursor-not-allowed disabled:bg-[#F9FAFB] disabled:text-[#898F98] disabled:border-[#D6D7D9]",
-                              
-                              // 4. สถานะ Error (ถ้ามี Error ให้เขียนทับ Hover/Focus สีอื่นให้เป็นสีส้มแดงทั้งหมด)
-                              errors.occurred_date
-                                ? "border-[#FF4D00] bg-[#FF4D00]/10 text-[#FF4D00] hover:border-[#FF4D00] focus-visible:border-[#FF4D00] focus-visible:ring-[#FF4D00]"
-                                : ""
-                            )}
-                            value={form.occurred_date}
-                            onChange={(e) => update("occurred_date", e.target.value)}
-                          />
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  // 1. โครงสร้างพื้นฐานและสถานะปกติ (Inactive)
+                                  "relative w-full h-[52px] rounded-lg px-3 text-sm transition-all outline-none flex items-center justify-between text-left font-normal",
+                                  "border-[#D6D7D9] bg-white text-[#002856]",
+
+                                  // 2. สถานะ Hover & Focus
+                                  "hover:border-[#D29E0E] hover:text-[#002856]",
+                                  "focus:border-[#002856] focus:ring-1 focus:ring-[#002856]",
+
+                                  // 3. สถานะ Disabled
+                                  "disabled:cursor-not-allowed disabled:bg-[#F9FAFB] disabled:text-[#898F98] disabled:border-[#D6D7D9]",
+
+                                  // 4. สถานะ Error
+                                  errors.occurred_date
+                                    ? "border-[#FF4D00] bg-[#FF4D00]/10 text-[#FF4D00] hover:border-[#FF4D00] focus:border-[#FF4D00] focus:ring-[#FF4D00]"
+                                    : ""
+                                )}
+                              >
+                                <span>{form.occurred_date || "เลือกวันที่เกิดเหตุ"}</span>
+                                <CalendarIcon className="h-5 w-5 text-[#898F98]" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={parseDateString(form.occurred_date)}
+                                onSelect={(date) => {
+                                  if (date) {
+                                    update("occurred_date", formatDateToString(date));
+                                  }
+                                }}
+                                disabled={(date) => date > new Date()}
+                              />
+                            </PopoverContent>
+                          </Popover>
                           <div className="min-h-[24px] mt-1"><FieldError msg={errors.occurred_date} /></div>
                         </div>
 
                         <div className="flex flex-col">
-                          <Input
-                            type="time"
-                            className={cn(
-                              // 1. โครงสร้างพื้นฐานและสถานะปกติ (Inactive)
-                              "relative w-full h-[52px] rounded-lg px-3 text-sm transition-all outline-none",
-                              "border-[#D6D7D9] bg-white text-[#002856]",
-                              
-                              // จัดการตำแหน่งไอคอนปฏิทินให้อยู่ชิดขวา
-                              "[&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-4 [&::-webkit-calendar-picker-indicator]:cursor-pointer",
-                              
-                              // 2. สถานะ Hover & Focus
-                              "hover:border-[#D29E0E]",
-                              "focus-visible:border-[#002856] focus-visible:ring-1 focus-visible:ring-[#002856]",
-                              
-                              // 3. สถานะ Disabled (เผื่อระบบมีการปิดไม่ให้แก้)
-                              "disabled:cursor-not-allowed disabled:bg-[#F9FAFB] disabled:text-[#898F98] disabled:border-[#D6D7D9]",
-                              
-                              // 4. สถานะ Error (ถ้ามี Error ให้เขียนทับ Hover/Focus สีอื่นให้เป็นสีส้มแดงทั้งหมด)
-                              errors.occurred_time
-                                ? "border-[#FF4D00] bg-[#FF4D00]/10 text-[#FF4D00] hover:border-[#FF4D00] focus-visible:border-[#FF4D00] focus-visible:ring-[#FF4D00]"
-                                : ""
-                            )}
-                            value={form.occurred_time}
-                            onChange={(e) => update("occurred_time", e.target.value)}
-                          />
+                          {(() => {
+                            const [hVal, mVal] = (form.occurred_time || "00:00").split(":");
+                            return (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    className={cn(
+                                      // 1. โครงสร้างพื้นฐานและสถานะปกติ (Inactive)
+                                      "relative w-full h-[52px] rounded-lg px-3 text-sm transition-all outline-none flex items-center justify-between text-left font-normal",
+                                      "border-[#D6D7D9] bg-white text-[#002856]",
+
+                                      // 2. สถานะ Hover & Focus
+                                      "hover:border-[#D29E0E] hover:text-[#002856]",
+                                      "focus:border-[#002856] focus:ring-1 focus:ring-[#002856]",
+
+                                      // 3. สถานะ Disabled
+                                      "disabled:cursor-not-allowed disabled:bg-[#F9FAFB] disabled:text-[#898F98] disabled:border-[#D6D7D9]",
+
+                                      // 4. สถานะ Error
+                                      errors.occurred_time
+                                        ? "border-[#FF4D00] bg-[#FF4D00]/10 text-[#FF4D00] hover:border-[#FF4D00] focus:border-[#FF4D00] focus:ring-[#FF4D00]"
+                                        : ""
+                                    )}
+                                  >
+                                    <span>{form.occurred_time ? `${form.occurred_time} น.` : "เลือกเวลาที่เกิดเหตุ"}</span>
+                                    <Clock className="h-5 w-5 text-[#898F98]" />
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[240px] p-3" align="start">
+                                  <div className="text-xs font-bold mb-2 text-foreground text-center">
+                                    เลือกเวลาที่เกิดเหตุ (24 ชม.)
+                                  </div>
+                                  <div className="flex gap-2 h-[180px]">
+                                    {/* Hours Column */}
+                                    <div className="flex-1 overflow-y-auto border border-border rounded p-1">
+                                      <div className="text-[9px] uppercase text-muted-foreground font-bold text-center mb-1 sticky top-0 bg-white py-0.5">ชั่วโมง</div>
+                                      {Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0")).map((h) => (
+                                        <button
+                                          key={h}
+                                          type="button"
+                                          className={cn(
+                                            "w-full text-center py-1 text-xs rounded hover:bg-slate-100 transition-colors",
+                                            hVal === h ? "bg-[#002856] text-white hover:bg-[#002856]/90 font-semibold" : "text-foreground"
+                                          )}
+                                          onClick={() => update("occurred_time", `${h}:${mVal || "00"}`)}
+                                        >
+                                          {h}
+                                        </button>
+                                      ))}
+                                    </div>
+                                    {/* Minutes Column */}
+                                    <div className="flex-1 overflow-y-auto border border-border rounded p-1">
+                                      <div className="text-[9px] uppercase text-muted-foreground font-bold text-center mb-1 sticky top-0 bg-white py-0.5">นาที</div>
+                                      {Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0")).map((m) => (
+                                        <button
+                                          key={m}
+                                          type="button"
+                                          className={cn(
+                                            "w-full text-center py-1 text-xs rounded hover:bg-slate-100 transition-colors",
+                                            mVal === m ? "bg-[#002856] text-white hover:bg-[#002856]/90 font-semibold" : "text-foreground"
+                                          )}
+                                          onClick={() => update("occurred_time", `${hVal || "00"}:${m}`)}
+                                        >
+                                          {m}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            );
+                          })()}
                           <div className="min-h-[24px] mt-1"><FieldError msg={errors.occurred_time} /></div>
                         </div>
                       </div>
@@ -969,10 +1061,8 @@ function ComplaintForm() {
                                   "hover:border-[#D29E0E]",
                                   "focus-visible:border-[#002856] focus-visible:ring-1 focus-visible:ring-[#002856]",
                                   "disabled:cursor-not-allowed disabled:bg-[#F9FAFB] disabled:text-[#898F98] disabled:border-[#D6D7D9]",
-                                  
-                                  // เงื่อนไข Error ของ ชื่อพยาน (Name)
-                                  // (หาก ts ฟ้อง error ตรงนี้ อาจต้องปรับ Type ของ StepErrors ให้รองรับโครงสร้าง Array ครับ)
-                                  // @ts-ignore เผื่อกรณี Type แจ้งเตือน
+
+
                                   errors.witnesses?.[index]?.name
                                     ? "border-[#FF4D00] bg-[#FF4D00]/10 text-[#FF4D00] hover:border-[#FF4D00] focus-visible:border-[#FF4D00] focus-visible:ring-[#FF4D00]"
                                     : ""
@@ -994,7 +1084,7 @@ function ComplaintForm() {
                                     "hover:border-[#D29E0E]",
                                     "focus-visible:border-[#002856] focus-visible:ring-1 focus-visible:ring-[#002856]",
                                     "disabled:cursor-not-allowed disabled:bg-[#F9FAFB] disabled:text-[#898F98] disabled:border-[#D6D7D9]",
-                                    
+
                                     // เงื่อนไข Error ของ เบอร์โทรศัพท์พยาน (Phone)
                                     // @ts-ignore
                                     errors.witnesses?.[index]?.phone
@@ -1050,7 +1140,7 @@ function ComplaintForm() {
 
                     <Textarea
                       className="mt-2 min-h-[120px] resize-y rounded-xl bg-white p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                      maxLength={1000}
+                      maxLength={3000}
                       placeholder="กรุณาระบุรายละเอียดเหตุการณ์ เช่น ลำดับเหตุการณ์ บุคคลที่เกี่ยวข้อง สถานที่ หรือข้อมูลอื่น ๆ ที่เป็นประโยชน์"
                       value={form.description}
                       onChange={(e) => update("description", e.target.value)}
@@ -1062,7 +1152,7 @@ function ComplaintForm() {
                           form.description.length === 0 ? "text-muted-foreground/60" : "text-primary/70",
                         )}
                       >
-                        {form.description.length} / 1000
+                        {form.description.length} / 3000
                       </span>
                     </div>
                   </div>
@@ -1089,7 +1179,7 @@ function ComplaintForm() {
                       <div className="mt-3 text-sm font-medium">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือก</div>
                       <div className="mt-1 text-sm font-medium">Drag and drop files here, or click to select</div>
                       <div className="mt-2 text-xs text-[#002856]">
-                        รองรับ PDF, DOCX, PNG, JPG, MP4, MOV · สูงสุด 5 ไฟล์
+                        รองรับ PDF, DOCX, PNG, JPG, MP4, MOV
                       </div>
                       <input
                         type="file"
@@ -1132,7 +1222,7 @@ function ComplaintForm() {
                   <Button type="button" variant="outline" className="h-11 w-full px-8 sm:w-auto" onClick={() => openStep(1)}>
                     <ArrowLeft className="mr-2 h-4 w-4" /> ย้อนกลับ
                   </Button>
-                  
+
                   <Button type="button" className="h-11 w-full bg-[#D29E0E] px-8 text-white hover:bg-[#002856] disabled:bg-[#B8BBBF] sm:w-auto" onClick={() => handleNextStep(2)}>
                     ถัดไป <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -1148,19 +1238,18 @@ function ComplaintForm() {
                 <h2 className="mb-6 border-b pb-4 text-lg font-bold text-[#002856]">
                   ข้อมูลผู้ร้องเรียน (Reporter Information)
                 </h2>
-                
+
                 <div className="space-y-4">
-                  <label className="group flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-border bg-slate-50 dark:bg-[var(--surface-muted)] p-4 transition-colors hover:border-primary/40">
+                  <div className="rounded-xl border border-border bg-slate-50 p-4">
                     <div className="flex items-center gap-3">
                       {/* 1. เพิ่ม shrink-0 เพื่อไม่ให้กลายเป็นวงรีบนมือถือ */}
                       {/* 2. นำ mt-0.5 ออก และเพิ่ม flex items-center justify-center เพื่อให้รูปอยู่ตรงกลางวงกลมเป๊ะๆ */}
-                      <div className="flex shrink-0 items-center justify-center rounded-full border border-border bg-[#D29E0E] p-1.5 text-slate-700 shadow-sm">
-                        <img 
-                          src="/src/assets/Frame.svg" 
-                          alt="Anonymous Icon" 
-                          // 3. เอา bg กับ rounded ออกจาก img เพราะตัวกรอบ (div ด้านบน) จัดการให้หมดแล้ว
-                          className="h-4 w-4 object-contain" 
-                        />
+                      <div className="flex shrink-0 items-center justify-center rounded-full border border-border bg-[#D29E0E] p-1.5 shadow-sm">                        <img
+                        src="/src/assets/Frame.svg"
+                        alt="Anonymous Icon"
+                        // 3. เอา bg กับ rounded ออกจาก img เพราะตัวกรอบ (div ด้านบน) จัดการให้หมดแล้ว
+                        className="h-4 w-4 object-contain"
+                      />
                       </div>
                       <div>
                         <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
@@ -1170,8 +1259,35 @@ function ComplaintForm() {
                           หากเปิดใช้งาน ระบบจะข้ามการกรอกข้อมูลส่วนตัวทั้งหมดทันที
                         </div>
                       </div>
+
+                      <RadioGroup
+                        value={form.is_anonymous ? "anonymous" : "identified"}
+                        onValueChange={(value) => {
+                          const anonymous = value === "anonymous";
+
+                          update("is_anonymous", anonymous);
+
+                          if (anonymous) {
+                            update("reporter_name", "");
+                            update("reporter_email", "");
+                            update("reporter_phone", "");
+                          }
+                        }}
+                        className="ml-auto flex items-center flex gap-6"
+                      >
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="identified" id="identified" />
+                          <Label htmlFor="identified">เปิดเผยตัวตน (Identified)</Label>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="anonymous" id="anonymous" />
+                          <Label htmlFor="anonymous">ไม่เปิดเผยตัวตน (Anonymous)</Label>
+                        </div>
+                      </RadioGroup>
+
                     </div>
-                    <Switch
+                    {/* <Switch
                       className="mt-1 data-[state=checked]:bg-[#002856] hover:data-[state=checked]:bg-[#D29E0E] hover:data-[state=unchecked]:bg-[#898F98]"
                       checked={form.is_anonymous}
                       onCheckedChange={(v) => {
@@ -1182,9 +1298,8 @@ function ComplaintForm() {
                           update("reporter_phone", "");
                         }
                       }}
-                    />
-                  </label>
-
+                    /> */}
+                  </div>
                   <div className="mt-4 grid gap-5 md:grid-cols-2">
                     {!form.is_anonymous && (
                       <>
@@ -1215,7 +1330,7 @@ function ComplaintForm() {
                               "border-[#D6D7D9] bg-white text-[#002856]",
                               "hover:border-[#D29E0E]",
                               "focus-visible:border-[#002856] focus-visible:ring-1 focus-visible:ring-[#002856]",
-                              "disabled:cursor-not-allowed disabled:bg-[#F9FAFB] disabled:text-[#898F98] disabled:border-[#D6D7D9]", 
+                              "disabled:cursor-not-allowed disabled:bg-[#F9FAFB] disabled:text-[#898F98] disabled:border-[#D6D7D9]",
                               // สถานะ Error
                               errors.reporter_email && "border-[#FF4D00] bg-[#FF4D00]/10 text-[#FF4D00] hover:border-[#FF4D00] focus-visible:border-[#FF4D00] focus-visible:ring-[#FF4D00]"
                             )}
@@ -1229,11 +1344,11 @@ function ComplaintForm() {
                         <FieldGroup label="เบอร์โทรศัพท์ (Phone Number)" error={errors.reporter_phone}>
                           <Input
                             className={cn("flex-1 rounded-lg transition-all outline-none",
-                                  "border-[#D6D7D9] bg-white text-[#002856]",
-                                  "hover:border-[#D29E0E]",
-                                  "focus-visible:border-[#002856] focus-visible:ring-1 focus-visible:ring-[#002856]",
-                                  "disabled:cursor-not-allowed disabled:bg-[#F9FAFB] disabled:text-[#898F98] disabled:border-[#D6D7D9]",
-                                  errors.reporter_phone && "border-[#FF4D00] bg-[#FF4D00]/10 text-[#FF4D00] hover:border-[#FF4D00] focus-visible:border-[#FF4D00] focus-visible:ring-[#FF4D00]")}
+                              "border-[#D6D7D9] bg-white text-[#002856]",
+                              "hover:border-[#D29E0E]",
+                              "focus-visible:border-[#002856] focus-visible:ring-1 focus-visible:ring-[#002856]",
+                              "disabled:cursor-not-allowed disabled:bg-[#F9FAFB] disabled:text-[#898F98] disabled:border-[#D6D7D9]",
+                              errors.reporter_phone && "border-[#FF4D00] bg-[#FF4D00]/10 text-[#FF4D00] hover:border-[#FF4D00] focus-visible:border-[#FF4D00] focus-visible:ring-[#FF4D00]")}
                             value={form.reporter_phone}
                             onChange={(e) => update("reporter_phone", e.target.value)}
                             placeholder="ระบุเบอร์โทรศัพท์"
@@ -1249,7 +1364,7 @@ function ComplaintForm() {
                   <Button type="button" variant="outline" className="h-11 w-full px-8 sm:w-auto" onClick={() => openStep(2)}>
                     <ArrowLeft className="mr-2 h-4 w-4" /> ย้อนกลับ
                   </Button>
-                  
+
                   <Button type="button" className="h-11 w-full bg-[#D29E0E] px-8 text-white hover:bg-[#002856] disabled:bg-[#B8BBBF] sm:w-auto" onClick={() => handleNextStep(3)}>
                     ถัดไป <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -1269,6 +1384,9 @@ function ComplaintForm() {
                   </h2>
                   <p className="mt-1 text-sm text-muted-foreground">
                     กรุณาตรวจสอบความถูกต้องของข้อมูลแจ้งเรื่อง และยืนยันว่าข้อมูลดังกล่าวเป็นความจริงและถูกต้องครบถ้วน
+                    <span className="block">
+                      (Please review the accuracy of the complaint information and confirm that it is true and complete)
+                    </span>
                   </p>
                 </div>
 
@@ -1282,24 +1400,38 @@ function ComplaintForm() {
                   <div className="mb-6 rounded-xl border border-slate-200 bg-[#F9FAFB] p-6 text-sm text-slate-700 leading-relaxed">
                     <div className="flex flex-col gap-3">
                       <div>
-                        <span className="font-bold text-[#002856]">หมวดหมู่การแจ้งเรื่อง : </span>
+                        <span className="font-bold text-[#002856]">หมวดหมู่การแจ้งเรื่อง (Category & Related Issue) : </span>
                         {summaryCategory} {summarySubtopic ? `> ${summarySubtopic}` : ""}
                       </div>
                       <div>
-                        <span className="font-bold text-[#002856]">สาขาที่เกิดเหตุ : </span>
+                        <span className="font-bold text-[#002856]">สาขาที่เกิดเหตุ (Branch / Location) : </span>
                         {summaryLocation}
                       </div>
                       <div>
-                        <span className="font-bold text-[#002856]">วันที่และเวลาที่เกิดเหตุ : </span>
+                        <span className="font-bold text-[#002856]">วันที่และเวลาที่เกิดเหตุ (Date & Time of Incident) : </span>
                         วันที่ {form.occurred_date || "-"} เวลา {form.occurred_time || "-"} น.
                       </div>
                       <div>
-                        <span className="font-bold text-[#002856]">พยาน : </span>
+                        <span className="font-bold text-[#002856]">พยาน (Witness) : </span>
                         {form.has_witness ? `มี (${form.witnesses?.length || 0} คน)` : "ไม่มี"}
                       </div>
                       <div>
-                        <span className="font-bold text-[#002856]">วันที่และเวลาที่ร้องเรียน : </span>
-                        วันที่ {new Date().toLocaleDateString('th-TH')} เวลา {new Date().toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'})} น.
+                        <span className="font-bold text-[#002856] block mb-1">
+                          รายละเอียดเพิ่มเติม (Additional Information) :
+                        </span>
+                        <p className="whitespace-pre-wrap break-words">
+                          {form.description ? form.description : "-"}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="font-bold text-[#002856]">
+                          แนบหลักฐานหรือเอกสารประกอบ (Attach Supporting Files, if any) :{" "}
+                        </span>
+                        {form.files.length > 0 ? `${form.files.length} ไฟล์` : "ไม่มีไฟล์แนบ"}
+                      </div>
+                      <div>
+                        <span className="font-bold text-[#002856]">วันที่และเวลาที่ร้องเรียน (Date & Time of Complaint) : </span>
+                        วันที่ {new Date().toLocaleDateString('th-TH')} เวลา {new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.
                       </div>
                     </div>
                   </div>
@@ -1313,9 +1445,12 @@ function ComplaintForm() {
                     />
                     <div className="text-sm">
                       ข้าพเจ้ายืนยันว่า <span className="font-bold text-black">ข้อมูลที่ให้เป็นความจริง</span> และส่งด้วยเจตนาสุจริต
+                      <span className="block text-muted-foreground">
+                        (I confirm that the information provided is true and submitted in good faith)
+                      </span>
                     </div>
                   </label>
-                  
+
                   {/* Error Message */}
                   {!form.consent_truth && (
                     <div className="mt-2 ml-7 flex items-center gap-1.5 text-xs text-[#FF4D00] font-medium">
@@ -1325,15 +1460,15 @@ function ComplaintForm() {
 
                   {/* ปุ่ม Submit */}
                   <div className="mt-8 flex flex-col-reverse items-center justify-between gap-4 sm:flex-row">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      className="h-11 w-full px-8 sm:w-auto" 
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-11 w-full px-8 sm:w-auto"
                       onClick={() => openStep(3)}
                     >
                       <ArrowLeft className="mr-2 h-4 w-4" /> กลับไปแก้ไข
                     </Button>
-                    
+
                     <Button
                       type="submit"
                       disabled={submitting || !form.consent_truth}
@@ -1441,11 +1576,11 @@ function priorityLabel(priority: ComplaintPriority): string {
 }
 
 // นำโค้ดนี้ไปวางล่างสุดของไฟล์ เพื่อสร้างตัว Stepper แนวนอนที่ Responsive เต็มรูปแบบ
-function HorizontalStepper({ 
-  currentStep, 
-  maxVisibleStep, 
-  onStepClick 
-}: { 
+function HorizontalStepper({
+  currentStep,
+  maxVisibleStep,
+  onStepClick
+}: {
   currentStep: number;
   maxVisibleStep: number;
   onStepClick: (step: number) => void;
@@ -1461,7 +1596,7 @@ function HorizontalStepper({
     // เปลี่ยนพื้นหลังเป็นสี #D6D7D9 และปรับ Padding
     <div className="mb-8 rounded-2xl bg-[#F9FAFB] px-2 py-8 sm:px-5 shadow-sm">
       <div className="relative z-0 flex w-full justify-between items-start">
-        
+
         {/* เส้นเชื่อม (Connector Line) */}
         <div className="absolute top-[42px] md:top-14 left-[12.5%] right-[12.5%] h-[5px] -translate-y-1/2 z-0 pointer-events-none">
           {/* เส้นสีเทา (Inactive) */}
@@ -1479,8 +1614,8 @@ function HorizontalStepper({
           const isClickable = step.id <= maxVisibleStep;
 
           return (
-            <div 
-              key={step.id} 
+            <div
+              key={step.id}
               className={cn(
                 "relative z-10 flex flex-col items-center flex-1",
                 isClickable ? "cursor-pointer" : "cursor-default"
@@ -1499,8 +1634,8 @@ function HorizontalStepper({
               <div
                 className={cn(
                   "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-[2px] transition-colors duration-300 md:h-14 md:w-14 md:border-[3px]",
-                  isCompleted || isActive 
-                    ? "border-[#09A129] bg-[#09A129] text-white" 
+                  isCompleted || isActive
+                    ? "border-[#09A129] bg-[#09A129] text-white"
                     : "border-slate-400 bg-white text-slate-400"
                 )}
               >
@@ -1516,7 +1651,7 @@ function HorizontalStepper({
               <div className="mt-3 flex flex-col items-center w-full px-1">
                 <div className="text-center">
                   <div className={cn(
-                    "text-[9px] sm:text-[10px] md:text-xs font-bold leading-tight", 
+                    "text-[9px] sm:text-[10px] md:text-xs font-bold leading-tight",
                     isActive || isCompleted ? "text-slate-800" : "text-slate-500"
                   )}>
                     {step.labelTh}

@@ -1,1 +1,21 @@
 node_modules
+/.agent
+/.tanstack/tmp
+src/routeTree.gen.ts
+/dist
+
+# Agent/working notes - ไม่ commit
+AGENTS.md
+code-review.md
+new-form-step.md
+new-route-page.md
+scoped-reading.md
+ui-component.md
+addcomplaettype.md
+fixissue.md
+newfeature.md
+addcomplainttype.md
+
+# Dependencies - ไม่ commit
+package-lock.json
+package.json
