@@ -71,6 +71,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^8.57.0",
+    "@tanstack/router-plugin": "^1.168.19",
     "@testing-library/jest-dom": "^6.4.0",
     "@testing-library/react": "^16.0.0",
     "@types/node": "^20.14.0",
