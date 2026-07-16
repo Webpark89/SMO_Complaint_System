@@ -62,19 +62,19 @@ export const TermsAndPrivacyContent = forwardRef<
   TermsAndPrivacyContentProps
 >(function TermsAndPrivacyContent(_props, ref) {
   return (
-    <div>
-      <div className="flex flex-col items-center gap-3 text-center md:flex-row md:items-start md:gap-4 md:text-left">
+    <div className="flex-1 min-h-0 flex flex-col">
+      <div className="flex flex-col items-center gap-3 text-center md:flex-row md:items-start md:gap-4 md:text-left shrink-0">
         <div className="min-w-0">
           <div className="flex justify-center md:justify-start">
             <h1 className="font-display text-lg font-bold text-primary">
               เงื่อนไขการใช้งานและการคุ้มครองข้อมูลส่วนบุคคล (Terms of Use & Personal Data Protection)
             </h1>
           </div>
-          <div className="mt-1 text-sm text-muted-foreground">05 พ.ค. 2569</div>
+          <div className="mt-1 text-sm text-muted-foreground">05 พ.ค. 2026</div>
         </div>
       </div>
 
-      <p className="mt-4 text-center text-sm text-foreground/80 md:text-left">
+      <p className="mt-4 text-center text-sm text-foreground/80 md:text-left shrink-0">
         กรุณากด "เข้าใจและยอมรับเงื่อนไขการใช้งาน (I have read and accept the Terms of Use)"{" "}
         <span className="whitespace-nowrap md:whitespace-normal">
           ก่อนไปหน้าถัดไป (before proceeding to the next page)
@@ -83,12 +83,12 @@ export const TermsAndPrivacyContent = forwardRef<
 
       <div
         ref={ref}
-        className="mt-4 max-h-[450px] overflow-y-auto rounded-md border border-border bg-[var(--surface-muted)] p-5"
+        className="mt-4 flex-1 min-h-[200px] overflow-y-auto rounded-md border border-border bg-[var(--surface-muted)] p-5"
       >
         <h2 className="text-base font-semibold text-primary">
           เงื่อนไขการใช้งาน
         </h2>
-        <p className="mt-3 text-sm text-foreground/80">
+        <p className="mt-3 text-sm text-foreground/80 leading-relaxed">
           บริษัท กลุ่มสมอทอง จำกัด (มหาชน) (สมอ.)
           ให้ความสำคัญต่อกระบวนการรับเรื่องร้องเรียน
           หากท่านมีเรื่องร้องเรียนหรือข้อสงสัยในด้านการปฏิบัติงานของพนักงาน สมอ.
@@ -98,7 +98,7 @@ export const TermsAndPrivacyContent = forwardRef<
           กลั่นแกล้ง รายงานเท็จ เสพสุรา เลินเล่อ และเล่นการพนัน เป็นต้น
           สามารถแจ้งเรื่องร้องเรียนผ่านช่องทางนี้
         </p>
-        <p className="mt-3 text-sm text-foreground/80">
+        <p className="mt-3 text-sm text-foreground/80 leading-relaxed">
           สมอ. จะเก็บรักษาข้อมูลที่เกี่ยวกับเรื่องร้องเรียนทั้งหมดไว้เป็นความลับ
           ไม่เปิดเผยต่อบุคคลอื่นที่ไม่เกี่ยวข้องกับเรื่องร้องเรียนดังกล่าว
           ตามนโยบายการรักษาความลับ และการคุ้มครองปกป้องผู้ร้องเรียนหรือพยาน โดย
@@ -110,7 +110,7 @@ export const TermsAndPrivacyContent = forwardRef<
           ตามข้อกำหนดว่าด้วยการบริหารงานบุคคลของ สมอ. และกฎระเบียบองค์กรอื่น ๆ
           ที่เกี่ยวข้อง
         </p>
-        <p className="mt-3 text-sm text-foreground/80">
+        <p className="mt-3 text-sm text-foreground/80 leading-relaxed">
           ทั้งนี้หากผู้ร้องเรียนแจ้งเรื่องร้องเรียนโดยเจตนาสุจริต
           แม้ว่าภายหลังได้ดำเนินการสืบสวนหาข้อเท็จจริงและสอบสวนทางวินัยแล้วพบว่าไม่มีการกระทำผิดตามที่ได้ร้องเรียน
           สมอ. จะไม่มีการพิจารณาลงโทษ หรือ ดำเนินคดีกับผู้ร้องเรียน
@@ -118,21 +118,51 @@ export const TermsAndPrivacyContent = forwardRef<
           และ สมอ. ได้รับความเสียหาย สมอ.
           อาจพิจารณาดำเนินคดีกับผู้ร้องเรียนต่อไป
         </p>
-        <p className="mt-3 text-sm text-foreground/80">
+        <p className="mt-3 text-sm text-foreground/80 leading-relaxed">
           ช่องทางแจ้งเรื่องร้องเรียนนี้
           ไม่รับพิจารณาข้อร้องเรียนเรื่องผลิตภัณฑ์หรือบริการ
           กรณีแจ้งเรื่องร้องเรียนเกี่ยวกับผลิตภัณฑ์และบริการ กรุณาติดต่อ 1365
           Contact Center (ตลอด 24 ชม.) เพื่อสอบถามข้อมูล
         </p>
+
         <h2 className="mt-6 text-base font-semibold text-primary">
           การรักษาความปลอดภัยของข้อมูลส่วนบุคคล
         </h2>
-        <p className="mt-3 text-sm text-foreground/80">
+        <p className="mt-3 text-sm text-foreground/80 leading-relaxed">
           ท่านสามารถศึกษารายละเอียดเกี่ยวกับการเก็บ ใช้
           และเปิดเผยข้อมูลส่วนบุคคล โดยคลิกที่{" "}
           <a className="text-primary underline" href="/privacy">
             แบบแจ้งเกี่ยวกับข้อมูลส่วนบุคคล (Privacy Notice)
           </a>
+        </p>
+
+        {/* English Translation Section */}
+        <hr className="my-6 border-border" />
+
+        <h2 className="text-base font-semibold text-primary">
+          Terms of Use
+        </h2>
+        <p className="mt-3 text-sm text-foreground/80 leading-relaxed">
+          Samo-Thong Group Public Company Limited (SAMO) places great importance on the complaint handling process. If you have complaints or inquiries regarding the conduct of SAMO employees, including violations, improper practices, non-compliance with procedures, or misconduct that damages the company's reputation—such as inappropriate behavior, property damage, defamation, abandonment of duty, brawling, bullying, false reporting, alcohol consumption, negligence, gambling, etc.—you can file a complaint through this channel.
+        </p>
+        <p className="mt-3 text-sm text-foreground/80 leading-relaxed">
+          SAMO will keep all complaint-related information confidential and will not disclose it to unrelated third parties, in accordance with our confidentiality and whistleblower/witness protection policies. SAMO does not tolerate extortion, intimidation, or any retaliatory actions against complainants or employee witnesses who provide clues, testimony, or information in good faith, without malicious intent or a desire to cause harm to the accused. SAMO will provide appropriate protection to employees in accordance with SAMO's personnel management regulations and other relevant corporate policies.
+        </p>
+        <p className="mt-3 text-sm text-foreground/80 leading-relaxed">
+          If a complainant files a report in good faith, even if a subsequent investigation and disciplinary inquiry reveals no wrongdoing, SAMO will not penalize or take legal action against the complainant. However, if there is clear and sufficient evidence that the complainant filed the report in bad faith (with malicious intent) and SAMO suffers damages as a result, SAMO may consider legal action against the complainant.
+        </p>
+        <p className="mt-3 text-sm text-foreground/80 leading-relaxed">
+          This complaint channel does not accept complaints regarding products or services. For inquiries or complaints regarding products and services, please contact the 1365 Contact Center (available 24 hours) for information.
+        </p>
+
+        <h2 className="mt-6 text-base font-semibold text-primary">
+          Personal Data Protection
+        </h2>
+        <p className="mt-3 text-sm text-foreground/80 leading-relaxed">
+          You can read the details regarding the collection, use, and disclosure of personal data by clicking on the{" "}
+          <a className="text-primary underline" href="/privacy">
+            Privacy Notice
+          </a>.
         </p>
       </div>
     </div>
@@ -326,6 +356,38 @@ function ComplaintForm() {
   const contentRef = useRef<HTMLDivElement | null>(null);
   const [scrolledToBottom, setScrolledToBottom] = useState<boolean>(false);
 
+  const handleCopy = async (text: string) => {
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+        toast.success("คัดลอกรหัสอ้างอิงสำเร็จ (Copied!)");
+        return;
+      } catch (err) {
+        console.error("Failed to copy using clipboard API:", err);
+      }
+    }
+    // Fallback for non-secure HTTP or older browsers/in-app webviews
+    try {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-9999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      const successful = document.execCommand("copy");
+      document.body.removeChild(textArea);
+      if (successful) {
+        toast.success("คัดลอกรหัสอ้างอิงสำเร็จ (Copied!)");
+      } else {
+        toast.error("ไม่สามารถคัดลอกได้ กรุณาคัดลอกด้วยตนเอง");
+      }
+    } catch (err) {
+      console.error("Fallback copy failed:", err);
+      toast.error("ไม่สามารถคัดลอกได้ กรุณาคัดลอกด้วยตนเอง");
+    }
+  };
+
   useEffect(() => {
     if (!hasAcceptedTerms) {
       const el = contentRef.current;
@@ -504,12 +566,9 @@ function ComplaintForm() {
     setSubmitting(true);
 
     try {
-      const year = new Date().getFullYear();
-      let fakeCounter = 1;
-      const number = fakeCounter.toString().padStart(4, "0");
-      const fakeRef = `CMP-${year}-${number}`;
-
-      fakeCounter += 1;
+      // สุ่มตัวเลข 8 หลัก (เช่น 12345678)
+      const randomDigits = Math.floor(10000000 + Math.random() * 90000000).toString();
+      const fakeRef = `CMP-${randomDigits}`;
 
       setSuccess({ ref: fakeRef });
     } catch (err: unknown) {
@@ -559,34 +618,31 @@ function ComplaintForm() {
                   <button
                     type="button"
                     className="flex h-11 flex-1 sm:flex-none sm:w-28 items-center justify-center gap-2 rounded-lg border border-[#D29E0E] bg-white text-sm font-medium text-[#002856] transition-colors hover:bg-slate-50"
-                    onClick={() => {
-                      navigator.clipboard.writeText(success.ref);
-                      toast.success("คัดลอกแล้ว");
-                    }}
+                    onClick={() => handleCopy(success.ref)}
                   >
                     <Copy className="h-4 w-4 text-slate-500" /> คัดลอก
                   </button>
                   <button
                     type="button"
                     className="flex h-11 flex-1 sm:flex-none sm:w-32 items-center justify-center gap-2 rounded-lg border border-[#D29E0E] bg-white text-sm font-medium text-[#002856] transition-colors hover:bg-slate-50"
-                    onClick={() => {
-                      navigator.clipboard.writeText(success.ref);
-                      toast.success("คัดลอกแล้ว");
-                    }}
+                    onClick={() => handleCopy(success.ref)}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500"><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
                     บันทึกภาพ
                   </button>
                 </div>
 
-                {/* ข้อความแจ้งเตือนสีส้ม */}
-                <div className="mt-6 space-y-1 items-center justify-center text-center">
-                  <p className="text-xs font-medium text-[#FF4D00] md:text-sm">
-                    โปรดเก็บหมายเลขนี้ไว้สำหรับติดตามสถานะ
-                  </p>
-                  <p className="text-[11px] text-[#FF4D00] md:text-xs">
-                    Please keep this number for status tracking.
-                  </p>
+                {/* ข้อความแจ้งเตือนสีส้มแบบการ์ดสวยงามพร้อมไอคอน */}
+                <div className="mt-6 rounded-xl border border-[#FF4D00]/20 bg-[#FF4D00]/5 p-4 flex items-start sm:items-center justify-center gap-3">
+                  <AlertCircle className="h-5 w-5 text-[#FF4D00] shrink-0 mt-0.5 sm:mt-0" />
+                  <div className="text-left">
+                    <p className="text-xs font-bold text-[#FF4D00] md:text-sm leading-snug">
+                      สำคัญ: โปรดเก็บหมายเลขอ้างอิงนี้ไว้สำหรับติดตามสถานะการแจ้งเรื่อง
+                    </p>
+                    <p className="text-[11px] font-medium text-[#FF4D00]/90 md:text-xs mt-0.5 leading-snug">
+                      Important: Please keep this reference number to track your case status.
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -620,10 +676,10 @@ function ComplaintForm() {
 
   if (!hasAcceptedTerms) {
     return (
-      <PageContainer>
-        <section className="py-12 md:py-8">
-          <MainLayout>
-            <div className="mb-6 flex items-center justify-between">
+      <PageContainer className="overflow-hidden flex flex-col">
+        <section className="py-12 md:py-8 flex-1 min-h-0 flex flex-col">
+          <MainLayout className="flex-1 min-h-0 flex flex-col">
+            <div className="mb-6 flex items-center justify-between shrink-0">
               <Link
                 to="/"
                 className="inline-flex items-center text-sm font-medium text-[#002856] hover:text-primary transition-colors"
@@ -632,10 +688,10 @@ function ComplaintForm() {
               </Link>
             </div>
 
-            <div className="rounded-2xl border border-border bg-white p-6 shadow-sm md:p-8 animate-[fadeIn_0.3s_ease-out_both]">
+            <div className="rounded-2xl border border-border bg-white p-6 shadow-sm md:p-8 animate-[fadeIn_0.3s_ease-out_both] flex-1 min-h-0 flex flex-col">
               <TermsAndPrivacyContent ref={contentRef} />
 
-              <div className=" flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between pt-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between pt-6 shrink-0">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <Checkbox
                     disabled={!scrolledToBottom}
@@ -653,7 +709,7 @@ function ComplaintForm() {
                 )}
               </div>
 
-              <div className="mt-8 flex justify-end gap-3 pt-6">
+              <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-border shrink-0">
                 <Button
                   type="button"
                   className="bg-[#D29E0E] hover:bg-[#002856] disabled:bg-[#B8BBBF] text-white px-8 h-11"

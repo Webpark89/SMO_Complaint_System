@@ -264,13 +264,6 @@ export function SLASettingsPage() {
 
   const columns: Column<SLARow>[] = [
     {
-      key: "id",
-      header: "รหัส SLA",
-      render: (r) => (
-        <span className="font-semibold text-slate-700">{r.id}</span>
-      ),
-    },
-    {
       key: "category",
       header: "หมวดหมู่",
       render: (r) => <span className="text-slate-600">{r.category}</span>,

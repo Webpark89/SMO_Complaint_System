@@ -28,15 +28,17 @@ import {
   DeleteDialog,
   DetailDrawer,
   StatusBadge,
-  FilterTabs,
-  SearchInput,
   FormField,
   getComplaintStatusVariant,
   getComplaintPriorityVariant,
   useCRUD,
+  AdvancedFilter,
+  AdvancedFilterValues,
+  FilterFieldConfig,
 } from "@/components/admin/crud";
+import { exportToCSV } from "@/utils/exportUtils";
 import { TABLE_LABELS } from "@/components/admin/constants/tableLabels";
-import { createViewColumn, createStandardRowActions } from "@/components/admin/layout/tableActions";
+import { createStandardRowActions } from "@/components/admin/layout/tableActions";
 
 type ComplaintRow = {
   id: string;
@@ -71,6 +73,41 @@ const PRIORITIES = [
   { value: "ด่วน", label: "ด่วน" },
   { value: "ปกติ", label: "ปกติ" },
   { value: "ไม่ด่วน", label: "ไม่ด่วน" },
+];
+
+const FILTER_FIELDS: FilterFieldConfig[] = [
+  {
+    key: "search",
+    label: "ค้นหา",
+    type: "text",
+    placeholder: "รหัส, หัวข้อ, หมวดหมู่, พื้นที่, ผู้ร้องเรียน...",
+  },
+  {
+    key: "status",
+    label: "สถานะ",
+    type: "select",
+    options: STATUS_OPTIONS.slice(1),
+    placeholder: "เลือกสถานะ",
+  },
+  {
+    key: "category",
+    label: "หมวดหมู่",
+    type: "select",
+    options: CATEGORIES.map(c => ({ value: c.value, label: c.label })),
+    placeholder: "เลือกหมวดหมู่",
+  },
+  {
+    key: "priority",
+    label: "ระดับความสำคัญ",
+    type: "select",
+    options: PRIORITIES,
+    placeholder: "เลือกระดับ",
+  },
+  {
+    key: "submittedAt",
+    label: "ช่วงวันที่ร้องเรียน",
+    type: "daterange",
+  },
 ];
 
 const statusVariant = (s: string) => getComplaintStatusVariant(s);
@@ -184,10 +221,11 @@ export function ComplaintsPage() {
   const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ComplaintRow | null>(null);
   const [createValues, setCreateValues] = useState<Record<string, unknown>>({});
-  
+  const [filterValues, setFilterValues] = useState<AdvancedFilterValues>({});
+  const [hasSearched, setHasSearched] = useState(false);
 
   const filtered = useMemo(() => {
-    const q = state.searchQuery.trim().toLowerCase();
+    const q = (filterValues.search ?? "").trim().toLowerCase();
     return state.items.filter((r: ComplaintRow) => {
       const matchQ =
         !q ||
@@ -197,10 +235,28 @@ export function ComplaintsPage() {
         r.location.toLowerCase().includes(q) ||
         r.submittedBy.toLowerCase().includes(q);
       const matchStatus =
-        state.filterStatus === "all" ? true : r.status === state.filterStatus;
-      return matchQ && matchStatus;
+        !filterValues.status || filterValues.status === "all"
+          ? true
+          : r.status === filterValues.status;
+      const matchCategory =
+        !filterValues.category || filterValues.category === "all"
+          ? true
+          : r.category === filterValues.category || r.category === CATEGORIES.find(c => c.value === filterValues.category)?.label;
+      const matchPriority =
+        !filterValues.priority || filterValues.priority === "all"
+          ? true
+          : r.priority === filterValues.priority;
+      const matchDateFrom =
+        !filterValues.submittedAt_from
+          ? true
+          : r.submittedAt >= filterValues.submittedAt_from;
+      const matchDateTo =
+        !filterValues.submittedAt_to
+          ? true
+          : r.submittedAt <= filterValues.submittedAt_to + " 23:59";
+      return matchQ && matchStatus && matchCategory && matchPriority && matchDateFrom && matchDateTo;
     });
-  }, [state.items, state.searchQuery, state.filterStatus]);
+  }, [state.items, filterValues]);
 
   const handleRefresh = useCallback(() => {
     actions.setLoading(true);
@@ -220,6 +276,32 @@ export function ComplaintsPage() {
 
   const handleImport = useCallback(() => alert("นำเข้ารายการ (จำลอง)"), []);
   const handleExportPDF = useCallback(() => alert("ส่งออก PDF (จำลอง)"), []);
+
+  const handleExportCSV = useCallback((vals: AdvancedFilterValues) => {
+    const q = (vals.search ?? "").trim().toLowerCase();
+    const rows = state.items.filter((r: ComplaintRow) => {
+      const matchQ =
+        !q ||
+        r.id.toLowerCase().includes(q) ||
+        r.title.toLowerCase().includes(q) ||
+        r.category.toLowerCase().includes(q) ||
+        r.location.toLowerCase().includes(q) ||
+        r.submittedBy.toLowerCase().includes(q);
+      const matchStatus =
+        !vals.status || vals.status === "all" ? true : r.status === vals.status;
+      const matchCategory =
+        !vals.category || vals.category === "all" ? true : r.category === vals.category || r.category === CATEGORIES.find(c => c.value === vals.category)?.label;
+      const matchPriority =
+        !vals.priority || vals.priority === "all" ? true : r.priority === vals.priority;
+      const matchDateFrom = !vals.submittedAt_from ? true : r.submittedAt >= vals.submittedAt_from;
+      const matchDateTo = !vals.submittedAt_to ? true : r.submittedAt <= vals.submittedAt_to + " 23:59";
+      return matchQ && matchStatus && matchCategory && matchPriority && matchDateFrom && matchDateTo;
+    });
+    exportToCSV(
+      rows.map(r => ({ รหัสเรื่อง: r.id, หัวข้อ: r.title, หมวดหมู่: r.category, พื้นที่: r.location, วันที่: r.submittedAt, สถานะ: r.status, ความสำคัญ: r.priority, ผู้ร้องเรียน: r.submittedBy })),
+      "รายการเรื่องร้องเรียน",
+    );
+  }, [state.items]);
 
   const handleSubmitCreate = useCallback(() => {
     const newItem: ComplaintRow = {
@@ -270,7 +352,6 @@ export function ComplaintsPage() {
   );
 
   const columns: Column<ComplaintRow>[] = [
-    createViewColumn<ComplaintRow>(handleView),
     {
       key: "id",
       header: "รหัสเรื่อง",
@@ -332,6 +413,7 @@ export function ComplaintsPage() {
 
   const rowActions = createStandardRowActions<ComplaintRow>({
     onEdit: handleEdit,
+    onView: handleView,
     onDelete: handleDelete,
   });
 
@@ -357,20 +439,22 @@ export function ComplaintsPage() {
         }
       />
 
-      <Card className="border-[var(--border)] bg-white shadow-soft">
+      <AdvancedFilter
+        fields={FILTER_FIELDS}
+        onApply={(vals) => {
+          setFilterValues(vals);
+          setHasSearched(true);
+        }}
+        onReset={() => setHasSearched(false)}
+        onExport={handleExportCSV}
+        resultCount={filtered.length}
+        totalCount={state.items.length}
+        isLoading={state.isLoading}
+      />
+
+      {hasSearched && (
+        <Card className="border-[var(--border)] bg-white shadow-soft">
         <CardContent className="p-6 space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <SearchInput
-              value={state.searchQuery}
-              onChange={actions.setSearchQuery}
-              placeholder="ค้นหาเรื่องร้องเรียน..."
-            />
-            <FilterTabs
-              options={STATUS_OPTIONS}
-              value={state.filterStatus}
-              onChange={actions.setFilterStatus}
-            />
-          </div>
 
           <DataTable
             columns={columns}
@@ -439,6 +523,7 @@ export function ComplaintsPage() {
           />
         </CardContent>
       </Card>
+      )}
 
       <CreateEditModal
         open={modalOpen}

@@ -20,12 +20,14 @@ import {
   DeleteDialog,
   DetailDrawer,
   StatusBadge,
-  FilterTabs,
-  SearchInput,
+  AdvancedFilter,
+  AdvancedFilterValues,
+  FilterFieldConfig,
   FormField,
   useCRUD,
   getSensitiveStatusVariant,
 } from "@/components/admin/crud";
+import { exportToCSV } from "@/utils/exportUtils";
 import { TABLE_LABELS } from "@/components/admin/constants/tableLabels";
 
 type SensitiveRow = {
@@ -49,6 +51,56 @@ const STATUS_OPTIONS = [
 ];
 
 const statusVariant = (s: string) => getSensitiveStatusVariant(s);
+
+const CATEGORIES_FILTER = [
+  { value: "จริยธรรม", label: "จริยธรรม" },
+  { value: "การทุจริต", label: "การทุจริต" },
+  { value: "พฤติกรรมพนักงาน", label: "พฤติกรรมพนักงาน" },
+  { value: "ผลิตภัณฑ์และบริการ", label: "ผลิตภัณฑ์และบริการ" },
+  { value: "ความปลอดภัย", label: "ความปลอดภัย" },
+  { value: "ด้านสิ่งแวดล้อม", label: "ด้านสิ่งแวดล้อม" },
+];
+
+const PRIORITY_OPTIONS = [
+  { value: "ด่วนมาก", label: "ด่วนมาก" },
+  { value: "ด่วน", label: "ด่วน" },
+  { value: "ปกติ", label: "ปกติ" },
+];
+
+const FILTER_FIELDS: FilterFieldConfig[] = [
+  {
+    key: "search",
+    label: "ค้นหา",
+    type: "text",
+    placeholder: "รหัส, รหัสเรื่อง, หัวข้อ, ผู้แจ้ง...",
+  },
+  {
+    key: "status",
+    label: "สถานะ",
+    type: "select",
+    options: STATUS_OPTIONS.slice(1),
+    placeholder: "เลือกสถานะ",
+  },
+  {
+    key: "category",
+    label: "หมวดหมู่",
+    type: "select",
+    options: CATEGORIES_FILTER,
+    placeholder: "เลือกหมวดหมู่",
+  },
+  {
+    key: "priority",
+    label: "ระดับความสำคัญ",
+    type: "select",
+    options: PRIORITY_OPTIONS,
+    placeholder: "เลือกระดับ",
+  },
+  {
+    key: "reportedAt",
+    label: "ช่วงวันที่แจ้ง",
+    type: "daterange",
+  },
+];
 
 const DETAIL_FIELDS = [
   { key: "id", label: "รหัสเรื่องลับ" },
@@ -156,20 +208,52 @@ export function SensitiveComplaintsPage() {
   const [selectedItem, setSelectedItem] = useState<SensitiveRow | null>(null);
   const [createValues, setCreateValues] = useState<Record<string, unknown>>({});
   const [editValues, setEditValues] = useState<Record<string, unknown>>({});
+  const [filterValues, setFilterValues] = useState<AdvancedFilterValues>({});
+  const [hasSearched, setHasSearched] = useState(false);
 
   const filtered = useMemo(() => {
-    const q = state.searchQuery.trim().toLowerCase();
+    const q = (filterValues.search ?? "").trim().toLowerCase();
     return state.items.filter((r: SensitiveRow) => {
       const matchQ =
         !q ||
         r.id.toLowerCase().includes(q) ||
         r.complaintId.toLowerCase().includes(q) ||
-        r.complaintTitle.toLowerCase().includes(q);
+        r.complaintTitle.toLowerCase().includes(q) ||
+        r.reportedBy.toLowerCase().includes(q);
       const matchStatus =
-        state.filterStatus === "all" ? true : r.status === state.filterStatus;
-      return matchQ && matchStatus;
+        !filterValues.status || filterValues.status === "all"
+          ? true
+          : r.status === filterValues.status;
+      const matchCategory =
+        !filterValues.category || filterValues.category === "all"
+          ? true
+          : r.category === filterValues.category;
+      const matchPriority =
+        !filterValues.priority || filterValues.priority === "all"
+          ? true
+          : r.priority === filterValues.priority;
+      const matchDateFrom = !filterValues.reportedAt_from ? true : r.reportedAt >= filterValues.reportedAt_from;
+      const matchDateTo = !filterValues.reportedAt_to ? true : r.reportedAt <= filterValues.reportedAt_to + " 23:59";
+      return matchQ && matchStatus && matchCategory && matchPriority && matchDateFrom && matchDateTo;
     });
-  }, [state.items, state.searchQuery, state.filterStatus]);
+  }, [state.items, filterValues]);
+
+  const handleExportCSV = useCallback((vals: AdvancedFilterValues) => {
+    const q = (vals.search ?? "").trim().toLowerCase();
+    const rows = state.items.filter((r: SensitiveRow) => {
+      const matchQ = !q || r.id.toLowerCase().includes(q) || r.complaintId.toLowerCase().includes(q) || r.reportedBy.toLowerCase().includes(q);
+      const matchStatus = !vals.status || vals.status === "all" ? true : r.status === vals.status;
+      const matchCategory = !vals.category || vals.category === "all" ? true : r.category === vals.category;
+      const matchPriority = !vals.priority || vals.priority === "all" ? true : r.priority === vals.priority;
+      const matchDateFrom = !vals.reportedAt_from ? true : r.reportedAt >= vals.reportedAt_from;
+      const matchDateTo = !vals.reportedAt_to ? true : r.reportedAt <= vals.reportedAt_to + " 23:59";
+      return matchQ && matchStatus && matchCategory && matchPriority && matchDateFrom && matchDateTo;
+    });
+    exportToCSV(
+      rows.map(r => ({ รหัสเรื่องลับ: r.id, รหัสเรื่อง: r.complaintId, หัวข้อ: r.complaintTitle, หมวดหมู่: r.category, ความสำคัญ: r.priority, ผู้แจ้ง: r.reportedBy, วันที่แจ้ง: r.reportedAt, ผู้ดูแล: r.assignedTo, ระดับเข้าถึง: r.accessLevel, สถานะ: r.status })),
+      "รายการเรื่องร้องเรียนข้อมูลอ่อนไหว",
+    );
+  }, [state.items]);
 
   const handleRefresh = useCallback(() => {
     actions.setLoading(true);
@@ -340,20 +424,22 @@ export function SensitiveComplaintsPage() {
         }
       />
 
-      <Card className="border-[var(--border)] bg-white shadow-soft">
+      <AdvancedFilter
+        fields={FILTER_FIELDS}
+        onApply={(vals) => {
+          setFilterValues(vals);
+          setHasSearched(true);
+        }}
+        onReset={() => setHasSearched(false)}
+        onExport={handleExportCSV}
+        resultCount={filtered.length}
+        totalCount={state.items.length}
+        isLoading={state.isLoading}
+      />
+
+      {hasSearched && (
+        <Card className="border-[var(--border)] bg-white shadow-soft">
         <CardContent className="p-6 space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <SearchInput
-              value={state.searchQuery}
-              onChange={actions.setSearchQuery}
-              placeholder="ค้นหาเรื่องลับ..."
-            />
-            <FilterTabs
-              options={STATUS_OPTIONS}
-              value={state.filterStatus}
-              onChange={actions.setFilterStatus}
-            />
-          </div>
 
           <DataTable
             columns={columns}
@@ -422,6 +508,7 @@ export function SensitiveComplaintsPage() {
           />
         </CardContent>
       </Card>
+      )}
 
       <CreateEditModal
         open={modalOpen}

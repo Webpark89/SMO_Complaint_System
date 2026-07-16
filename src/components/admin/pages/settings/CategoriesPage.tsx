@@ -22,7 +22,7 @@ import {
   useCRUD,
 } from "@/components/admin/crud";
 import { TABLE_LABELS } from "@/components/admin/constants/tableLabels";
-import { createViewColumn, createStandardRowActions } from "@/components/admin/layout/tableActions";
+import { createStandardRowActions } from "@/components/admin/layout/tableActions";
 
 type CategoryStatus = "เปิดใช้งาน" | "ระงับ";
 
@@ -155,14 +155,6 @@ export function CategoriesPage() {
   );
 
   const columns: Column<CategoryRow>[] = [
-    createViewColumn<CategoryRow>(handleView),
-    {
-      key: "id",
-      header: "รหัส",
-      render: (r) => (
-        <span className="font-semibold text-slate-700">{r.id}</span>
-      ),
-    },
     {
       key: "name",
       header: "ชื่อหมวดหมู่",
@@ -196,6 +188,7 @@ export function CategoriesPage() {
 
   const rowActions = createStandardRowActions<CategoryRow>({
     onEdit: handleEdit,
+    onView: handleView,
     onDelete: handleDelete,
   });
 

@@ -17,7 +17,7 @@ export const Route = createFileRoute("/admin/settings/users/edit/$id")({
   component: EditUserPage,
 });
 
-const STATUS_OPTIONS = ["เปิดใช้งาน", "ระงับ", "รอยืนยัน"];
+const STATUS_OPTIONS = ["เปิดใช้งาน", "ปิดใช้งาน", "รอยืนยัน"];
 
 function EditUserPage() {
   const { id } = Route.useParams();

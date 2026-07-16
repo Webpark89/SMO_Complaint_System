@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createMockCrudStore } from "../crud";
+import { createMockCrudStore } from "./crud";
 
 type Item = { id: string; name: string };
 
@@ -48,7 +48,7 @@ describe("createMockCrudStore", () => {
     expect(updated?.name).toBe("new");
 
     const items = await store.getItems();
-    expect(items.find((i) => i.id === "x")?.name).toBe("new");
+    expect(items.find((i: Item) => i.id === "x")?.name).toBe("new");
   });
 
   it("deleteItem removes item", async () => {

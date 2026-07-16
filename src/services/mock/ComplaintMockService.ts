@@ -631,13 +631,8 @@ function withCategory(complaint: Complaint): ComplaintWithCategory {
 }
 
 async function nextReferenceNumber() {
-  const year = new Date().getFullYear();
-  const complaints = await complaintStore.getItems();
-  const count =
-    complaints.filter((item) =>
-      item.reference_number.startsWith(`CMP-${year}-`),
-    ).length + 1;
-  return `CMP-${year}-${String(count).padStart(4, "0")}`;
+  const randomDigits = Math.floor(10000000 + Math.random() * 90000000).toString();
+  return `CMP-${randomDigits}`;
 }
 
 function createSeedComplaint(input: {

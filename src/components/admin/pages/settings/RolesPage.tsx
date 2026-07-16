@@ -89,12 +89,44 @@ function statusVariant(s: RoleStatus): StatusVariant {
   return s === "เปิดใช้งาน" ? "success" : "danger";
 }
 
+function translatePermission(p: string): string {
+  switch (p) {
+    case "all_access":
+      return "เข้าถึงทั้งหมด";
+    case "view_complaints":
+      return "ดูเรื่องร้องเรียน";
+    case "reply_complaints":
+      return "ตอบกลับเรื่องร้องเรียน";
+    default:
+      return p;
+  }
+}
+
 const DETAIL_FIELDS = [
   { key: "id", label: "รหัสบทบาท" },
   { key: "name", label: "ชื่อบทบาท" },
   { key: "description", label: "คำอธิบาย" },
   { key: "userCount", label: "จำนวนผู้ใช้" },
-  { key: "permissions", label: "สิทธิ์" },
+  {
+    key: "permissions",
+    label: "สิทธิ์",
+    render: (val: any) => {
+      const perms = Array.isArray(val) ? val : [];
+      return (
+        <div className="flex flex-wrap gap-1">
+          {perms.map((p) => (
+            <Badge
+              key={p}
+              className="border border-[rgba(148,163,184,0.25)] bg-[rgba(148,163,184,0.12)] text-slate-600 text-xs hover:bg-[rgba(193,201,214,0.12)]"
+            >
+              {translatePermission(p)}
+            </Badge>
+          ))}
+          {perms.length === 0 && "—"}
+        </div>
+      );
+    },
+  },
   { key: "status", label: "สถานะ" },
 ];
 
@@ -258,16 +290,6 @@ export function RolesPage() {
 
   const columns: Column<RoleRow>[] = [
     {
-      key: "id",
-      header: "รหัส",
-      width: "100px",
-      render: (r) => (
-        <span className="font-semibold text-slate-700 whitespace-nowrap">
-          {r.id}
-        </span>
-      ),
-    },
-    {
       key: "name",
       header: "ชื่อบทบาท/แผนก",
       width: "250px",
@@ -306,7 +328,7 @@ export function RolesPage() {
               key={p}
               className="border border-[rgba(148,163,184,0.25)] bg-[rgba(148,163,184,0.12)] text-slate-600 hover:bg-[rgba(193,201,214,0.12)] text-xs"
             >
-              {p}
+              {translatePermission(p)}
             </Badge>
           ))}
           {r.permissions.length > 2 && (

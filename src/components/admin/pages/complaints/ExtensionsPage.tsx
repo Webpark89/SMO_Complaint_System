@@ -21,13 +21,15 @@ import {
   DetailDrawer,
   StatusBadge,
   StatusVariant,
-  FilterTabs,
-  SearchInput,
+  AdvancedFilter,
+  AdvancedFilterValues,
+  FilterFieldConfig,
   FormField,
   useCRUD,
 } from "@/components/admin/crud";
+import { exportToCSV } from "@/utils/exportUtils";
 import { TABLE_LABELS } from "@/components/admin/constants/tableLabels";
-import { createViewColumn, createStandardRowActions } from "@/components/admin/layout/tableActions";
+import { createStandardRowActions } from "@/components/admin/layout/tableActions";
 
 type ExtensionStatus = string;
 
@@ -54,6 +56,27 @@ function statusVariant(s: ExtensionStatus): StatusVariant {
   if (s === "ปฏิเสธ") return "danger";
   return "warning";
 }
+
+const FILTER_FIELDS: FilterFieldConfig[] = [
+  {
+    key: "search",
+    label: "ค้นหา",
+    type: "text",
+    placeholder: "รหัส, รหัสเรื่อง, หัวข้อ, ผู้ขอ...",
+  },
+  {
+    key: "status",
+    label: "สถานะ",
+    type: "select",
+    options: STATUS_OPTIONS.slice(1),
+    placeholder: "เลือกสถานะ",
+  },
+  {
+    key: "requestedAt",
+    label: "ช่วงวันที่ขอ",
+    type: "daterange",
+  },
+];
 
 const DETAIL_FIELDS = [
   { key: "id", label: "รหัสขยายเวลา" },
@@ -146,20 +169,42 @@ export function ExtensionsPage() {
   const [selectedItem, setSelectedItem] = useState<ExtensionRow | null>(null);
   const [createValues, setCreateValues] = useState<Record<string, unknown>>({});
   const [editValues, setEditValues] = useState<Record<string, unknown>>({});
+  const [filterValues, setFilterValues] = useState<AdvancedFilterValues>({});
+  const [hasSearched, setHasSearched] = useState(false);
 
   const filtered = useMemo(() => {
-    const q = state.searchQuery.trim().toLowerCase();
+    const q = (filterValues.search ?? "").trim().toLowerCase();
     return state.items.filter((r: ExtensionRow) => {
       const matchQ =
         !q ||
         r.id.toLowerCase().includes(q) ||
         r.complaintId.toLowerCase().includes(q) ||
-        r.complaintTitle.toLowerCase().includes(q);
+        r.complaintTitle.toLowerCase().includes(q) ||
+        r.requestedBy.toLowerCase().includes(q);
       const matchStatus =
-        state.filterStatus === "all" ? true : r.status === state.filterStatus;
-      return matchQ && matchStatus;
+        !filterValues.status || filterValues.status === "all"
+          ? true
+          : r.status === filterValues.status;
+      const matchDateFrom = !filterValues.requestedAt_from ? true : r.requestedAt >= filterValues.requestedAt_from;
+      const matchDateTo = !filterValues.requestedAt_to ? true : r.requestedAt <= filterValues.requestedAt_to + " 23:59";
+      return matchQ && matchStatus && matchDateFrom && matchDateTo;
     });
-  }, [state.items, state.searchQuery, state.filterStatus]);
+  }, [state.items, filterValues]);
+
+  const handleExportCSV = useCallback((vals: AdvancedFilterValues) => {
+    const q = (vals.search ?? "").trim().toLowerCase();
+    const rows = state.items.filter((r: ExtensionRow) => {
+      const matchQ = !q || r.id.toLowerCase().includes(q) || r.complaintId.toLowerCase().includes(q) || r.requestedBy.toLowerCase().includes(q);
+      const matchStatus = !vals.status || vals.status === "all" ? true : r.status === vals.status;
+      const matchDateFrom = !vals.requestedAt_from ? true : r.requestedAt >= vals.requestedAt_from;
+      const matchDateTo = !vals.requestedAt_to ? true : r.requestedAt <= vals.requestedAt_to + " 23:59";
+      return matchQ && matchStatus && matchDateFrom && matchDateTo;
+    });
+    exportToCSV(
+      rows.map(r => ({ รหัสขยายเวลา: r.id, รหัสเรื่อง: r.complaintId, หัวข้อ: r.complaintTitle, ผู้ขอ: r.requestedBy, วันที่ขอ: r.requestedAt, กำหนดเดิม: r.originalDueDate, กำหนดใหม่: r.extendedDueDate, เหตุผล: r.reason, สถานะ: r.status })),
+      "รายการขยายระยะเวลา",
+    );
+  }, [state.items]);
 
   const handleRefresh = useCallback(() => {
     actions.setLoading(true);
@@ -247,7 +292,6 @@ export function ExtensionsPage() {
   );
 
   const columns: Column<ExtensionRow>[] = [
-    createViewColumn<ExtensionRow>(handleView),
     {
       key: "id",
       header: "รหัสขยายเวลา",
@@ -295,6 +339,7 @@ export function ExtensionsPage() {
 
   const rowActions = createStandardRowActions<ExtensionRow>({
     onEdit: handleEdit,
+    onView: handleView,
     onDelete: handleDelete,
   });
 
@@ -319,20 +364,22 @@ export function ExtensionsPage() {
         }
       />
 
-      <Card className="border-[var(--border)] bg-white shadow-soft">
+      <AdvancedFilter
+        fields={FILTER_FIELDS}
+        onApply={(vals) => {
+          setFilterValues(vals);
+          setHasSearched(true);
+        }}
+        onReset={() => setHasSearched(false)}
+        onExport={handleExportCSV}
+        resultCount={filtered.length}
+        totalCount={state.items.length}
+        isLoading={state.isLoading}
+      />
+
+      {hasSearched && (
+        <Card className="border-[var(--border)] bg-white shadow-soft">
         <CardContent className="p-6 space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <SearchInput
-              value={state.searchQuery}
-              onChange={actions.setSearchQuery}
-              placeholder="ค้นหางานขยายเวลา..."
-            />
-            <FilterTabs
-              options={STATUS_OPTIONS}
-              value={state.filterStatus}
-              onChange={actions.setFilterStatus}
-            />
-          </div>
 
           <DataTable
             columns={columns}
@@ -401,6 +448,7 @@ export function ExtensionsPage() {
           />
         </CardContent>
       </Card>
+      )}
 
       <CreateEditModal
         open={modalOpen}

@@ -144,11 +144,7 @@ const EDIT_FIELDS: FormField[] = [
   },
 ];
 
-export const Route = createFileRoute("/admin/settings/workflows")({
-  component: RouteComponent,
-});
-
-function RouteComponent() {
+export function WorkflowsPage() {
   const [state, actions] = useCRUD<Workflow>(mockWorkflows);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -242,11 +238,6 @@ function RouteComponent() {
   }, []);
 
   const columns: Column<Workflow>[] = [
-    {
-      key: "id",
-      header: "รหัส",
-      render: (r) => <span className="font-medium">{r.id}</span>,
-    },
     {
       key: "name",
       header: "ชื่อกระบวนการ",

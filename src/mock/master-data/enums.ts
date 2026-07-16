@@ -14,7 +14,8 @@ export type FormTypeId =
   | "employee_conduct"
   | "product_service"
   | "safety"
-  | "environmental";
+  | "environmental"
+  | "financial";
 
 // ============================================================
 // COMPLAINT STATUS ENUMS
@@ -147,6 +148,7 @@ export const FORM_TYPE_ID_VALUES: FormTypeId[] = [
   "product_service",
   "safety",
   "environmental",
+  "financial",
 ];
 
 // ============================================================

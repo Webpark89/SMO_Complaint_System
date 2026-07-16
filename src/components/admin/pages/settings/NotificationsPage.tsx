@@ -255,13 +255,6 @@ export function NotificationsPage() {
 
   const columns: Column<NotificationRow>[] = [
     {
-      key: "id",
-      header: "รหัส",
-      render: (r) => (
-        <span className="font-semibold text-slate-700">{r.id}</span>
-      ),
-    },
-    {
       key: "name",
       header: "ชื่อการแจ้งเตือน",
       render: (r) => (

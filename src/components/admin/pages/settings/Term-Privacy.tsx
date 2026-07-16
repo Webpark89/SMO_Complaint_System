@@ -16,6 +16,9 @@ type TermPrivacyData = {
   updatedAt: string;
 };
 
+const MAX_TERMS_LENGTH = 10000;
+const MAX_PRIVACY_LENGTH = 10000;
+
 const mockData: TermPrivacyData = {
   termsTitle: "เงื่อนไขการใช้งาน",
   termsContent:
@@ -37,6 +40,7 @@ export function TermPrivacyPage() {
 
   // --- State สำหรับส่วนอัปโหลดไฟล์ ---
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+
 
   const handleRefresh = useCallback(() => {
     setIsLoading(true);
@@ -154,16 +158,23 @@ export function TermPrivacyPage() {
                   onChange={(e) =>
                     setEditValues({
                       ...editValues,
-                      termsContent: e.target.value,
+                      termsContent: e.target.value.slice(0, MAX_TERMS_LENGTH),
                     })
                   }
                   disabled={!isEditingText}
-                  className={`h-28 w-full ${
-                    !isEditingText
-                      ? "bg-[var(--surface-muted)] text-slate-700 opacity-100"
-                      : ""
-                  }`}
+                  maxLength={MAX_TERMS_LENGTH}
+                  className={`h-28 w-full ${!isEditingText
+                    ? "bg-[var(--surface-muted)] text-slate-700 opacity-100"
+                    : ""
+                    }`}
                 />
+                <p className="text-xs text-slate-400 text-right mt-1">
+                  {(isEditingText
+                    ? editValues.termsContent
+                    : data.termsContent
+                  ).length.toLocaleString()}
+                  /{MAX_TERMS_LENGTH.toLocaleString()}
+                </p>
               </div>
             </div>
           </div>
@@ -192,16 +203,26 @@ export function TermPrivacyPage() {
                   onChange={(e) =>
                     setEditValues({
                       ...editValues,
-                      privacyContent: e.target.value,
+                      privacyContent: e.target.value.slice(
+                        0,
+                        MAX_PRIVACY_LENGTH,
+                      ),
                     })
                   }
                   disabled={!isEditingText}
-                  className={`h-28 w-full ${
-                    !isEditingText
+                  maxLength={MAX_PRIVACY_LENGTH}
+                  className={`h-28 w-full ${!isEditingText
                       ? "bg-[var(--surface-muted)] text-slate-700 opacity-100"
                       : ""
-                  }`}
+                    }`}
                 />
+                <p className="text-xs text-slate-400 text-right mt-1">
+                  {(isEditingText
+                    ? editValues.privacyContent
+                    : data.privacyContent
+                  ).length.toLocaleString()}
+                  /{MAX_PRIVACY_LENGTH.toLocaleString()}
+                </p>
               </div>
             </div>
           </div>
@@ -251,11 +272,10 @@ export function TermPrivacyPage() {
                 <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 border border-slate-200 rounded-md w-full sm:w-auto">
                   <FileText className="h-4 w-4 text-slate-400" />
                   <span
-                    className={`text-sm ${
-                      uploadedFile
-                        ? "text-[var(--success)] font-medium"
-                        : "text-slate-600"
-                    }`}
+                    className={`text-sm ${uploadedFile
+                      ? "text-[var(--success)] font-medium"
+                      : "text-slate-600"
+                      }`}
                   >
                     {uploadedFile
                       ? uploadedFile.name

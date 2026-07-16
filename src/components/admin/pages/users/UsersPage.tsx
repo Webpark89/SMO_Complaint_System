@@ -45,9 +45,9 @@ import {
   useCRUD,
 } from "@/components/admin/crud";
 import { TABLE_LABELS } from "@/components/admin/constants/tableLabels";
-import { createViewColumn, createStandardRowActions } from "@/components/admin/layout/tableActions";
+import { createStandardRowActions } from "@/components/admin/layout/tableActions";
 
-type UserStatus = "เปิดใช้งาน" | "ระงับ" | "รอยืนยัน";
+type UserStatus = "เปิดใช้งาน" | "ปิดใช้งาน" | "รอยืนยัน";
 
 type UserRow = {
   id: string;
@@ -65,13 +65,13 @@ const DEPARTMENTS = DEPARTMENTS_CANONICAL;
 const STATUS_OPTIONS = [
   { value: "all", label: "ทั้งหมด" },
   { value: "เปิดใช้งาน", label: "เปิดใช้งาน" },
-  { value: "ระงับ", label: "ระงับ" },
+  { value: "ปิดใช้งาน", label: "ปิดใช้งาน" },
   { value: "รอยืนยัน", label: "รอยืนยัน" },
 ];
 
-function statusVariant(s: UserStatus): StatusVariant {
+function statusVariant(s: string): StatusVariant {
   if (s === "เปิดใช้งาน") return "success";
-  if (s === "ระงับ") return "danger";
+  if (s === "ปิดใช้งาน" || s === "ระงับ") return "danger";
   return "warning";
 }
 
@@ -217,7 +217,7 @@ export function UsersPage() {
 
   const handleLock = useCallback(
     (row: UserRow) => {
-      actions.updateItem(row.id, { status: "ระงับ" });
+      actions.updateItem(row.id, { status: "ปิดใช้งาน" });
     },
     [actions],
   );
@@ -230,15 +230,6 @@ export function UsersPage() {
   );
 
   const columns: Column<UserRow>[] = [
-    // 6. เพิ่มคอลัมน์ดวงตา (View) ไว้หน้าสุด
-    createViewColumn<UserRow>(handleView),
-    {
-      key: "id",
-      header: "รหัส",
-      render: (r) => (
-        <span className="font-semibold text-slate-700">{r.id}</span>
-      ),
-    },
     {
       key: "name",
       header: "ชื่อ-นามสกุล",
@@ -285,6 +276,7 @@ export function UsersPage() {
 
   const rowActions = createStandardRowActions<UserRow>({
     onEdit: handleEdit,
+    onView: handleView,
     onDelete: handleDelete,
   });
 
@@ -419,7 +411,7 @@ export function UsersPage() {
 
               {/* ปุ่ม Lock/Unlock เดิม */}
               <div className="flex flex-wrap gap-2 justify-end pt-2 border-t border-slate-100">
-                {selectedItem.status === "ระงับ" ? (
+                {selectedItem.status === "ปิดใช้งาน" ? (
                   <Button
                     size="sm"
                     variant="outline"

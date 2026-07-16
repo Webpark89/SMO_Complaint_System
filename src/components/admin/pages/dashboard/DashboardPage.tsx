@@ -1,4 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
+import { Link } from "@tanstack/react-router";
+
 import {
   mockDashboardComplaints,
   type DashboardComplaintRow,
@@ -93,6 +95,9 @@ const EARTH_COLORS = [
   "#8B5CF6", // ม่วง (Vibrant Violet)
   "#FACC15", // เหลือง (Golden Yellow)
   "#A16207", // น้ำตาล (Warm Brown)
+  "#06B6D4", // ฟ้า (Cyan)
+  "#EC4899", // ชมพู (Pink)
+  "#6366F1", // น้ำเงินม่วง (Indigo)
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -319,22 +324,28 @@ export function DashboardPage() {
 
   // 7. สุ่มหน่วยงานแบบจำลองเพื่อให้กราฟดูสวยงาม
   const dynamicOrgData = useMemo(() => {
-    const orgsList = [
-      "บริษัท กลุ่มสมอทอง จำกัด (มหาชน)",
-      "ท่าชนะ",
-      "สระบุรี",
-      "พนม",
-      "บริษัท เอ แอล ปาล์ม จำกัด",
+    const orgsConfig = [
+      { id: "บริษัท กลุ่มสมอทอง จำกัด (มหาชน)", label: "SMO", color: "#EF4444" },
+      { id: "ท่าชนะ", label: "TCN", color: "#3B82F6" },
+      { id: "สระบุรี", label: "SB", color: "#10B981" },
+      { id: "พนม", label: "PN", color: "#F97316" },
+      { id: "บริษัท เอ แอล ปาล์ม จำกัด", label: "LA", color: "#8B5CF6" },
     ];
     const counts: Record<string, number> = {};
-    orgsList.forEach((o) => (counts[o] = 0));
+    orgsConfig.forEach((o) => (counts[o.id] = 0));
 
     filtered.forEach((c) => {
-      const idx = c.refNo.charCodeAt(c.refNo.length - 1) % orgsList.length;
-      counts[orgsList[idx]]++;
+      const idx = c.refNo.charCodeAt(c.refNo.length - 1) % orgsConfig.length;
+      counts[orgsConfig[idx].id]++;
     });
-    return Object.entries(counts)
-      .map(([org, total]) => ({ org, total }))
+
+    return orgsConfig
+      .map((cfg) => ({
+        org: cfg.label,
+        fullName: cfg.id,
+        total: counts[cfg.id],
+        color: cfg.color,
+      }))
       .sort((a, b) => b.total - a.total);
   }, [filtered]);
 
@@ -586,6 +597,10 @@ export function DashboardPage() {
                         color: "#475569",
                         paddingLeft: "10px",
                       }}
+                      formatter={(value) => {
+                        const item = dynamicCategoryData.find((d) => d.category === value);
+                        return `${value}(${item ? item.total : 0})`;
+                      }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -626,7 +641,7 @@ export function DashboardPage() {
                     tick={{ fontSize: 11, fill: "#64748B" }}
                     dy={10}
                     interval={0}
-                    tickFormatter={(val) => val.substring(0, 6) + "..."}
+                    tickFormatter={(val) => val}
                   />
                   <YAxis
                     allowDecimals={false}
@@ -636,6 +651,12 @@ export function DashboardPage() {
                   />
                   <Tooltip
                     cursor={{ fill: "transparent" }}
+                    labelFormatter={(label, payload: any[]) => {
+                      if (payload && payload[0] && payload[0].payload) {
+                        return payload[0].payload.fullName || label;
+                      }
+                      return label;
+                    }}
                     formatter={(value) => [`${value} เรื่อง`, "จำนวน"]}
                     contentStyle={{
                       borderRadius: "8px",
@@ -653,7 +674,7 @@ export function DashboardPage() {
                     {dynamicOrgData.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={EARTH_COLORS[index % EARTH_COLORS.length]}
+                        fill={entry.color}
                       />
                     ))}
                   </Bar>
@@ -704,58 +725,60 @@ export function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-[var(--border)] bg-white shadow-soft">
-          <CardHeader>
-            <CardTitle className="text-base text-[#111827]">
-              SLA Performance
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex h-[220px] w-full items-center justify-around gap-2 pt-2">
-              {dynamicSlaData.map((s, i) => {
-                const color = ["#10B981", "#F59E0B", "#EF4444"][i];
-                return (
-                  <div
-                    key={s.label}
-                    className="flex flex-col items-center justify-center"
-                  >
-                    <div className="relative h-[85px] w-[85px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={[
-                              { value: s.value },
-                              { value: 100 - s.value },
-                            ]}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={30}
-                            outerRadius={40}
-                            startAngle={90}
-                            endAngle={-270}
-                            dataKey="value"
-                            stroke="none"
-                          >
-                            <Cell fill={color} />
-                            <Cell fill="#F1F5F9" />
-                          </Pie>
-                        </PieChart>
-                      </ResponsiveContainer>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-sm font-bold text-slate-700">
-                          {s.value}%
-                        </span>
+        <Link to="/admin/reports/sla" className="block cursor-pointer">
+          <Card className="border-[var(--border)] bg-white shadow-soft transition-transform hover:-translate-y-0.5 hover:shadow-elegant h-full">
+            <CardHeader>
+              <CardTitle className="text-base text-[#111827]">
+                SLA Performance
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex h-[220px] w-full items-center justify-around gap-2 pt-2">
+                {dynamicSlaData.map((s, i) => {
+                  const color = ["#10B981", "#F59E0B", "#EF4444"][i];
+                  return (
+                    <div
+                      key={s.label}
+                      className="flex flex-col items-center justify-center"
+                    >
+                      <div className="relative h-[85px] w-[85px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={[
+                                { value: s.value },
+                                { value: 100 - s.value },
+                              ]}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={30}
+                              outerRadius={40}
+                              startAngle={90}
+                              endAngle={-270}
+                              dataKey="value"
+                              stroke="none"
+                            >
+                              <Cell fill={color} />
+                              <Cell fill="#F1F5F9" />
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                          <span className="text-sm font-bold text-slate-700">
+                            {s.value}%
+                          </span>
+                        </div>
                       </div>
+                      <span className="mt-3 text-xs font-semibold text-slate-500">
+                        {s.label}
+                      </span>
                     </div>
-                    <span className="mt-3 text-xs font-semibold text-slate-500">
-                      {s.label}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {/* Latest Complaints Table */}

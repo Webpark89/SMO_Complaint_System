@@ -23,18 +23,48 @@ import {
   DeleteDialog,
   DetailDrawer,
   StatusBadge,
-  FilterTabs,
-  SearchInput,
+  AdvancedFilter,
+  AdvancedFilterValues,
+  FilterFieldConfig,
   FormField,
   useCRUD,
   getDocumentStatusVariant,
 } from "@/components/admin/crud";
+import { exportToCSV } from "@/utils/exportUtils";
 import { TABLE_LABELS } from "@/components/admin/constants/tableLabels";
 import { DocumentRow } from "@/mock/complaints/documents.mock";
 
 const DOC_TYPES = [...DOC_TYPES_CANONICAL];
 
 const statusVariant = (s: string) => getDocumentStatusVariant(s);
+
+const FILTER_FIELDS: FilterFieldConfig[] = [
+  {
+    key: "search",
+    label: "ค้นหา",
+    type: "text",
+    placeholder: "รหัสเอกสาร, ชื่อเอกสาร, รหัสเรื่อง, ผู้ส่ง...",
+  },
+  {
+    key: "documentType",
+    label: "ประเภทเอกสาร",
+    type: "select",
+    options: DOC_TYPES,
+    placeholder: "เลือกประเภท",
+  },
+  {
+    key: "status",
+    label: "สถานะ",
+    type: "select",
+    options: DOCUMENT_STATUS_OPTIONS.filter((o: { value: string }) => o.value !== "all"),
+    placeholder: "เลือกสถานะ",
+  },
+  {
+    key: "submittedAt",
+    label: "ช่วงวันที่ส่ง",
+    type: "daterange",
+  },
+];
 
 const DETAIL_FIELDS = [
   { key: "id", label: "รหัสเอกสาร" },
@@ -87,20 +117,47 @@ export function DocumentsPage() {
   const [selectedItem, setSelectedItem] = useState<DocumentRow | null>(null);
   const [createValues, setCreateValues] = useState<Record<string, unknown>>({});
   const [editValues, setEditValues] = useState<Record<string, unknown>>({});
+  const [filterValues, setFilterValues] = useState<AdvancedFilterValues>({});
+  const [hasSearched, setHasSearched] = useState(false);
 
   const filtered = useMemo(() => {
-    const q = state.searchQuery.trim().toLowerCase();
+    const q = (filterValues.search ?? "").trim().toLowerCase();
     return state.items.filter((r: DocumentRow) => {
       const matchQ =
         !q ||
         r.id.toLowerCase().includes(q) ||
         r.complaintId.toLowerCase().includes(q) ||
-        r.documentName.toLowerCase().includes(q);
+        r.documentName.toLowerCase().includes(q) ||
+        r.submittedBy.toLowerCase().includes(q);
+      const matchType =
+        !filterValues.documentType || filterValues.documentType === "all"
+          ? true
+          : r.documentType === filterValues.documentType;
       const matchStatus =
-        state.filterStatus === "all" ? true : r.status === state.filterStatus;
-      return matchQ && matchStatus;
+        !filterValues.status || filterValues.status === "all"
+          ? true
+          : r.status === filterValues.status;
+      const matchDateFrom = !filterValues.submittedAt_from ? true : r.submittedAt >= filterValues.submittedAt_from;
+      const matchDateTo = !filterValues.submittedAt_to ? true : r.submittedAt <= filterValues.submittedAt_to + " 23:59";
+      return matchQ && matchType && matchStatus && matchDateFrom && matchDateTo;
     });
-  }, [state.items, state.searchQuery, state.filterStatus]);
+  }, [state.items, filterValues]);
+
+  const handleExportCSV = useCallback((vals: AdvancedFilterValues) => {
+    const q = (vals.search ?? "").trim().toLowerCase();
+    const rows = state.items.filter((r: DocumentRow) => {
+      const matchQ = !q || r.id.toLowerCase().includes(q) || r.documentName.toLowerCase().includes(q) || r.submittedBy.toLowerCase().includes(q);
+      const matchType = !vals.documentType || vals.documentType === "all" ? true : r.documentType === vals.documentType;
+      const matchStatus = !vals.status || vals.status === "all" ? true : r.status === vals.status;
+      const matchDateFrom = !vals.submittedAt_from ? true : r.submittedAt >= vals.submittedAt_from;
+      const matchDateTo = !vals.submittedAt_to ? true : r.submittedAt <= vals.submittedAt_to + " 23:59";
+      return matchQ && matchType && matchStatus && matchDateFrom && matchDateTo;
+    });
+    exportToCSV(
+      rows.map(r => ({ รหัสเอกสาร: r.id, รหัสเรื่อง: r.complaintId, ชื่อเอกสาร: r.documentName, ประเภท: r.documentType, ผู้ส่ง: r.submittedBy, วันที่ส่ง: r.submittedAt, ผู้ตรวจสอบ: r.verifiedBy, วันที่ตรวจ: r.verifiedAt, สถานะ: r.status })),
+      "รายการเอกสารและหลักฐาน",
+    );
+  }, [state.items]);
 
   const handleAddNew = useCallback(() => {
     setCreateValues({ complaintId: "", documentName: "", documentType: "" });
@@ -203,20 +260,22 @@ export function DocumentsPage() {
           />
         }
       />
-      <Card className="shadow-soft">
+      <AdvancedFilter
+        fields={FILTER_FIELDS}
+        onApply={(vals) => {
+          setFilterValues(vals);
+          setHasSearched(true);
+        }}
+        onReset={() => setHasSearched(false)}
+        onExport={handleExportCSV}
+        resultCount={filtered.length}
+        totalCount={state.items.length}
+        isLoading={state.isLoading}
+      />
+
+      {hasSearched && (
+        <Card className="border-[var(--border)] bg-white shadow-soft">
         <CardContent className="p-6 space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <SearchInput
-              value={state.searchQuery}
-              onChange={actions.setSearchQuery}
-              placeholder="ค้นหาเอกสาร..."
-            />
-            <FilterTabs
-              options={DOCUMENT_STATUS_OPTIONS}
-              value={state.filterStatus}
-              onChange={actions.setFilterStatus}
-            />
-          </div>
           <DataTable
             columns={columns}
             data={filtered}
@@ -233,6 +292,7 @@ export function DocumentsPage() {
           />
         </CardContent>
       </Card>
+      )}
       {/* Modals & Drawers */}
       <CreateEditModal
         open={modalOpen}

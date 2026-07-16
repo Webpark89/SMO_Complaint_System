@@ -24,9 +24,11 @@ export const createViewColumn = <T,>(onView: (row: T) => void): Column<T> => ({
 // 2. ฟังก์ชันสำหรับสร้าง Row Actions มาตรฐาน (แก้ไข, ลบ)
 export const createStandardRowActions = <T,>({
   onEdit,
+  onView,
   onDelete,
 }: {
   onEdit?: (row: T) => void;
+  onView?: (row: T) => void;
   onDelete?: (row: T) => void;
 }): RowAction<T>[] => {
   const actions: RowAction<T>[] = [];
@@ -36,6 +38,14 @@ export const createStandardRowActions = <T,>({
       label: "แก้ไข",
       icon: <Edit className="h-4 w-4" />,
       onClick: onEdit,
+    });
+  }
+
+  if (onView) {
+    actions.push({
+      label: "ดู",
+      icon: <Eye className="h-4 w-4 text-[#B8BABF] hover:text-[#8e6c25]" />,
+      onClick: onView,
     });
   }
 

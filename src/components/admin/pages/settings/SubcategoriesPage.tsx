@@ -212,13 +212,6 @@ export function SubcategoriesPage() {
 
   const columns: Column<SubcategoryRow>[] = [
     {
-      key: "id",
-      header: "รหัส",
-      render: (r) => (
-        <span className="font-semibold text-slate-700">{r.id}</span>
-      ),
-    },
-    {
       key: "category",
       header: "หมวดหมู่หลัก",
       render: (r) => (

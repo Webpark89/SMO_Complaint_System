@@ -21,14 +21,16 @@ import {
   DetailDrawer,
   StatusBadge,
   StatusVariant,
-  FilterTabs,
-  SearchInput,
+  AdvancedFilter,
+  AdvancedFilterValues,
+  FilterFieldConfig,
   FormField,
   getInvestigationStatusVariant,
   useCRUD,
 } from "@/components/admin/crud";
 import { TABLE_LABELS } from "@/components/admin/constants/tableLabels";
-import { createViewColumn, createStandardRowActions } from "@/components/admin/layout/tableActions";
+import { createStandardRowActions } from "@/components/admin/layout/tableActions";
+import { exportToCSV } from "@/utils/exportUtils";
 
 type InvestigationRow = {
   id: string;
@@ -62,6 +64,34 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
 
 const statusVariant = (s: string): StatusVariant =>
   getInvestigationStatusVariant(s);
+
+const FILTER_FIELDS: FilterFieldConfig[] = [
+  {
+    key: "search",
+    label: "ค้นหา",
+    type: "text",
+    placeholder: "รหัสงาน, รหัสเรื่อง, หัวข้อ, ผู้สืบสวน...",
+  },
+  {
+    key: "status",
+    label: "สถานะ",
+    type: "select",
+    options: STATUS_OPTIONS.slice(1),
+    placeholder: "เลือกสถานะ",
+  },
+  {
+    key: "assignedTo",
+    label: "ผู้สืบสวน",
+    type: "select",
+    options: TEAMS,
+    placeholder: "เลือกทีม",
+  },
+  {
+    key: "startedAt",
+    label: "ช่วงวันที่เริ่ม",
+    type: "daterange",
+  },
+];
 
 const DETAIL_FIELDS = [
   { key: "id", label: "รหัสงานสืบสวน" },
@@ -144,21 +174,32 @@ export function InvestigationPage() {
   );
   const [createValues, setCreateValues] = useState<Record<string, unknown>>({});
   const [editValues, setEditValues] = useState<Record<string, unknown>>({});
+  const [filterValues, setFilterValues] = useState<AdvancedFilterValues>({});
+  const [hasSearched, setHasSearched] = useState(false);
 
   const filtered = useMemo(() => {
-    const q = state.searchQuery.trim().toLowerCase();
+    const q = (filterValues.search ?? "").trim().toLowerCase();
     return state.items.filter((r: InvestigationRow) => {
       const matchQ =
         !q ||
         r.id.toLowerCase().includes(q) ||
         r.complaintId.toLowerCase().includes(q) ||
         r.complaintTitle.toLowerCase().includes(q) ||
+        r.category.toLowerCase().includes(q) ||
         r.assignedTo.toLowerCase().includes(q);
       const matchStatus =
-        state.filterStatus === "all" ? true : r.status === state.filterStatus;
-      return matchQ && matchStatus;
+        !filterValues.status || filterValues.status === "all"
+          ? true
+          : r.status === filterValues.status;
+      const matchAssignee =
+        !filterValues.assignedTo || filterValues.assignedTo === "all"
+          ? true
+          : r.assignedTo === filterValues.assignedTo;
+      const matchDateFrom = !filterValues.startedAt_from ? true : r.startedAt >= filterValues.startedAt_from;
+      const matchDateTo = !filterValues.startedAt_to ? true : r.startedAt <= filterValues.startedAt_to + " 23:59";
+      return matchQ && matchStatus && matchAssignee && matchDateFrom && matchDateTo;
     });
-  }, [state.items, state.searchQuery, state.filterStatus]);
+  }, [state.items, filterValues]);
 
   const handleRefresh = useCallback(() => {
     actions.setLoading(true);
@@ -175,6 +216,22 @@ export function InvestigationPage() {
     () => alert("ส่งออก PDF งานสืบสวน (จำลอง)"),
     [],
   );
+
+  const handleExportCSV = useCallback((vals: AdvancedFilterValues) => {
+    const q = (vals.search ?? "").trim().toLowerCase();
+    const rows = state.items.filter((r: InvestigationRow) => {
+      const matchQ = !q || r.id.toLowerCase().includes(q) || r.complaintId.toLowerCase().includes(q) || r.assignedTo.toLowerCase().includes(q);
+      const matchStatus = !vals.status || vals.status === "all" ? true : r.status === vals.status;
+      const matchAssignee = !vals.assignedTo || vals.assignedTo === "all" ? true : r.assignedTo === vals.assignedTo;
+      const matchDateFrom = !vals.startedAt_from ? true : r.startedAt >= vals.startedAt_from;
+      const matchDateTo = !vals.startedAt_to ? true : r.startedAt <= vals.startedAt_to + " 23:59";
+      return matchQ && matchStatus && matchAssignee && matchDateFrom && matchDateTo;
+    });
+    exportToCSV(
+      rows.map(r => ({ รหัสงานสืบสวน: r.id, รหัสเรื่อง: r.complaintId, หัวข้อ: r.complaintTitle, ประเภท: r.category, ผู้สืบสวน: r.assignedTo, เริ่มเมื่อ: r.startedAt, กำหนดเสร็จ: r.dueAt, ความคืบหน้า: r.progress, สถานะ: r.status })),
+      "รายการตรวจสอบสอบสวน",
+    );
+  }, [state.items]);
 
   const handleSubmitCreate = useCallback(() => {
     const newItem: InvestigationRow = {
@@ -240,7 +297,6 @@ export function InvestigationPage() {
   );
 
   const columns: Column<InvestigationRow>[] = [
-    createViewColumn<InvestigationRow>(handleView),
     {
       key: "id",
       header: "รหัสงาน",
@@ -320,6 +376,7 @@ export function InvestigationPage() {
 
   const rowActions = createStandardRowActions<InvestigationRow>({
     onEdit: handleEdit,
+    onView: handleView,
     onDelete: handleDelete,
   });
     
@@ -345,21 +402,22 @@ export function InvestigationPage() {
         }
       />
 
-      <Card className="border-[var(--border)] bg-white shadow-soft">
-        <CardContent className="p-6 space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <SearchInput
-              value={state.searchQuery}
-              onChange={actions.setSearchQuery}
-              placeholder="ค้นหางานสืบสวน..."
-            />
-            <FilterTabs
-              options={STATUS_OPTIONS}
-              value={state.filterStatus}
-              onChange={actions.setFilterStatus}
-            />
-          </div>
+      <AdvancedFilter
+        fields={FILTER_FIELDS}
+        onApply={(vals) => {
+          setFilterValues(vals);
+          setHasSearched(true);
+        }}
+        onReset={() => setHasSearched(false)}
+        onExport={handleExportCSV}
+        resultCount={filtered.length}
+        totalCount={state.items.length}
+        isLoading={state.isLoading}
+      />
 
+      {hasSearched && (
+        <Card className="border-[var(--border)] bg-white shadow-soft">
+        <CardContent className="p-6 space-y-4">
           <DataTable
             columns={columns}
             data={filtered}
@@ -427,6 +485,7 @@ export function InvestigationPage() {
           />
         </CardContent>
       </Card>
+      )}
 
       <CreateEditModal
         open={modalOpen}

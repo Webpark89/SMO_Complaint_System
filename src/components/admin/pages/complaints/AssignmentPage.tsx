@@ -32,14 +32,16 @@ import {
   DeleteDialog,
   DetailDrawer,
   StatusBadge,
-  FilterTabs,
-  SearchInput,
+  AdvancedFilter,
+  AdvancedFilterValues,
+  FilterFieldConfig,
   FormField,
   useCRUD,
   getAssignmentStatusVariant,
 } from "@/components/admin/crud";
+import { exportToCSV } from "@/utils/exportUtils";
 import { TABLE_LABELS } from "@/components/admin/constants/tableLabels";
-import { createViewColumn, createStandardRowActions } from "@/components/admin/layout/tableActions";
+import { createStandardRowActions } from "@/components/admin/layout/tableActions";
 import { TEAMS as TEAMS_CANONICAL } from "@/mock/shared/file-types";
 
 type AssignmentRow = {
@@ -60,6 +62,34 @@ const STATUS_OPTIONS = [
   { value: "all", label: "ทั้งหมด" },
   { value: "รอมอบหมาย", label: "รอมอบหมาย" },
   { value: "มอบหมายแล้ว", label: "มอบหมายแล้ว" },
+];
+
+const FILTER_FIELDS: FilterFieldConfig[] = [
+  {
+    key: "search",
+    label: "ค้นหา",
+    type: "text",
+    placeholder: "รหัส, เรื่องร้องเรียน, หมวดหมู่, ผู้รับมอบหมาย...",
+  },
+  {
+    key: "status",
+    label: "สถานะ",
+    type: "select",
+    options: STATUS_OPTIONS.slice(1),
+    placeholder: "เลือกสถานะ",
+  },
+  {
+    key: "assignedTo",
+    label: "ผู้รับมอบหมาย",
+    type: "select",
+    options: TEAMS,
+    placeholder: "เลือกทีม",
+  },
+  {
+    key: "submittedAt",
+    label: "ช่วงวันที่รับเรื่อง",
+    type: "daterange",
+  },
 ];
 
 const statusVariant = (s: string) => getAssignmentStatusVariant(s);
@@ -143,10 +173,11 @@ export function AssignmentPage() {
   const [selectedItem, setSelectedItem] = useState<AssignmentRow | null>(null);
   const [createValues, setCreateValues] = useState<Record<string, unknown>>({});
   const [editValues, setEditValues] = useState<Record<string, unknown>>({});
+  const [filterValues, setFilterValues] = useState<AdvancedFilterValues>({});
+  const [hasSearched, setHasSearched] = useState(false);
 
   const filtered = useMemo(() => {
-    const q = state.searchQuery.trim().toLowerCase();
-
+    const q = (filterValues.search ?? "").trim().toLowerCase();
     return state.items.filter((r: AssignmentRow) => {
       const matchQ =
         !q ||
@@ -155,13 +186,19 @@ export function AssignmentPage() {
         r.complaintTitle.toLowerCase().includes(q) ||
         r.category.toLowerCase().includes(q) ||
         r.assignedTo.toLowerCase().includes(q);
-
       const matchStatus =
-        state.filterStatus === "all" ? true : r.status === state.filterStatus;
-
-      return matchQ && matchStatus;
+        !filterValues.status || filterValues.status === "all"
+          ? true
+          : r.status === filterValues.status;
+      const matchAssignee =
+        !filterValues.assignedTo || filterValues.assignedTo === "all"
+          ? true
+          : r.assignedTo === filterValues.assignedTo;
+      const matchDateFrom = !filterValues.submittedAt_from ? true : r.submittedAt >= filterValues.submittedAt_from;
+      const matchDateTo = !filterValues.submittedAt_to ? true : r.submittedAt <= filterValues.submittedAt_to + " 23:59";
+      return matchQ && matchStatus && matchAssignee && matchDateFrom && matchDateTo;
     });
-  }, [state.items, state.searchQuery, state.filterStatus]);
+  }, [state.items, filterValues]);
   const handleRefresh = useCallback(() => {
     actions.setLoading(true);
     setTimeout(() => actions.setLoading(false), 600);
@@ -174,6 +211,22 @@ export function AssignmentPage() {
 
   const handleImport = useCallback(() => alert("นำเข้างานมอบหมาย (จำลอง)"), []);
   const handleExportPDF = useCallback(() => alert("ส่งออก PDF (จำลอง)"), []);
+
+  const handleExportCSV = useCallback((vals: AdvancedFilterValues) => {
+    const q = (vals.search ?? "").trim().toLowerCase();
+    const rows = state.items.filter((r: AssignmentRow) => {
+      const matchQ = !q || r.id.toLowerCase().includes(q) || r.complaintId.toLowerCase().includes(q) || r.assignedTo.toLowerCase().includes(q);
+      const matchStatus = !vals.status || vals.status === "all" ? true : r.status === vals.status;
+      const matchAssignee = !vals.assignedTo || vals.assignedTo === "all" ? true : r.assignedTo === vals.assignedTo;
+      const matchDateFrom = !vals.submittedAt_from ? true : r.submittedAt >= vals.submittedAt_from;
+      const matchDateTo = !vals.submittedAt_to ? true : r.submittedAt <= vals.submittedAt_to + " 23:59";
+      return matchQ && matchStatus && matchAssignee && matchDateFrom && matchDateTo;
+    });
+    exportToCSV(
+      rows.map(r => ({ รหัสมอบหมาย: r.id, รหัสเรื่อง: r.complaintId, เรื่องร้องเรียน: r.complaintTitle, หมวดหมู่: r.category, ความสำคัญ: r.priority, ผู้รับมอบหมาย: r.assignedTo, วันที่รับเรื่อง: r.submittedAt, กำหนดส่ง: r.dueAt, สถานะ: r.status })),
+      "รายการมอบหมายงาน",
+    );
+  }, [state.items]);
 
   const handleSubmitCreate = useCallback(() => {
     const newItem: AssignmentRow = {
@@ -239,7 +292,6 @@ export function AssignmentPage() {
   );
 
   const columns: Column<AssignmentRow>[] = [
-    createViewColumn<AssignmentRow>(handleView),
     {
       key: "id",
       header: "รหัสมอบหมาย",
@@ -316,6 +368,7 @@ export function AssignmentPage() {
   ];
   const rowActions = createStandardRowActions<AssignmentRow>({
     onEdit: handleEdit,
+    onView: handleView,
     onDelete: handleDelete,
   });
 
@@ -341,20 +394,22 @@ export function AssignmentPage() {
         }
       />
 
-      <Card className="border-[var(--border)] bg-white shadow-soft">
+      <AdvancedFilter
+        fields={FILTER_FIELDS}
+        onApply={(vals) => {
+          setFilterValues(vals);
+          setHasSearched(true);
+        }}
+        onReset={() => setHasSearched(false)}
+        onExport={handleExportCSV}
+        resultCount={filtered.length}
+        totalCount={state.items.length}
+        isLoading={state.isLoading}
+      />
+
+      {hasSearched && (
+        <Card className="border-[var(--border)] bg-white shadow-soft">
         <CardContent className="p-6 space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <SearchInput
-              value={state.searchQuery}
-              onChange={actions.setSearchQuery}
-              placeholder="ค้นหางานมอบหมาย..."
-            />
-            <FilterTabs
-              options={STATUS_OPTIONS}
-              value={state.filterStatus}
-              onChange={actions.setFilterStatus}
-            />
-          </div>
 
           <DataTable
             columns={columns}
@@ -422,6 +477,7 @@ export function AssignmentPage() {
           />
         </CardContent>
       </Card>
+      )}
 
       <CreateEditModal
         open={modalOpen}

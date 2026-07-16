@@ -43,11 +43,13 @@ export function generateRefNumber(formTypeId: FormTypeId): string {
 function getFormTypeCode(formTypeId: FormTypeId): string {
   const codes: Record<FormTypeId, string> = {
     ethics: "ETH",
+    business_ethics: "ETH",
     fraud: "FRD",
     employee_conduct: "EMP",
     product_service: "PRD",
     safety: "SFT",
     environmental: "ENV",
+    financial: "FIN",
   };
   return codes[formTypeId] ?? "UNK";
 }

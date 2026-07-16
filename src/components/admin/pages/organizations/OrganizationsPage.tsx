@@ -252,13 +252,6 @@ export function OrganizationsPage() {
 
   const columns: Column<OrgRow>[] = [
     {
-      key: "id",
-      header: "รหัส",
-      render: (r) => (
-        <span className="font-semibold text-slate-700">{r.id}</span>
-      ),
-    },
-    {
       key: "name",
       header: "ชื่อหน่วยงาน",
       render: (r) => (

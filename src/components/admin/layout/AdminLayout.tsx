@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, memo, type ReactNode } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
+import { cn } from "@/lib/utils";
 import { Sidebar } from "./Sidebar";
 import type { AppRole } from "@/hooks/useAuth";
 import {
@@ -28,6 +29,8 @@ import {
   Building2,
   History,
   LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 
 type NavKey = string;
@@ -254,6 +257,18 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   const mainRef = useRef<HTMLDivElement>(null);
   const lastPathRef = useRef(router.state.location.pathname);
 
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    return localStorage.getItem("sidebar-collapsed") === "true";
+  });
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed((prev) => {
+      const newVal = !prev;
+      localStorage.setItem("sidebar-collapsed", String(newVal));
+      return newVal;
+    });
+  };
+
   // Preserve scroll position per route in sessionStorage
   useEffect(() => {
     const currentPath = router.state.location.pathname;
@@ -296,6 +311,19 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             </div>
           </Link>
 
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            className="hidden md:flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] bg-white shadow-soft text-slate-500 hover:text-slate-900 transition-colors"
+            title={sidebarCollapsed ? "ขยายเมนู" : "ย่อเมนู"}
+          >
+            {sidebarCollapsed ? (
+              <PanelLeftOpen className="h-4.5 w-4.5" />
+            ) : (
+              <PanelLeftClose className="h-4.5 w-4.5" />
+            )}
+          </button>
+
           <div className="hidden h-5 w-px bg-[rgba(176,141,87,0.25)] sm:block" />
 
           <div className="hidden flex-col sm:flex">
@@ -321,7 +349,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
       </header>
 
       <div className="flex h-full">
-        <Sidebar activeKey={activeKey} />
+        <Sidebar activeKey={activeKey} isCollapsed={sidebarCollapsed} />
         <main
           ref={mainRef}
           className="min-w-0 flex-1 overflow-y-auto px-4 py-6 md:px-8"

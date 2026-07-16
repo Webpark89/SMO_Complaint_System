@@ -20,14 +20,16 @@ import {
   DeleteDialog,
   DetailDrawer,
   StatusBadge,
-  FilterTabs,
-  SearchInput,
+  AdvancedFilter,
+  AdvancedFilterValues,
+  FilterFieldConfig,
   FormField,
   useCRUD,
   getIntakeStatusVariant,
 } from "@/components/admin/crud";
 import { TABLE_LABELS } from "@/components/admin/constants/tableLabels";
-import { createViewColumn, createStandardRowActions } from "@/components/admin/layout/tableActions";
+import { createStandardRowActions } from "@/components/admin/layout/tableActions";
+import { exportToCSV } from "@/utils/exportUtils";
 
 type IntakeRow = {
   id: string;
@@ -67,6 +69,34 @@ const STATUS_OPTIONS = [
   { value: "ส่งกลับ", label: "ส่งกลับ" },
   { value: "ขอข้อมูลเพิ่ม", label: "ขอข้อมูลเพิ่ม" },
   { value: "ปฏิเสธ", label: "ปฏิเสธ" },
+];
+
+const FILTER_FIELDS: FilterFieldConfig[] = [
+  {
+    key: "search",
+    label: "ค้นหา",
+    type: "text",
+    placeholder: "เลขรับเรื่อง, รหัส, ผู้แจ้ง, หมวดหมู่, หน่วยงาน...",
+  },
+  {
+    key: "status",
+    label: "สถานะ",
+    type: "select",
+    options: STATUS_OPTIONS.slice(1),
+    placeholder: "เลือกสถานะ",
+  },
+  {
+    key: "category",
+    label: "หมวดหมู่",
+    type: "select",
+    options: CATEGORIES.map(c => ({ value: c.value, label: c.label })),
+    placeholder: "เลือกหมวดหมู่",
+  },
+  {
+    key: "submittedAt",
+    label: "ช่วงวันที่แจ้ง",
+    type: "daterange",
+  },
 ];
 
 const statusVariant = (s: string) => getIntakeStatusVariant(s);
@@ -141,9 +171,11 @@ export function IntakePage() {
   const [selectedItem, setSelectedItem] = useState<IntakeRow | null>(null);
   const [createValues, setCreateValues] = useState<Record<string, unknown>>({});
   const [editValues, setEditValues] = useState<Record<string, unknown>>({});
+  const [filterValues, setFilterValues] = useState<AdvancedFilterValues>({});
+  const [hasSearched, setHasSearched] = useState(false);
 
   const filtered = useMemo(() => {
-    const q = state.searchQuery.trim().toLowerCase();
+    const q = (filterValues.search ?? "").trim().toLowerCase();
     return state.items.filter((r: IntakeRow) => {
       const matchQ =
         !q ||
@@ -154,10 +186,18 @@ export function IntakePage() {
         r.subcategory.toLowerCase().includes(q) ||
         r.department.toLowerCase().includes(q);
       const matchStatus =
-        state.filterStatus === "all" ? true : r.status === state.filterStatus;
-      return matchQ && matchStatus;
+        !filterValues.status || filterValues.status === "all"
+          ? true
+          : r.status === filterValues.status;
+      const matchCategory =
+        !filterValues.category || filterValues.category === "all"
+          ? true
+          : r.category === filterValues.category || r.category === CATEGORIES.find(c => c.value === filterValues.category)?.label;
+      const matchDateFrom = !filterValues.submittedAt_from ? true : r.submittedAt >= filterValues.submittedAt_from;
+      const matchDateTo = !filterValues.submittedAt_to ? true : r.submittedAt <= filterValues.submittedAt_to + " 23:59";
+      return matchQ && matchStatus && matchCategory && matchDateFrom && matchDateTo;
     });
-  }, [state.items, state.searchQuery, state.filterStatus]);
+  }, [state.items, filterValues]);
 
   const handleRefresh = useCallback(() => {
     actions.setLoading(true);
@@ -171,6 +211,22 @@ export function IntakePage() {
 
   const handleImport = useCallback(() => alert("นำเข้ารายการ (จำลอง)"), []);
   const handleExportPDF = useCallback(() => alert("ส่งออก PDF (จำลอง)"), []);
+
+  const handleExportCSV = useCallback((vals: AdvancedFilterValues) => {
+    const q = (vals.search ?? "").trim().toLowerCase();
+    const rows = state.items.filter((r: IntakeRow) => {
+      const matchQ = !q || r.id.toLowerCase().includes(q) || r.applicant.toLowerCase().includes(q) || r.category.toLowerCase().includes(q);
+      const matchStatus = !vals.status || vals.status === "all" ? true : r.status === vals.status;
+      const matchCategory = !vals.category || vals.category === "all" ? true : r.category === vals.category || r.category === CATEGORIES.find(c => c.value === vals.category)?.label;
+      const matchDateFrom = !vals.submittedAt_from ? true : r.submittedAt >= vals.submittedAt_from;
+      const matchDateTo = !vals.submittedAt_to ? true : r.submittedAt <= vals.submittedAt_to + " 23:59";
+      return matchQ && matchStatus && matchCategory && matchDateFrom && matchDateTo;
+    });
+    exportToCSV(
+      rows.map(r => ({ เลขรับเรื่อง: r.id, รหัสเรื่อง: r.complaintId, วันที่แจ้ง: r.submittedAt, แบบฟอร์ม: r.formName, ผู้แจ้ง: r.applicant, หมวดหมู่: r.category, หน่วยงาน: r.department, ผู้รับผิดชอบ: r.assignee, สถานะ: r.status })),
+      "รายการรับเรียนร้องเรียน",
+    );
+  }, [state.items]);
 
   const handleSubmitCreate = useCallback(() => {
     const newItem: IntakeRow = {
@@ -244,7 +300,6 @@ export function IntakePage() {
   );
 
   const columns: Column<IntakeRow>[] = [
-    createViewColumn<IntakeRow>(handleView),
     {
       key: "id",
       header: "เลขรับเรื่อง",
@@ -321,6 +376,7 @@ export function IntakePage() {
 
   const rowActions = createStandardRowActions<IntakeRow>({
     onEdit: handleEdit,
+    onView: handleView,
     onDelete: handleDelete,
   });
 
@@ -346,20 +402,22 @@ export function IntakePage() {
         }
       />
 
-      <Card className="border-[var(--border)] bg-white shadow-soft">
+      <AdvancedFilter
+        fields={FILTER_FIELDS}
+        onApply={(vals) => {
+          setFilterValues(vals);
+          setHasSearched(true);
+        }}
+        onReset={() => setHasSearched(false)}
+        onExport={handleExportCSV}
+        resultCount={filtered.length}
+        totalCount={state.items.length}
+        isLoading={state.isLoading}
+      />
+
+      {hasSearched && (
+        <Card className="border-[var(--border)] bg-white shadow-soft">
         <CardContent className="p-6 space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <SearchInput
-              value={state.searchQuery}
-              onChange={actions.setSearchQuery}
-              placeholder="ค้นหารายการรับเรื่อง..."
-            />
-            <FilterTabs
-              options={STATUS_OPTIONS}
-              value={state.filterStatus}
-              onChange={actions.setFilterStatus}
-            />
-          </div>
 
           <DataTable
             columns={columns}
@@ -428,6 +486,7 @@ export function IntakePage() {
           />
         </CardContent>
       </Card>
+      )}
 
       <CreateEditModal
         open={modalOpen}

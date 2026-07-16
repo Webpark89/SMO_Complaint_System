@@ -182,13 +182,6 @@ export function StatesPage() {
 
   const columns: Column<StateRow>[] = [
     {
-      key: "id",
-      header: "รหัส",
-      render: (r) => (
-        <span className="font-semibold text-slate-700">{r.id}</span>
-      ),
-    },
-    {
       key: "name",
       header: "ชื่อสถานะ",
       render: (r) => (

@@ -139,7 +139,6 @@ function RouteComponent() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>รหัส</TableHead>
                   <TableHead>วันที่/เวลา</TableHead>
                   <TableHead>ผู้ใช้</TableHead>
                   <TableHead>บทบาท</TableHead>
@@ -152,9 +151,6 @@ function RouteComponent() {
               <TableBody>
                 {filtered.map((row) => (
                   <TableRow key={row.id}>
-                    <TableCell className="font-semibold text-slate-700">
-                      {row.id}
-                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3 text-slate-400" />
@@ -198,7 +194,7 @@ function RouteComponent() {
                 {filtered.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={8}
+                      colSpan={7}
                       className="py-10 text-center text-sm font-semibold text-slate-500"
                     >
                       ไม่พบรายการ

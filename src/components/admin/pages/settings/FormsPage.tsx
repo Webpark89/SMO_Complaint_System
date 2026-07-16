@@ -220,13 +220,6 @@ export function FormsPage() {
 
   const columns: Column<FormRow>[] = [
     {
-      key: "id",
-      header: "รหัสฟอร์ม",
-      render: (r) => (
-        <span className="font-semibold text-slate-700">{r.id}</span>
-      ),
-    },
-    {
       key: "name",
       header: "ชื่อฟอร์ม",
       render: (r) => (

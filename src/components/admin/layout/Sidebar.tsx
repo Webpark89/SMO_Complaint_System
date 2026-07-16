@@ -1,4 +1,5 @@
 import { Link, useRouter } from "@tanstack/react-router";
+import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   ShieldCheck,
@@ -172,7 +173,7 @@ const NAV: NavItem[] = [
   },
   {
     key: "categories",
-    label: "ประเภทเรื่องร้องเรียน",
+    label: "หัวข้อหลักเรื่องร้องเรียน",
     path: "/admin/settings/categories",
     icon: Layers,
     group: "SETTINGS",
@@ -235,24 +236,36 @@ const GROUPS: Array<{ title: string; keys: NavItem["group"][] }> = [
   { title: "ตั้งค่าระบบ", keys: ["SETTINGS"] },
 ];
 
-type SidebarProps = { activeKey: NavKey | null };
+type SidebarProps = { 
+  activeKey: NavKey | null;
+  isCollapsed: boolean;
+};
 
-export function Sidebar({ activeKey }: SidebarProps) {
+export function Sidebar({ activeKey, isCollapsed }: SidebarProps) {
   const router = useRouter();
   const { roles, signOut, loading } = useAuth(); // นำ roles และ signOut มาใช้งาน
 
   // ถ้าต้องการโหลดข้อมูลให้เสร็จก่อนเรนเดอร์เมนู
   if (loading) {
     return (
-      <aside className="hidden h-full w-[320px] shrink-0 border-r border-[var(--border)] bg-white md:flex flex-col items-center justify-center text-slate-400">
-        <span className="text-sm">กำลังโหลดเมนู...</span>
+      <aside className={cn(
+        "hidden h-full shrink-0 border-r border-[var(--border)] bg-white md:flex flex-col items-center justify-center text-slate-400 transition-all duration-300",
+        isCollapsed ? "w-[80px]" : "w-[320px]"
+      )}>
+        <span className="text-sm">{isCollapsed ? "..." : "กำลังโหลดเมนู..."}</span>
       </aside>
     );
   }
 
   return (
-    <aside className="hidden h-full w-[320px] shrink-0 border-r border-[var(--border)] bg-white md:flex flex-col">
-      <nav className="flex-1 overflow-auto px-4 py-6 pb-22">
+    <aside className={cn(
+      "hidden h-full shrink-0 border-r border-[var(--border)] bg-white md:flex flex-col transition-all duration-300",
+      isCollapsed ? "w-[80px]" : "w-[320px]"
+    )}>
+      <nav className={cn(
+        "flex-1 overflow-auto py-6 pb-22",
+        isCollapsed ? "px-2" : "px-4"
+      )}>
         {GROUPS.map((g) => {
           // กรองเมนูตาม Role
           const items = NAV.filter(
@@ -265,10 +278,15 @@ export function Sidebar({ activeKey }: SidebarProps) {
 
           return (
             <div key={g.title}>
-              <h3 className="px-6 text-[11px] font-bold tracking-wider text-slate-500">
-                {g.title}
-              </h3>
-              <div className="mt-2 mb-5 space-y-2 px-3">
+              {!isCollapsed && (
+                <h3 className="px-6 text-[11px] font-bold tracking-wider text-slate-500">
+                  {g.title}
+                </h3>
+              )}
+              <div className={cn(
+                "mt-2 mb-5 space-y-2",
+                isCollapsed ? "px-1" : "px-3"
+              )}>
                 {items.map((item) => {
                   const isActive = item.key === activeKey;
                   const Icon = item.icon;
@@ -276,20 +294,22 @@ export function Sidebar({ activeKey }: SidebarProps) {
                     <Link
                       key={item.key}
                       to={item.path}
-                      className={
+                      className={cn(
                         isActive
-                          ? "relative flex items-center gap-3 rounded-2xl bg-[var(--gold)]/10 px-4 py-3 text-sm font-semibold text-[#111827] shadow-soft ring-1 ring-[rgba(176,141,87,0.35)]"
-                          : "flex items-center gap-3 rounded-2xl bg-white px-4 py-3 text-sm font-medium text-slate-600 transition-colors hover:bg-[var(--surface-muted)] hover:text-[#111827]"
-                      }
+                          ? "relative flex items-center rounded-2xl bg-[var(--gold)]/10 py-3 text-sm font-semibold text-[#111827] shadow-soft ring-1 ring-[rgba(176,141,87,0.35)]"
+                          : "flex items-center rounded-2xl bg-white py-3 text-sm font-medium text-slate-600 transition-colors hover:bg-[var(--surface-muted)] hover:text-[#111827]",
+                        isCollapsed ? "justify-center px-0 w-12 h-12 mx-auto" : "gap-3 px-4"
+                      )}
+                      title={isCollapsed ? item.label : undefined}
                     >
-                      {isActive && (
+                      {isActive && !isCollapsed && (
                         <span
                           className="absolute left-0 top-1/2 h-7 w-[3px] -translate-y-1/2 rounded-full bg-[var(--gold)]"
                           aria-hidden
                         />
                       )}
-                      <Icon className="h-4 w-4" />
-                      <span className="truncate">{item.label}</span>
+                      <Icon className="h-5 w-5 shrink-0" />
+                      {!isCollapsed && <span className="truncate">{item.label}</span>}
                     </Link>
                   );
                 })}
@@ -298,19 +318,23 @@ export function Sidebar({ activeKey }: SidebarProps) {
           );
         })}
       </nav>
-      
+
       <div className="sticky bottom-0 p-2 bg-white border-t border-[var(--border)] z-10">
         <button
           type="button"
-          className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-accent-500 transition-colors hover:bg-accent-50 hover:text-accent-600"
+          className={cn(
+            "flex items-center text-sm font-medium text-[#EF4444] transition-colors hover:bg-red-50 rounded-2xl py-3 w-full",
+            isCollapsed ? "justify-center px-0 w-12 h-12 mx-auto" : "gap-3 px-4"
+          )}
           onClick={async () => {
             await signOut(); // ใช้ฟังก์ชันจาก Auth Context
             localStorage.removeItem("auth-token"); // เผื่อมีการใช้งาน token แยก
             router.navigate({ to: "/auth" });
           }}
+          title="ออกจากระบบ"
         >
-          <LogOut className="h-5 w-5 text-red-500" />
-          <span className="truncate text-red-500">ออกจากระบบ</span>
+          <LogOut className="h-5 w-5 text-red-500 shrink-0" />
+          {!isCollapsed && <span className="truncate text-red-500">ออกจากระบบ</span>}
         </button>
       </div>
     </aside>

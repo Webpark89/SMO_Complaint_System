@@ -81,8 +81,8 @@ function DetailPage() {
   const [history, setHistory] = useState<
     {
       id: string;
-      to_status: ComplaintStatus;
-      from_status: ComplaintStatus | null;
+      to_status: string;
+      from_status: string | null;
       created_at: string;
     }[]
   >([]);
@@ -388,7 +388,7 @@ function DetailPage() {
                   >
                     <span className="absolute -left-[27px] top-1.5 h-3 w-3 rounded-full border-2 border-background bg-primary" />
                     <div className="text-sm font-medium">
-                      {STATUS_LABELS[h.to_status] || "ไม่ทราบสถานะ"}
+                      {STATUS_LABELS[h.to_status as ComplaintStatus] ?? "ไม่ทราบสถานะ"}
                     </div>
                     <div
                       className="text-xs text-muted-foreground"

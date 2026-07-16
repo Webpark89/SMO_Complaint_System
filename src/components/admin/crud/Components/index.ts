@@ -16,3 +16,6 @@ export { PageHeader } from "./PageHeader";
 export type { BreadcrumbItem, PageHeaderProps } from "./PageHeader";
 export { ActionToolbar } from "./PageHeader";
 export type { ActionToolbarProps } from "./PageHeader";
+export { AdvancedFilter } from "./AdvancedFilter";
+export type { AdvancedFilterProps, AdvancedFilterValues, FilterFieldConfig } from "./AdvancedFilter";
+

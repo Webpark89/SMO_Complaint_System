@@ -1,4 +1,4 @@
-export type UserStatus = "เปิดใช้งาน" | "ระงับ" | "รอยืนยัน";
+export type UserStatus = "เปิดใช้งาน" | "ปิดใช้งาน" | "รอยืนยัน";
 
 export type UserRow = {
   id: string;
@@ -36,7 +36,7 @@ export const mockUsers: UserRow[] = [
     role: "ผู้ดูแลเรื่อง",
     department: "กฎหมาย",
     lastLogin: "2026-05-30 11:15",
-    status: "ระงับ",
+    status: "ปิดใช้งาน",
   },
   {
     id: "USR-004",
@@ -78,6 +78,6 @@ export const DEPARTMENTS = [
 export const USER_STATUS_OPTIONS = [
   { value: "all", label: "ทั้งหมด" },
   { value: "เปิดใช้งาน", label: "เปิดใช้งาน" },
-  { value: "ระงับ", label: "ระงับ" },
+  { value: "ปิดใช้งาน", label: "ปิดใช้งาน" },
   { value: "รอยืนยัน", label: "รอยืนยัน" },
 ];

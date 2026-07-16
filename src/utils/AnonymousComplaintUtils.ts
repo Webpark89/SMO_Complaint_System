@@ -9,11 +9,8 @@
  * XXXXX = 5-digit random number
  */
 export function generateReferenceNumber(): string {
-  const year = new Date().getFullYear();
-  const random = Math.floor(Math.random() * 100000)
-    .toString()
-    .padStart(5, "0");
-  return `CMP-${year}-${random}`;
+  const randomDigits = Math.floor(10000000 + Math.random() * 90000000).toString();
+  return `CMP-${randomDigits}`;
 }
 
 /**
