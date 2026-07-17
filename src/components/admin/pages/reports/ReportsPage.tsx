@@ -19,11 +19,13 @@ import {
   DetailDrawer,
   StatusBadge,
   StatusVariant,
-  FilterTabs,
-  SearchInput,
   useCRUD,
   getReportStatusVariant,
+  AdvancedFilter,
+  AdvancedFilterValues,
+  FilterFieldConfig,
 } from "@/components/admin/crud";
+import { exportToCSV } from "@/utils/exportUtils";
 
 type ReportFormat = "PDF" | "XLSX" | "CSV";
 
@@ -53,6 +55,8 @@ const STATUS_OPTIONS = [
   { value: "รอดำเนินการ", label: "รอดำเนินการ" },
 ];
 
+
+
 const statusVariant = (s: string): StatusVariant => getReportStatusVariant(s);
 
 function formatVariant(f: ReportFormat): string {
@@ -79,26 +83,70 @@ export function ReportsPage() {
   const [state, actions] = useCRUD<ReportRow>(mockReports);
   const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ReportRow | null>(null);
+  const [filterValues, setFilterValues] = useState<AdvancedFilterValues>({});
+  const [hasSearched, setHasSearched] = useState(false);
 
-  const filtered = useMemo(() => {
-    const q = state.searchQuery.trim().toLowerCase();
-    return state.items.filter((r: ReportRow) => {
+  const filterFields: FilterFieldConfig[] = useMemo(
+    () => [
+      {
+        key: "search",
+        label: "ค้นหา",
+        type: "text",
+        placeholder: "รหัสรายงาน, ชื่อรายงาน, ช่วงเวลา...",
+      },
+      {
+        key: "format",
+        label: "รูปแบบ",
+        type: "select",
+        options: FORMAT_OPTIONS.slice(1),
+        placeholder: "เลือกรูปแบบ",
+      },
+      {
+        key: "status",
+        label: "สถานะ",
+        type: "select",
+        options: STATUS_OPTIONS.slice(1),
+        placeholder: "เลือกสถานะ",
+      },
+      {
+        key: "createdAt",
+        label: "ช่วงวันที่สร้าง",
+        type: "daterange",
+      },
+    ],
+    [],
+  );
+
+  const matchRow = useCallback(
+    (r: ReportRow, vals: AdvancedFilterValues) => {
+      const q = (vals.search ?? "").trim().toLowerCase();
       const matchQ =
         !q ||
         r.id.toLowerCase().includes(q) ||
         r.name.toLowerCase().includes(q) ||
         r.range.toLowerCase().includes(q);
       const matchFormat =
-        state.filterStatus === "all"
+        !vals.format || vals.format === "all"
           ? true
-          : state.filterStatus === "PDF" ||
-              state.filterStatus === "XLSX" ||
-              state.filterStatus === "CSV"
-            ? r.format === state.filterStatus
-            : r.status === state.filterStatus;
-      return matchQ && matchFormat;
-    });
-  }, [state.items, state.searchQuery, state.filterStatus]);
+          : r.format === vals.format;
+      const matchStatus =
+        !vals.status || vals.status === "all"
+          ? true
+          : r.status === vals.status;
+      const matchDateFrom = !vals.createdAt_from
+        ? true
+        : r.createdAt >= vals.createdAt_from;
+      const matchDateTo = !vals.createdAt_to
+        ? true
+        : r.createdAt <= vals.createdAt_to + " 23:59";
+      return matchQ && matchFormat && matchStatus && matchDateFrom && matchDateTo;
+    },
+    [],
+  );
+
+  const filtered = useMemo(() => {
+    return state.items.filter((r: ReportRow) => matchRow(r, filterValues));
+  }, [state.items, filterValues, matchRow]);
 
   const handleRefresh = useCallback(() => {
     actions.setLoading(true);
@@ -106,9 +154,29 @@ export function ReportsPage() {
   }, [actions]);
 
   const handleExportPDF = useCallback(() => alert("ส่งออก PDF (จำลอง)"), []);
-  const handleExportCSV = useCallback(() => alert("ส่งออก CSV (จำลอง)"), []);
   const handleExportXLSX = useCallback(() => alert("ส่งออก XLSX (จำลอง)"), []);
   const handlePrint = useCallback(() => alert("พิมพ์รายงาน (จำลอง)"), []);
+
+  const handleExportCSV = useCallback(
+    (vals: AdvancedFilterValues) => {
+      const rows = state.items.filter((r: ReportRow) => matchRow(r, vals));
+      exportToCSV(
+        rows.map((r) => ({
+          รหัสรายงาน: r.id,
+          ชื่อรายงาน: r.name,
+          คำอธิบาย: r.description,
+          ช่วงเวลา: r.range,
+          สร้างเมื่อ: r.createdAt,
+          ผู้สร้าง: r.createdBy,
+          รูปแบบ: r.format,
+          สถานะ: r.status,
+          ดาวน์โหลด: r.downloads,
+        })),
+        "รายงานทั้งหมด",
+      );
+    },
+    [state.items, matchRow],
+  );
 
   const handleView = useCallback((row: ReportRow) => {
     setSelectedItem(row);
@@ -176,7 +244,7 @@ export function ReportsPage() {
           <ActionToolbar
             onRefresh={handleRefresh}
             onExportPDF={handleExportPDF}
-            onExportCSV={handleExportCSV}
+            onExportCSV={() => handleExportCSV(filterValues)}
             exportLabel="ส่งออก"
             showAddNew
             showImport
@@ -186,41 +254,43 @@ export function ReportsPage() {
         }
       />
 
-      <Card className="border-[var(--border)] bg-white shadow-soft">
-        <CardContent className="p-6 space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <SearchInput
-              value={state.searchQuery}
-              onChange={actions.setSearchQuery}
-              placeholder="ค้นหารายงาน..."
-            />
-            <FilterTabs
-              options={STATUS_OPTIONS}
-              value={state.filterStatus}
-              onChange={actions.setFilterStatus}
-            />
-          </div>
+      <AdvancedFilter
+        fields={filterFields}
+        onApply={(vals) => {
+          setFilterValues(vals);
+          setHasSearched(true);
+        }}
+        onReset={() => setHasSearched(false)}
+        onExport={handleExportCSV}
+        resultCount={filtered.length}
+        totalCount={state.items.length}
+        isLoading={state.isLoading}
+      />
 
-          <DataTable
-            columns={columns}
-            data={filtered}
-            keyAccessor={(r) => r.id}
-            selectedIds={state.selectedIds}
-            onToggleSelect={actions.toggleSelect}
-            onSelectAll={actions.selectAll}
-            onRowClick={handleView}
-            emptyMessage="ไม่พบรายงาน"
-            isLoading={state.isLoading}
-            showRowNumbers
-            pagination={{
-              page: state.page,
-              pageSize: state.pageSize,
-              total: filtered.length,
-              onPageChange: actions.setPage,
-            }}
-          />
-        </CardContent>
-      </Card>
+      {hasSearched && (
+        <Card className="border-[var(--border)] bg-white shadow-soft">
+          <CardContent className="p-6 space-y-4">
+            <DataTable
+              columns={columns}
+              data={filtered}
+              keyAccessor={(r) => r.id}
+              selectedIds={state.selectedIds}
+              onToggleSelect={actions.toggleSelect}
+              onSelectAll={actions.selectAll}
+              onRowClick={handleView}
+              emptyMessage="ไม่พบรายงาน"
+              isLoading={state.isLoading}
+              showRowNumbers
+              pagination={{
+                page: state.page,
+                pageSize: state.pageSize,
+                total: filtered.length,
+                onPageChange: actions.setPage,
+              }}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       <DetailDrawer
         open={detailDrawerOpen}

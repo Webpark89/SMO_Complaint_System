@@ -41,6 +41,9 @@ import { Route as AdminSettingsUsersIndexRouteImport } from './routes/admin/sett
 import { Route as AdminSettingsRolesIndexRouteImport } from './routes/admin/settings/roles/index'
 import { Route as AdminSettingsCategoriesIndexRouteImport } from './routes/admin/settings/categories/index'
 import { Route as AdminComplaintsApprovalIndexRouteImport } from './routes/admin/complaints/approval/index'
+import { Route as AdminSettingsUsersNewRouteImport } from './routes/admin/settings/users/new'
+import { Route as AdminSettingsRolesNewRouteImport } from './routes/admin/settings/roles/new'
+import { Route as AdminSettingsCategoriesNewRouteImport } from './routes/admin/settings/categories/new'
 import { Route as AdminComplaintsEditIdRouteImport } from './routes/admin/complaints/edit/$id'
 import { Route as AdminSettingsUsersEditIdRouteImport } from './routes/admin/settings/users/edit/$id'
 import { Route as AdminSettingsRolesEditIdRouteImport } from './routes/admin/settings/roles/edit/$id'
@@ -219,6 +222,22 @@ const AdminComplaintsApprovalIndexRoute =
     path: '/admin/complaints/approval/',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AdminSettingsUsersNewRoute = AdminSettingsUsersNewRouteImport.update({
+  id: '/admin/settings/users/new',
+  path: '/admin/settings/users/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSettingsRolesNewRoute = AdminSettingsRolesNewRouteImport.update({
+  id: '/admin/settings/roles/new',
+  path: '/admin/settings/roles/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSettingsCategoriesNewRoute =
+  AdminSettingsCategoriesNewRouteImport.update({
+    id: '/admin/settings/categories/new',
+    path: '/admin/settings/categories/new',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AdminComplaintsEditIdRoute = AdminComplaintsEditIdRouteImport.update({
   id: '/admin/complaints/edit/$id',
   path: '/admin/complaints/edit/$id',
@@ -279,6 +298,9 @@ export interface FileRoutesByFullPath {
   '/admin/reports/': typeof AdminReportsIndexRoute
   '/admin/settings/': typeof AdminSettingsIndexRoute
   '/admin/complaints/edit/$id': typeof AdminComplaintsEditIdRoute
+  '/admin/settings/categories/new': typeof AdminSettingsCategoriesNewRoute
+  '/admin/settings/roles/new': typeof AdminSettingsRolesNewRoute
+  '/admin/settings/users/new': typeof AdminSettingsUsersNewRoute
   '/admin/complaints/approval/': typeof AdminComplaintsApprovalIndexRoute
   '/admin/settings/categories/': typeof AdminSettingsCategoriesIndexRoute
   '/admin/settings/roles/': typeof AdminSettingsRolesIndexRoute
@@ -318,6 +340,9 @@ export interface FileRoutesByTo {
   '/admin/reports': typeof AdminReportsIndexRoute
   '/admin/settings': typeof AdminSettingsIndexRoute
   '/admin/complaints/edit/$id': typeof AdminComplaintsEditIdRoute
+  '/admin/settings/categories/new': typeof AdminSettingsCategoriesNewRoute
+  '/admin/settings/roles/new': typeof AdminSettingsRolesNewRoute
+  '/admin/settings/users/new': typeof AdminSettingsUsersNewRoute
   '/admin/complaints/approval': typeof AdminComplaintsApprovalIndexRoute
   '/admin/settings/categories': typeof AdminSettingsCategoriesIndexRoute
   '/admin/settings/roles': typeof AdminSettingsRolesIndexRoute
@@ -358,6 +383,9 @@ export interface FileRoutesById {
   '/admin/reports/': typeof AdminReportsIndexRoute
   '/admin/settings/': typeof AdminSettingsIndexRoute
   '/admin/complaints/edit/$id': typeof AdminComplaintsEditIdRoute
+  '/admin/settings/categories/new': typeof AdminSettingsCategoriesNewRoute
+  '/admin/settings/roles/new': typeof AdminSettingsRolesNewRoute
+  '/admin/settings/users/new': typeof AdminSettingsUsersNewRoute
   '/admin/complaints/approval/': typeof AdminComplaintsApprovalIndexRoute
   '/admin/settings/categories/': typeof AdminSettingsCategoriesIndexRoute
   '/admin/settings/roles/': typeof AdminSettingsRolesIndexRoute
@@ -399,6 +427,9 @@ export interface FileRouteTypes {
     | '/admin/reports/'
     | '/admin/settings/'
     | '/admin/complaints/edit/$id'
+    | '/admin/settings/categories/new'
+    | '/admin/settings/roles/new'
+    | '/admin/settings/users/new'
     | '/admin/complaints/approval/'
     | '/admin/settings/categories/'
     | '/admin/settings/roles/'
@@ -438,6 +469,9 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/settings'
     | '/admin/complaints/edit/$id'
+    | '/admin/settings/categories/new'
+    | '/admin/settings/roles/new'
+    | '/admin/settings/users/new'
     | '/admin/complaints/approval'
     | '/admin/settings/categories'
     | '/admin/settings/roles'
@@ -477,6 +511,9 @@ export interface FileRouteTypes {
     | '/admin/reports/'
     | '/admin/settings/'
     | '/admin/complaints/edit/$id'
+    | '/admin/settings/categories/new'
+    | '/admin/settings/roles/new'
+    | '/admin/settings/users/new'
     | '/admin/complaints/approval/'
     | '/admin/settings/categories/'
     | '/admin/settings/roles/'
@@ -517,6 +554,9 @@ export interface RootRouteChildren {
   AdminReportsIndexRoute: typeof AdminReportsIndexRoute
   AdminSettingsIndexRoute: typeof AdminSettingsIndexRoute
   AdminComplaintsEditIdRoute: typeof AdminComplaintsEditIdRoute
+  AdminSettingsCategoriesNewRoute: typeof AdminSettingsCategoriesNewRoute
+  AdminSettingsRolesNewRoute: typeof AdminSettingsRolesNewRoute
+  AdminSettingsUsersNewRoute: typeof AdminSettingsUsersNewRoute
   AdminComplaintsApprovalIndexRoute: typeof AdminComplaintsApprovalIndexRoute
   AdminSettingsCategoriesIndexRoute: typeof AdminSettingsCategoriesIndexRoute
   AdminSettingsRolesIndexRoute: typeof AdminSettingsRolesIndexRoute
@@ -753,6 +793,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminComplaintsApprovalIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/settings/users/new': {
+      id: '/admin/settings/users/new'
+      path: '/admin/settings/users/new'
+      fullPath: '/admin/settings/users/new'
+      preLoaderRoute: typeof AdminSettingsUsersNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/settings/roles/new': {
+      id: '/admin/settings/roles/new'
+      path: '/admin/settings/roles/new'
+      fullPath: '/admin/settings/roles/new'
+      preLoaderRoute: typeof AdminSettingsRolesNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/settings/categories/new': {
+      id: '/admin/settings/categories/new'
+      path: '/admin/settings/categories/new'
+      fullPath: '/admin/settings/categories/new'
+      preLoaderRoute: typeof AdminSettingsCategoriesNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/complaints/edit/$id': {
       id: '/admin/complaints/edit/$id'
       path: '/admin/complaints/edit/$id'
@@ -821,6 +882,9 @@ const rootRouteChildren: RootRouteChildren = {
   AdminReportsIndexRoute: AdminReportsIndexRoute,
   AdminSettingsIndexRoute: AdminSettingsIndexRoute,
   AdminComplaintsEditIdRoute: AdminComplaintsEditIdRoute,
+  AdminSettingsCategoriesNewRoute: AdminSettingsCategoriesNewRoute,
+  AdminSettingsRolesNewRoute: AdminSettingsRolesNewRoute,
+  AdminSettingsUsersNewRoute: AdminSettingsUsersNewRoute,
   AdminComplaintsApprovalIndexRoute: AdminComplaintsApprovalIndexRoute,
   AdminSettingsCategoriesIndexRoute: AdminSettingsCategoriesIndexRoute,
   AdminSettingsRolesIndexRoute: AdminSettingsRolesIndexRoute,

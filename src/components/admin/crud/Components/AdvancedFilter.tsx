@@ -1,11 +1,13 @@
-import React, { useState } from "react";
-import { Search, RotateCcw, Filter, Download, Calendar as CalendarIcon } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import { Search, RotateCcw, Filter, Download, Calendar as CalendarIcon, ChevronDown } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Popover,
   PopoverContent,
@@ -25,10 +27,163 @@ export type AdvancedFilterValues = Record<string, string | undefined>;
 export type FilterFieldConfig = {
   key: string;
   label: string;
-  type: "text" | "select" | "daterange";
+  type: "text" | "select" | "daterange" | "grouped-multi-select" | "selectrange";
   placeholder?: string;
   options?: { value: string; label: string; code?: string }[];
+  groupedOptions?: {
+    groupLabel: string;
+    items: { value: string; label: string }[];
+  }[];
 };
+
+interface GroupedMultiSelectFieldProps {
+  field: FilterFieldConfig;
+  value: string;
+  onChange: (value: string) => void;
+}
+
+export function GroupedMultiSelectField({
+  field,
+  value,
+  onChange,
+}: GroupedMultiSelectFieldProps) {
+  const [open, setOpen] = useState(false);
+
+  const currentSelected = useMemo(() => {
+    return value ? value.split(",") : [];
+  }, [value]);
+
+  const [localSelected, setLocalSelected] = useState<string[]>(currentSelected);
+
+  useEffect(() => {
+    if (open) {
+      setLocalSelected(currentSelected);
+    }
+  }, [open, currentSelected]);
+
+  const handleToggle = (itemVal: string) => {
+    setLocalSelected((prev) =>
+      prev.includes(itemVal)
+        ? prev.filter((v) => v !== itemVal)
+        : [...prev, itemVal]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (!field.groupedOptions) return;
+    const allVals = field.groupedOptions.flatMap((g) => g.items.map((i) => i.value));
+    setLocalSelected(allVals);
+  };
+
+  const handleClearSelection = () => {
+    setLocalSelected([]);
+  };
+
+  const handleApply = () => {
+    onChange(localSelected.join(","));
+    setOpen(false);
+  };
+
+  const handleCancel = () => {
+    setLocalSelected([]);
+    onChange("");
+    setOpen(false);
+  };
+
+  const triggerLabel = useMemo(() => {
+    if (currentSelected.length === 0) {
+      return field.placeholder || "เลือก...";
+    }
+    return `เลือก ${currentSelected.length} รายการ`;
+  }, [currentSelected, field.placeholder]);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className="w-full justify-between text-left font-normal bg-white border-slate-200 h-9 px-3 text-slate-700 hover:bg-slate-50 hover:text-slate-800"
+        >
+          <span className="truncate">{triggerLabel}</span>
+          <ChevronDown className="ml-auto h-4 w-4 opacity-50 text-slate-400" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[320px] p-0" align="start">
+        <div className="flex justify-between items-center p-3 border-b bg-slate-50/50">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSelectAll}
+            className="h-7 px-2 text-xs text-slate-600 hover:text-slate-900"
+          >
+            เลือกทั้งหมด
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClearSelection}
+            className="h-7 px-2 text-xs text-slate-600 hover:text-slate-900"
+          >
+            ล้างการเลือก
+          </Button>
+        </div>
+
+        <ScrollArea className="h-64 p-3">
+          <div className="space-y-4">
+            {field.groupedOptions?.map((group) => (
+              <div key={group.groupLabel} className="space-y-2">
+                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-1">
+                  {group.groupLabel}
+                </div>
+                <div className="space-y-1 pl-1">
+                  {group.items.map((item) => {
+                    const isChecked = localSelected.includes(item.value);
+                    return (
+                      <div
+                        key={item.value}
+                        className="flex items-center space-x-2 py-1 px-2 rounded hover:bg-slate-50 cursor-pointer"
+                        onClick={() => handleToggle(item.value)}
+                      >
+                        <Checkbox
+                          checked={isChecked}
+                          id={`chk-${item.value}`}
+                          className="border-slate-300 data-[state=checked]:bg-[#C9A84C] data-[state=checked]:border-[#C9A84C] pointer-events-none"
+                        />
+                        <label
+                          className="text-sm font-medium text-slate-600 leading-none cursor-pointer flex-1 select-none pointer-events-none"
+                        >
+                          {item.label}
+                        </label>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+
+        <div className="flex gap-2 p-3 border-t bg-slate-50/50">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleCancel}
+            className="flex-1 text-xs text-slate-600 border-slate-300 hover:bg-slate-50 h-8"
+          >
+            ล้างตัวกรอง
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleApply}
+            className="flex-1 text-xs bg-[#1B2B4B] text-white hover:bg-[#1B2B4B]/90 h-8"
+          >
+            ตกลง
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export interface AdvancedFilterProps {
   fields: FilterFieldConfig[];
@@ -97,7 +252,7 @@ export function AdvancedFilter({
               onClick={handleApply}
               disabled={isLoading}
               size="sm"
-              className="bg-[#1B2B4B] text-white hover:bg-[#1B2B4B]/90 shadow-sm"
+              className="bg-[#1B2B4B] text-white hover:bg-[#C9A84C] transition-colors duration-200 shadow-sm"
             >
               <Search className="mr-2 h-4 w-4" /> ค้นหา
             </Button>
@@ -106,7 +261,7 @@ export function AdvancedFilter({
                 onClick={handleExport}
                 disabled={isLoading}
                 size="sm"
-                className="bg-[#C9A84C] text-white hover:bg-[#C9A84C]/90 shadow-sm"
+                className="bg-[#C9A84C] text-white hover:bg-[#1B2B4B] transition-colors duration-200 shadow-sm"
               >
                 <Download className="mr-2 h-4 w-4" /> ส่งออก (Export)
               </Button>
@@ -147,6 +302,52 @@ export function AdvancedFilter({
                     ))}
                   </SelectContent>
                 </Select>
+              )}
+
+              {field.type === "grouped-multi-select" && (
+                <GroupedMultiSelectField
+                  field={field}
+                  value={values[field.key] || ""}
+                  onChange={(val) => handleTextChange(field.key, val)}
+                />
+              )}
+
+              {field.type === "selectrange" && (
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={values[`${field.key}_from`] || "all"}
+                    onValueChange={(val) => handleSelectChange(`${field.key}_from`, val)}
+                  >
+                    <SelectTrigger className="bg-white border-slate-200 h-9">
+                      <SelectValue placeholder="เริ่มต้น" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">ทั้งหมด</SelectItem>
+                      {field.options?.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="text-slate-400 text-sm">ถึง</span>
+                  <Select
+                    value={values[`${field.key}_to`] || "all"}
+                    onValueChange={(val) => handleSelectChange(`${field.key}_to`, val)}
+                  >
+                    <SelectTrigger className="bg-white border-slate-200 h-9">
+                      <SelectValue placeholder="สิ้นสุด" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">ทั้งหมด</SelectItem>
+                      {field.options?.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               )}
 
               {field.type === "daterange" && (

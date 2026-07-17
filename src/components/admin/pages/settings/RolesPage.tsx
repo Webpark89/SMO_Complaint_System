@@ -112,25 +112,11 @@ export function RolesPage() {
   }, [actions]);
 
   const handleAddNew = useCallback(() => {
-    setCreateValues({ name: "", description: "" });
-    setModalOpen(true);
-  }, []);
+    navigate({ to: "/admin/settings/roles/new" });
+  }, [navigate]);
 
   const handleImport = useCallback(() => alert("นำเข้าบทบาท (จำลอง)"), []);
   const handleExport = useCallback(() => alert("ส่งออกบทบาท (จำลอง)"), []);
-
-  const handleSubmitCreate = useCallback(() => {
-    const newItem: RoleRow = {
-      id: `ROLE-${String(state.items.length + 1).padStart(3, "0")}`,
-      name: createValues.name as string,
-      description: createValues.description as string,
-      userCount: 0,
-      permissions: ["view_complaints"],
-      status: "เปิดใช้งาน",
-    };
-    actions.addItem(newItem);
-    setModalOpen(false);
-  }, [actions, createValues, state.items.length]);
 
   const handleEdit = useCallback((row: RoleRow) => {
     navigate({
@@ -299,18 +285,7 @@ export function RolesPage() {
         </CardContent>
       </Card>
 
-      <CreateEditModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        title="เพิ่มบทบาทใหม่"
-        description="กำหนดชื่อและคำอธิบายสำหรับบทบาทใหม่"
-        fields={CREATE_FIELDS}
-        values={createValues}
-        onValuesChange={setCreateValues}
-        onSubmit={handleSubmitCreate}
-        mode="create"
-        submitLabel="เพิ่มบทบาท"
-      />
+
 
       <DeleteDialog
         open={deleteDialogOpen}

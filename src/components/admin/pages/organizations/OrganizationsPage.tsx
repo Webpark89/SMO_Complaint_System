@@ -274,8 +274,20 @@ export function OrganizationsPage() {
     },
     {
       key: "parent",
-      header: "หน่วยงานแม่",
-      render: (r) => <span className="text-slate-600">{r.parent ?? "-"}</span>,
+      header: "ชื่อย่อหน่วยงาน",
+      render: (r) => {
+        const mapping: Record<string, string> = {
+          "บริษัท เอ แอล ปาล์ม จำกัด": "LA",
+          "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) สำนักงานใหญ่": "SMO",
+          "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) สาขาท่าชนะ": "TCN",
+          "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) สาขาพนม": "PN",
+          "บริษัท กลุ่มสมอทอง จำกัด (มหาชน) สาขาสระบุรี": "SB",
+          "บริษัท กลุ่มสมอทอง จำกัด (มหาชน)": "SMO",
+        };
+        const parentName = r.parent?.trim();
+        const abbrev = parentName ? (mapping[parentName] || r.parent) : "-";
+        return <span className="text-slate-600 font-medium">{abbrev}</span>;
+      },
     },
     {
       key: "isActive",
@@ -289,22 +301,36 @@ export function OrganizationsPage() {
     },
   ];
 
-  const rowActions: RowAction<OrgRow>[] = [
-    hasPermission("manage_settings") && { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
-    { label: "ดูรายละเอียด", icon: <Eye className="h-4 w-4 text-[#B8BABF] hover:text-[#8e6c25]" />, onClick: handleView },
-    hasPermission("manage_settings") && {
+  const rowActions: RowAction<OrgRow>[] = [];
+
+  if (hasPermission("manage_settings")) {
+    rowActions.push({
+      label: "แก้ไข",
+      icon: <Edit className="h-4 w-4" />,
+      onClick: handleEdit,
+    });
+  }
+
+  rowActions.push({
+    label: "ดูรายละเอียด",
+    icon: <Eye className="h-4 w-4 text-[#B8BABF] hover:text-[#8e6c25]" />,
+    onClick: handleView,
+  });
+
+  if (hasPermission("manage_settings")) {
+    rowActions.push({
       label: "ลบ",
       icon: <Trash2 className="h-4 w-4" />,
       onClick: handleDelete,
       variant: "danger",
-    },
-  ].filter((a): a is RowAction<OrgRow> => !!a);
+    });
+  }
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="หน่วยงานและโครงเพิ่มองค์กร"
-        description="จัดการโครงเพิ่มองค์กร (ข้อมูลจำลอง)"
+        title="หน่วยงานและโครงสร้างองค์กร"
+        description="จัดการโครงสร้างองค์กร (ข้อมูลจำลอง)"
         breadcrumbs={[{ label: "ตั้งค่าระบบ" }, { label: "หน่วยงาน" }]}
         actionButtons={
           <ActionToolbar

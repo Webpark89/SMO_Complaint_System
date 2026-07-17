@@ -28,10 +28,12 @@ import {
   DetailDrawer,
   StatusBadge,
   StatusVariant,
-  FilterTabs,
-  SearchInput,
   useCRUD,
+  AdvancedFilter,
+  AdvancedFilterValues,
+  FilterFieldConfig,
 } from "@/components/admin/crud";
+import { exportToCSV } from "@/utils/exportUtils";
 
 type LogStatus = "สำเร็จ" | "ล้มเหลว" | "กำลังดำเนินการ" | "ระงับ";
 
@@ -54,6 +56,21 @@ const STATUS_OPTIONS = [
   { value: "กำลังดำเนินการ", label: "กำลังดำเนินการ" },
   { value: "ระงับ", label: "ระงับ" },
 ];
+
+const MODULES = [
+  { value: "ระบบยืนยันตัวตน", label: "ระบบยืนยันตัวตน" },
+  { value: "จัดการเรื่องร้องเรียน", label: "จัดการเรื่องร้องเรียน" },
+  { value: "การอนุมัติ", label: "การอนุมัติ" },
+  { value: "รายงาน SLA", label: "รายงาน SLA" },
+  { value: "งานสืบสวน", label: "งานสืบสวน" },
+  { value: "รายงานตรวจสอบ", label: "รายงานตรวจสอบ" },
+  { value: "การตั้งค่า", label: "การตั้งค่า" },
+  { value: "การขยายเวลา", label: "การขยายเวลา" },
+  { value: "ระบบความปลอดภัย", label: "ระบบความปลอดภัย" },
+  { value: "เรื่องลับ", label: "เรื่องลับ" },
+];
+
+
 
 function statusVariant(s: LogStatus): StatusVariant {
   if (s === "สำเร็จ") return "success";
@@ -78,10 +95,43 @@ export function AuditReportPage() {
   const [state, actions] = useCRUD<LogRow>(mockAuditLogs);
   const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<LogRow | null>(null);
+  const [filterValues, setFilterValues] = useState<AdvancedFilterValues>({});
+  const [hasSearched, setHasSearched] = useState(false);
 
-  const filtered = useMemo(() => {
-    const q = state.searchQuery.trim().toLowerCase();
-    return state.items.filter((r: LogRow) => {
+  const filterFields: FilterFieldConfig[] = useMemo(
+    () => [
+      {
+        key: "search",
+        label: "ค้นหา",
+        type: "text",
+        placeholder: "รหัสบันทึก, ผู้ใช้, การดำเนินการ...",
+      },
+      {
+        key: "status",
+        label: "สถานะ",
+        type: "select",
+        options: STATUS_OPTIONS.slice(1),
+        placeholder: "เลือกสถานะ",
+      },
+      {
+        key: "module",
+        label: "โมดูล",
+        type: "select",
+        options: MODULES,
+        placeholder: "เลือกโมดูล",
+      },
+      {
+        key: "timestamp",
+        label: "ช่วงวันที่บันทึก",
+        type: "daterange",
+      },
+    ],
+    [],
+  );
+
+  const matchRow = useCallback(
+    (r: LogRow, vals: AdvancedFilterValues) => {
+      const q = (vals.search ?? "").trim().toLowerCase();
       const matchQ =
         !q ||
         r.id.toLowerCase().includes(q) ||
@@ -90,19 +140,59 @@ export function AuditReportPage() {
         r.module.toLowerCase().includes(q) ||
         r.description.toLowerCase().includes(q);
       const matchStatus =
-        state.filterStatus === "all" ? true : r.status === state.filterStatus;
-      return matchQ && matchStatus;
-    });
-  }, [state.items, state.searchQuery, state.filterStatus]);
+        !vals.status || vals.status === "all"
+          ? true
+          : r.status === vals.status;
+      const matchModule =
+        !vals.module || vals.module === "all"
+          ? true
+          : r.module === vals.module;
+      const matchDateFrom = !vals.timestamp_from
+        ? true
+        : r.timestamp >= vals.timestamp_from;
+      const matchDateTo = !vals.timestamp_to
+        ? true
+        : r.timestamp <= vals.timestamp_to + " 23:59";
+      return matchQ && matchStatus && matchModule && matchDateFrom && matchDateTo;
+    },
+    [],
+  );
+
+  const filtered = useMemo(() => {
+    return state.items.filter((r: LogRow) => matchRow(r, filterValues));
+  }, [state.items, filterValues, matchRow]);
 
   const handleRefresh = useCallback(() => {
     actions.setLoading(true);
     setTimeout(() => actions.setLoading(false), 600);
   }, [actions]);
+
   const handleExportPDF = useCallback(
     () => alert("ส่งออก PDF บันทึกตรวจสอบ (จำลอง)"),
     [],
   );
+
+  const handleExportCSV = useCallback(
+    (vals: AdvancedFilterValues) => {
+      const rows = state.items.filter((r: LogRow) => matchRow(r, vals));
+      exportToCSV(
+        rows.map((r) => ({
+          รหัสบันทึก: r.id,
+          วันที่_เวลา: r.timestamp,
+          ผู้ใช้: r.username,
+          บทบาท: r.userRole,
+          การดำเนินการ: r.action,
+          โมดูล: r.module,
+          IP_Address: r.ipAddress,
+          สถานะ: r.status,
+          รายละเอียด: r.description,
+        })),
+        "บันทึกตรวจสอบระบบ",
+      );
+    },
+    [state.items, matchRow],
+  );
+
   const handlePrint = useCallback(
     () => alert("พิมพ์บันทึกตรวจสอบ (จำลอง)"),
     [],
@@ -189,7 +279,7 @@ export function AuditReportPage() {
               PDF
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => alert(`ส่งออก CSV ${r.id} (จำลอง)`)}
+              onClick={() => handleExportCSV({ id: r.id })}
             >
               CSV
             </DropdownMenuItem>
@@ -209,6 +299,7 @@ export function AuditReportPage() {
           <ActionToolbar
             onRefresh={handleRefresh}
             onExportPDF={handleExportPDF}
+            onExportCSV={() => handleExportCSV(filterValues)}
             exportLabel="ส่งออก"
             showExport
             isLoading={state.isLoading}
@@ -216,40 +307,43 @@ export function AuditReportPage() {
         }
       />
 
-      <Card className="border-[var(--border)] bg-white shadow-soft">
-        <CardContent className="p-6 space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <SearchInput
-              value={state.searchQuery}
-              onChange={actions.setSearchQuery}
-              placeholder="ค้นหาบันทึกตรวจสอบ..."
+      <AdvancedFilter
+        fields={filterFields}
+        onApply={(vals) => {
+          setFilterValues(vals);
+          setHasSearched(true);
+        }}
+        onReset={() => setHasSearched(false)}
+        onExport={handleExportCSV}
+        resultCount={filtered.length}
+        totalCount={state.items.length}
+        isLoading={state.isLoading}
+      />
+
+      {hasSearched && (
+        <Card className="border-[var(--border)] bg-white shadow-soft">
+          <CardContent className="p-6 space-y-4">
+            <DataTable
+              columns={columns}
+              data={filtered}
+              keyAccessor={(r) => r.id}
+              selectedIds={state.selectedIds}
+              onToggleSelect={actions.toggleSelect}
+              onSelectAll={actions.selectAll}
+              onRowClick={handleView}
+              emptyMessage="ไม่พบบันทึก"
+              isLoading={state.isLoading}
+              showRowNumbers
+              pagination={{
+                page: state.page,
+                pageSize: state.pageSize,
+                total: filtered.length,
+                onPageChange: actions.setPage,
+              }}
             />
-            <FilterTabs
-              options={STATUS_OPTIONS}
-              value={state.filterStatus}
-              onChange={actions.setFilterStatus}
-            />
-          </div>
-          <DataTable
-            columns={columns}
-            data={filtered}
-            keyAccessor={(r) => r.id}
-            selectedIds={state.selectedIds}
-            onToggleSelect={actions.toggleSelect}
-            onSelectAll={actions.selectAll}
-            onRowClick={handleView}
-            emptyMessage="ไม่พบบันทึก"
-            isLoading={state.isLoading}
-            showRowNumbers
-            pagination={{
-              page: state.page,
-              pageSize: state.pageSize,
-              total: filtered.length,
-              onPageChange: actions.setPage,
-            }}
-          />
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       <DetailDrawer
         open={detailDrawerOpen}

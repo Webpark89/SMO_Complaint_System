@@ -52,6 +52,7 @@ export const FORM_TYPE_IDS = {
   PRODUCT_SERVICE: "product_service" as FormTypeId,
   SAFETY: "safety" as FormTypeId,
   ENVIRONMENTAL: "environmental" as FormTypeId,
+  FINANCIAL: "financial" as FormTypeId,
 };
 
 // ============================================================
@@ -93,6 +94,7 @@ export function getFormTypeIdValues(): FormTypeId[] {
     "product_service",
     "safety",
     "environmental",
+    "financial",
   ];
 }
 

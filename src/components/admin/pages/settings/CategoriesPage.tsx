@@ -101,24 +101,11 @@ export function CategoriesPage() {
   }, [actions]);
 
   const handleAddNew = useCallback(() => {
-    setCreateValues({ name: "", description: "" });
-    setModalOpen(true);
-  }, []);
+    navigate({ to: "/admin/settings/categories/new" });
+  }, [navigate]);
 
   const handleImport = useCallback(() => alert("นำเข้าหมวดหมู่ (จำลอง)"), []);
   const handleExport = useCallback(() => alert("ส่งออกหมวดหมู่ (จำลอง)"), []);
-
-  const handleSubmitCreate = useCallback(() => {
-    const newItem: CategoryRow = {
-      id: `CMP-${String(state.items.length + 1).padStart(3, "0")}`,
-      name: createValues.name as string,
-      description: createValues.description as string,
-      subcategoryCount: 0,
-      status: "เปิดใช้งาน",
-    };
-    actions.addItem(newItem);
-    setModalOpen(false);
-  }, [actions, createValues, state.items.length]);
 
   const handleEdit = useCallback((row: CategoryRow) => {
     navigate({ 
@@ -263,18 +250,7 @@ export function CategoriesPage() {
         </CardContent>
       </Card>
 
-      <CreateEditModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        title="เพิ่มหมวดหมู่ใหม่"
-        description="กำหนดชื่อและคำอธิบายสำหรับหมวดหมู่ใหม่"
-        fields={CREATE_FIELDS}
-        values={createValues}
-        onValuesChange={setCreateValues}
-        onSubmit={handleSubmitCreate}
-        mode="create"
-        submitLabel="เพิ่มหมวดหมู่"
-      />
+
 
       <DeleteDialog
         open={deleteDialogOpen}

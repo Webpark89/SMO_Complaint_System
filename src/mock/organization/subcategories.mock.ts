@@ -82,8 +82,26 @@ export const mockSubcategories: SubcategoryRow[] = [
     status: "เปิดใช้งาน",
   },
   {
-    id: "eth_other",
+    id: "eth_export",
     code: "1.1.6",
+    formTypeId: "ethics",
+    category: getCategoryName("ethics"),
+    name: "ลูกค้า (ลูกค้าที่ซื้อสินค้าส่งออกเป็นหลัก)",
+    description: "ร้องเรียนเรื่องลูกค้าที่ซื้อสินค้าส่งออกเป็นหลัก",
+    status: "เปิดใช้งาน",
+  },
+  {
+    id: "eth_outsource",
+    code: "1.1.7",
+    formTypeId: "ethics",
+    category: getCategoryName("ethics"),
+    name: "คู่ค้า (Outsource เช่น ท่าเรือ เซอร์เวย์ ชิปปิ้ง)",
+    description: "ร้องเรียนเรื่องคู่ค้า Outsource",
+    status: "เปิดใช้งาน",
+  },
+  {
+    id: "eth_other",
+    code: "1.1.8",
     formTypeId: "ethics",
     category: getCategoryName("ethics"),
     name: "อื่นๆ (โปรดระบุ)",
@@ -91,7 +109,7 @@ export const mockSubcategories: SubcategoryRow[] = [
     status: "เปิดใช้งาน",
   },
 
-  // ========== 1.2 ฟอร์มจรรยาบรรณทางธุรกิจ (6 subcategories) ==========
+  // ========== 1.2 ฟอร์มจรรยาบรรณทางธุรกิจ (8 subcategories) ==========
   {
     id: "be_disclosure",
     code: "1.2.1",
@@ -116,7 +134,7 @@ export const mockSubcategories: SubcategoryRow[] = [
     code: "1.2.3",
     formTypeId: "business_ethics",
     category: getCategoryName("business_ethics"),
-    name: "การมีผลประโยชน์ทับซ้อน",
+    name: "การมีผลประโยชน์ทับซ้อน การขัดแย้งทางผลประโยชน์",
     description: "ร้องเรียนเรื่องการมีผลประโยชน์ทับซ้อน",
     status: "เปิดใช้งาน",
   },
@@ -130,8 +148,26 @@ export const mockSubcategories: SubcategoryRow[] = [
     status: "เปิดใช้งาน",
   },
   {
-    id: "be_violation",
+    id: "be_insider",
     code: "1.2.5",
+    formTypeId: "business_ethics",
+    category: getCategoryName("business_ethics"),
+    name: "การใช้ข้อมูลภายใน",
+    description: "ร้องเรียนเรื่องการใช้ข้อมูลภายใน",
+    status: "เปิดใช้งาน",
+  },
+  {
+    id: "be_corruption",
+    code: "1.2.6",
+    formTypeId: "business_ethics",
+    category: getCategoryName("business_ethics"),
+    name: "การต่อต้านคอร์รัปชัน เช่น การให้ของขวัญ การบริจาคเพื่อการกุศล การมีส่วนร่วมทางการเมือง",
+    description: "ร้องเรียนเรื่องการต่อต้านคอร์รัปชัน",
+    status: "เปิดใช้งาน",
+  },
+  {
+    id: "be_violation",
+    code: "1.2.7",
     formTypeId: "business_ethics",
     category: getCategoryName("business_ethics"),
     name: "การไม่ปฏิบัติตามจรรยาบรรณวิชาชีพ",
@@ -140,7 +176,7 @@ export const mockSubcategories: SubcategoryRow[] = [
   },
   {
     id: "be_other",
-    code: "1.2.6",
+    code: "1.2.8",
     formTypeId: "business_ethics",
     category: getCategoryName("business_ethics"),
     name: "อื่นๆ (โปรดระบุ)",
@@ -148,7 +184,7 @@ export const mockSubcategories: SubcategoryRow[] = [
     status: "เปิดใช้งาน",
   },
 
-  // ========== 2.1 ฟอร์มการทุจริต (7 subcategories) ==========
+  // ========== 2.1 ฟอร์มการทุจริต (9 subcategories) ==========
   {
     id: "fr_embezzlement",
     code: "2.1.1",
@@ -204,8 +240,26 @@ export const mockSubcategories: SubcategoryRow[] = [
     status: "เปิดใช้งาน",
   },
   {
-    id: "fr_other",
+    id: "fr_corruption",
     code: "2.1.7",
+    formTypeId: "fraud",
+    category: getCategoryName("fraud"),
+    name: "คอร์รัปชั่น",
+    description: "ร้องเรียนเรื่องการทุจริตคอร์รัปชัน",
+    status: "เปิดใช้งาน",
+  },
+  {
+    id: "fr_financial",
+    code: "2.1.8",
+    formTypeId: "fraud",
+    category: getCategoryName("fraud"),
+    name: "ตกแต่งงบการเงิน",
+    description: "ร้องเรียนเรื่องตกแต่งงบการเงิน",
+    status: "เปิดใช้งาน",
+  },
+  {
+    id: "fr_other",
+    code: "2.1.9",
     formTypeId: "fraud",
     category: getCategoryName("fraud"),
     name: "อื่นๆ (โปรดระบุ)",
@@ -435,6 +489,26 @@ export const mockSubcategories: SubcategoryRow[] = [
     category: getCategoryName("environmental"),
     name: "อื่นๆ (โปรดระบุ)",
     description: "ร้องเรียนเรื่องอื่นๆ ด้านสิ่งแวดล้อม",
+    status: "เปิดใช้งาน",
+  },
+
+  // ========== 7.1 ฟอร์มด้านการเงิน (2 subcategories) ==========
+  {
+    id: "fn_payment_delay",
+    code: "7.1.1",
+    formTypeId: "financial",
+    category: getCategoryName("financial"),
+    name: "การชำระเงินล่าช้า ไม่ตรงตามกำหนด / ผิดพลาด",
+    description: "ร้องเรียนเรื่องการชำระเงินล่าช้า ไม่ตรงตามกำหนด / ผิดพลาด",
+    status: "เปิดใช้งาน",
+  },
+  {
+    id: "fn_other",
+    code: "7.1.2",
+    formTypeId: "financial",
+    category: getCategoryName("financial"),
+    name: "อื่นๆ (โปรดระบุ)",
+    description: "ร้องเรียนเรื่องอื่นๆ ด้านการเงิน",
     status: "เปิดใช้งาน",
   },
 ];

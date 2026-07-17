@@ -109,14 +109,8 @@ export function UsersPage() {
   }, [actions]);
 
   const handleAddNew = useCallback(() => {
-    setCreateValues({
-      name: "",
-      email: "",
-      role: "",
-      status: "รอยืนยัน",
-    });
-    setModalOpen(true);
-  }, []);
+    navigate({ to: "/admin/settings/users/new" });
+  }, [navigate]);
 
   const handleImport = useCallback(() => {
     alert("นำเข้าข้อมูลผู้ใช้ (จำลอง)");
@@ -125,20 +119,6 @@ export function UsersPage() {
   const handleExport = useCallback(() => {
     alert("ส่งออกข้อมูลผู้ใช้ (จำลอง)");
   }, []);
-
-  const handleSubmitCreate = useCallback(() => {
-    const newItem: UserRow = {
-      id: `USR-${String(state.items.length + 1).padStart(3, "0")}`,
-      name: createValues.name as string,
-      email: createValues.email as string,
-      role: createValues.role as string,
-      department: "",
-      lastLogin: "—",
-      status: "รอยืนยัน",
-    };
-    actions.addItem(newItem);
-    setModalOpen(false);
-  }, [actions, createValues, state.items.length]);
 
   const handleEdit = useCallback((row: UserRow) => {
     navigate({ 
@@ -329,19 +309,7 @@ export function UsersPage() {
         </CardContent>
       </Card>
 
-      {/* Create Modal */}
-      <CreateEditModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        title="เพิ่มผู้ใช้ใหม่"
-        description="กรอกข้อมูลผู้ใช้เพื่อเพิ่มบัญชีใหม่"
-        fields={createFields}
-        values={createValues}
-        onValuesChange={setCreateValues}
-        onSubmit={handleSubmitCreate}
-        mode="create"
-        submitLabel="เพิ่มผู้ใช้"
-      />
+
 
       {/* Delete Dialog */}
       <DeleteDialog

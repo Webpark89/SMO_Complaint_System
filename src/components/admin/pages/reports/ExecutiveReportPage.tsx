@@ -26,10 +26,12 @@ import {
   DataTable,
   Column,
   DetailDrawer,
-  FilterTabs,
-  SearchInput,
   useCRUD,
+  AdvancedFilter,
+  AdvancedFilterValues,
+  FilterFieldConfig,
 } from "@/components/admin/crud";
+import { exportToCSV } from "@/utils/exportUtils";
 
 type ExecutiveRow = {
   id: string;
@@ -41,6 +43,11 @@ type ExecutiveRow = {
   topCategory: string;
   generatedAt: string;
 };
+
+const TOP_CATEGORIES = [
+  { value: "การกำกับดูแล", label: "การกำกับดูแล" },
+  { value: "สิ่งแวดล้อม", label: "สิ่งแวดล้อม" },
+];
 
 const DETAIL_FIELDS = [
   { key: "id", label: "รหัสรายงาน" },
@@ -57,27 +64,89 @@ export function ExecutiveReportPage() {
   const [state, actions] = useCRUD<ExecutiveRow>(mockExecutiveReports);
   const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ExecutiveRow | null>(null);
+  const [filterValues, setFilterValues] = useState<AdvancedFilterValues>({});
+  const [hasSearched, setHasSearched] = useState(false);
 
-  const filtered = useMemo(() => {
-    const q = state.searchQuery.trim().toLowerCase();
-    return state.items.filter((r: ExecutiveRow) => {
+  const filterFields: FilterFieldConfig[] = useMemo(
+    () => [
+      {
+        key: "search",
+        label: "ค้นหา",
+        type: "text",
+        placeholder: "รหัสรายงาน, ช่วงเวลา...",
+      },
+      {
+        key: "topCategory",
+        label: "หมวดหมู่สูงสุด",
+        type: "select",
+        options: TOP_CATEGORIES,
+        placeholder: "เลือกหมวดหมู่",
+      },
+      {
+        key: "generatedAt",
+        label: "ช่วงวันที่สร้างรายงาน",
+        type: "daterange",
+      },
+    ],
+    [],
+  );
+
+  const matchRow = useCallback(
+    (r: ExecutiveRow, vals: AdvancedFilterValues) => {
+      const q = (vals.search ?? "").trim().toLowerCase();
       const matchQ =
         !q ||
         r.id.toLowerCase().includes(q) ||
-        r.period.toLowerCase().includes(q) ||
-        r.topCategory.toLowerCase().includes(q);
-      return matchQ;
-    });
-  }, [state.items, state.searchQuery]);
+        r.period.toLowerCase().includes(q);
+      const matchCategory =
+        !vals.topCategory || vals.topCategory === "all"
+          ? true
+          : r.topCategory === vals.topCategory;
+      const matchDateFrom = !vals.generatedAt_from
+        ? true
+        : r.generatedAt >= vals.generatedAt_from;
+      const matchDateTo = !vals.generatedAt_to
+        ? true
+        : r.generatedAt <= vals.generatedAt_to + " 23:59";
+      return matchQ && matchCategory && matchDateFrom && matchDateTo;
+    },
+    [],
+  );
+
+  const filtered = useMemo(() => {
+    return state.items.filter((r: ExecutiveRow) => matchRow(r, filterValues));
+  }, [state.items, filterValues, matchRow]);
 
   const handleRefresh = useCallback(() => {
     actions.setLoading(true);
     setTimeout(() => actions.setLoading(false), 600);
   }, [actions]);
+
   const handleExportPDF = useCallback(
     () => alert("ส่งออก PDF รายงานผู้บริหาร (จำลอง)"),
     [],
   );
+
+  const handleExportCSV = useCallback(
+    (vals: AdvancedFilterValues) => {
+      const rows = state.items.filter((r: ExecutiveRow) => matchRow(r, vals));
+      exportToCSV(
+        rows.map((r) => ({
+          รหัสรายงาน: r.id,
+          ช่วงเวลา: r.period,
+          เรื่องรวม: r.totalComplaints,
+          เรื่องปิดแล้ว: r.closedComplaints,
+          เฉลี่ยวันแก้ไข: r.avgResolutionDays,
+          ความพึงพอใจ: r.customerSatisfaction,
+          หมวดหมู่สูงสุด: r.topCategory,
+          เพิ่มเมื่อ: r.generatedAt,
+        })),
+        "รายงานผู้บริหาร",
+      );
+    },
+    [state.items, matchRow],
+  );
+
   const handlePrint = useCallback(
     () => alert("พิมพ์รายงานผู้บริหาร (จำลอง)"),
     [],
@@ -156,7 +225,7 @@ export function ExecutiveReportPage() {
               PDF
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => alert(`ส่งออก CSV ${r.period} (จำลอง)`)}
+              onClick={() => handleExportCSV({ topCategory: r.topCategory })}
             >
               CSV
             </DropdownMenuItem>
@@ -166,52 +235,115 @@ export function ExecutiveReportPage() {
     },
   ];
 
+  // คำนวณผลรวมสถิติรายงานผู้บริหาร จากข้อมูลที่กรองแล้ว (filtered)
+  const summaryStats = useMemo(() => {
+    let total = 0;
+    let closed = 0;
+    let totalDays = 0;
+    let totalSat = 0;
+
+    filtered.forEach((r) => {
+      total += r.totalComplaints;
+      closed += r.closedComplaints;
+      totalDays += r.avgResolutionDays;
+      totalSat += r.customerSatisfaction;
+    });
+
+    return {
+      total,
+      closed,
+      avgDays: filtered.length > 0 ? (totalDays / filtered.length).toFixed(1) : "0",
+      avgSat: filtered.length > 0 ? (totalSat / filtered.length).toFixed(1) : "0",
+    };
+  }, [filtered]);
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="รายงานผู้บริหาร"
-        description="รายงานสรุปภาพรวมสำหรับผู้บริหารระดับสูง (ข้อมูลจำลอง)"
-        breadcrumbs={[{ label: "รายงาน" }, { label: "ผู้บริหาร" }]}
+        description="รายงานเชิงวิเคราะห์สำหรับผู้บริหาร (ข้อมูลจำลอง)"
+        breadcrumbs={[{ label: "รายงาน" }, { label: "รายงานผู้บริหาร" }]}
         actionButtons={
           <ActionToolbar
             onRefresh={handleRefresh}
             onExportPDF={handleExportPDF}
+            onExportCSV={() => handleExportCSV(filterValues)}
             exportLabel="ส่งออก"
+            showAddNew
+            showImport
             showExport
             isLoading={state.isLoading}
           />
         }
       />
 
-      <Card className="border-[var(--border)] bg-white shadow-soft">
-        <CardContent className="p-6 space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <SearchInput
-              value={state.searchQuery}
-              onChange={actions.setSearchQuery}
-              placeholder="ค้นหารายงานผู้บริหาร..."
-            />
+      <AdvancedFilter
+        fields={filterFields}
+        onApply={(vals) => {
+          setFilterValues(vals);
+          setHasSearched(true);
+        }}
+        onReset={() => setHasSearched(false)}
+        onExport={handleExportCSV}
+        resultCount={filtered.length}
+        totalCount={state.items.length}
+        isLoading={state.isLoading}
+      />
+
+      {hasSearched && (
+        <>
+          {/* Summary KPI Cards */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card className="border-[var(--border)] bg-white shadow-soft">
+              <CardContent className="p-5">
+                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">เรื่องร้องเรียนทั้งหมด</div>
+                <div className="text-2xl font-bold text-slate-800 mt-2">{summaryStats.total} เรื่อง</div>
+              </CardContent>
+            </Card>
+            <Card className="border-[var(--border)] bg-white shadow-soft">
+              <CardContent className="p-5">
+                <div className="text-xs font-semibold text-green-600 uppercase tracking-wider">ปิดเสร็จสิ้นแล้ว</div>
+                <div className="text-2xl font-bold text-green-700 mt-2">{summaryStats.closed} เรื่อง</div>
+              </CardContent>
+            </Card>
+            <Card className="border-[var(--border)] bg-white shadow-soft">
+              <CardContent className="p-5">
+                <div className="text-xs font-semibold text-amber-600 uppercase tracking-wider">เฉลี่ยระยะเวลาแก้ไข</div>
+                <div className="text-2xl font-bold text-[#b08730] mt-2">{summaryStats.avgDays} วัน</div>
+              </CardContent>
+            </Card>
+            <Card className="border-[var(--border)] bg-white shadow-soft">
+              <CardContent className="p-5">
+                <div className="text-xs font-semibold text-blue-600 uppercase tracking-wider">ความพึงพอใจเฉลี่ย</div>
+                <div className="text-2xl font-bold text-blue-700 mt-2">{summaryStats.avgSat}%</div>
+              </CardContent>
+            </Card>
           </div>
-          <DataTable
-            columns={columns}
-            data={filtered}
-            keyAccessor={(r) => r.id}
-            selectedIds={state.selectedIds}
-            onToggleSelect={actions.toggleSelect}
-            onSelectAll={actions.selectAll}
-            onRowClick={handleView}
-            emptyMessage="ไม่พบรายงาน"
-            isLoading={state.isLoading}
-            showRowNumbers
-            pagination={{
-              page: state.page,
-              pageSize: state.pageSize,
-              total: filtered.length,
-              onPageChange: actions.setPage,
-            }}
-          />
-        </CardContent>
-      </Card>
+
+          <Card className="border-[var(--border)] bg-white shadow-soft">
+            <CardContent className="p-6 space-y-4">
+              <DataTable
+                columns={columns}
+                data={filtered}
+                keyAccessor={(r) => r.id}
+                selectedIds={state.selectedIds}
+                onToggleSelect={actions.toggleSelect}
+                onSelectAll={actions.selectAll}
+                onRowClick={handleView}
+                emptyMessage="ไม่พบรายงาน"
+                isLoading={state.isLoading}
+                showRowNumbers
+                pagination={{
+                  page: state.page,
+                  pageSize: state.pageSize,
+                  total: filtered.length,
+                  onPageChange: actions.setPage,
+                }}
+              />
+            </CardContent>
+          </Card>
+        </>
+      )}
 
       <DetailDrawer
         open={detailDrawerOpen}
