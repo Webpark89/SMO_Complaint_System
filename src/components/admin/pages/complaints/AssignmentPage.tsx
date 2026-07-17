@@ -1,4 +1,5 @@
 import { useMemo, useState, useCallback } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { mockAssignments } from "@/mock/complaints/assignment.mock";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -165,6 +166,7 @@ const EDIT_FIELDS: FormField[] = [
 ];
 
 export function AssignmentPage() {
+  const { hasPermission } = useAuth();
   const [state, actions] = useCRUD<AssignmentRow>(mockAssignments);
   const [modalOpen, setModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -367,9 +369,9 @@ export function AssignmentPage() {
     },
   ];
   const rowActions = createStandardRowActions<AssignmentRow>({
-    onEdit: handleEdit,
+    onEdit: hasPermission("complaint_assignment", "edit") ? handleEdit : undefined,
     onView: handleView,
-    onDelete: handleDelete,
+    onDelete: hasPermission("complaint_assignment", "delete") ? handleDelete : undefined,
   });
 
   return (
@@ -384,10 +386,10 @@ export function AssignmentPage() {
             onImport={handleImport}
             onExportPDF={handleExportPDF}
             exportLabel="ส่งออก"
-            onAddNew={handleAddNew}
+            onAddNew={hasPermission("complaint_assignment", "create") ? handleAddNew : undefined}
             addNewLabel={TABLE_LABELS.addNew}
             isLoading={state.isLoading}
-            showAddNew
+            showAddNew={hasPermission("complaint_assignment", "create")}
             showImport
             showExport
           />

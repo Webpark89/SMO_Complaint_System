@@ -35,8 +35,15 @@ function statusVariant(s: RoleStatus): StatusVariant {
 }
 
 function translatePermission(p: string): string {
-  const matched = ALL_PERMISSIONS.find((perm) => perm.value === p);
-  return matched ? matched.label : p;
+  for (const cat of ALL_PERMISSIONS) {
+    for (const page of cat.pages) {
+      const action = page.actions.find((act) => act.value === p);
+      if (action) {
+        return `${page.name}: ${action.label}`;
+      }
+    }
+  }
+  return p;
 }
 
 const DETAIL_FIELDS = [
@@ -48,17 +55,54 @@ const DETAIL_FIELDS = [
     label: "สิทธิ์การใช้งาน",
     render: (val: any) => {
       const perms = Array.isArray(val) ? val : [];
+      if (perms.length === 0) {
+        return <span className="text-xs text-slate-400">— ไม่มีสิทธิ์การใช้งาน —</span>;
+      }
+
+      // Group permissions by category and page
+      const grouped: Record<string, Record<string, string[]>> = {};
+
+      for (const cat of ALL_PERMISSIONS) {
+        for (const page of cat.pages) {
+          const matchedActions = page.actions
+            .filter((act) => perms.includes(act.value))
+            .map((act) => act.label);
+
+          if (matchedActions.length > 0) {
+            if (!grouped[cat.category]) {
+              grouped[cat.category] = {};
+            }
+            grouped[cat.category][page.name] = matchedActions;
+          }
+        }
+      }
+
       return (
-        <div className="flex flex-wrap gap-1">
-          {perms.map((p) => (
-            <Badge
-              key={p}
-              className="border border-[rgba(148,163,184,0.25)] bg-[rgba(148,163,184,0.12)] text-slate-600 text-xs hover:bg-[rgba(193,201,214,0.12)]"
-            >
-              {translatePermission(p)}
-            </Badge>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mt-2">
+          {Object.entries(grouped).map(([category, pages]) => (
+            <div key={category} className="border border-slate-200/60 rounded-xl p-3.5 bg-slate-50/50 shadow-sm flex flex-col">
+              <h4 className="font-semibold text-slate-800 text-xs uppercase tracking-wider mb-3 pb-1.5 border-b border-slate-200/80">
+                {category}
+              </h4>
+              <div className="space-y-2.5 flex-1">
+                {Object.entries(pages).map(([pageName, actions]) => (
+                  <div key={pageName} className="flex flex-col gap-1 border-b border-slate-100 last:border-0 pb-2 last:pb-0">
+                    <span className="font-medium text-slate-700 text-[11px]">{pageName}</span>
+                    <div className="flex flex-wrap gap-1">
+                      {actions.map((actLabel) => (
+                        <Badge
+                          key={actLabel}
+                          className="border border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 text-[10px] py-0 px-2 font-normal rounded-md shadow-none"
+                        >
+                          {actLabel}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           ))}
-          {perms.length === 0 && "—"}
         </div>
       );
     },
@@ -302,7 +346,7 @@ export function RolesPage() {
         title="รายละเอียดบทบาท/แผนก"
         item={selectedItem as Record<string, unknown> | null}
         fields={DETAIL_FIELDS}
-        size="md"
+        size="lg"
       />
     </div>
   );

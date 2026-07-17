@@ -310,9 +310,9 @@ export function SLASettingsPage() {
   ];
 
   const rowActions: RowAction<SLARow>[] = [
-    hasPermission("manage_settings") && { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
+    hasPermission("sla", "edit") && { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
     { label: "ดูรายละเอียด", icon: <Eye className="h-4 w-4 text-[#B8BABF] hover:text-[#8e6c25]" />, onClick: handleView },
-    hasPermission("manage_settings") && {
+    hasPermission("sla", "delete") && {
       label: "ลบ",
       icon: <Trash2 className="h-4 w-4" />,
       onClick: handleDelete,
@@ -330,7 +330,7 @@ export function SLASettingsPage() {
           <ActionToolbar
             onRefresh={handleRefresh}
             onImport={handleImport}
-            onAddNew={hasPermission("manage_settings") ? handleAddNew : undefined}
+            onAddNew={hasPermission("sla", "create") ? handleAddNew : undefined}
             addNewLabel={TABLE_LABELS.addNew}
             exportLabel="ส่งออก"
             isLoading={state.isLoading}

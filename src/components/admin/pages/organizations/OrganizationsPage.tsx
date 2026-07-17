@@ -303,7 +303,7 @@ export function OrganizationsPage() {
 
   const rowActions: RowAction<OrgRow>[] = [];
 
-  if (hasPermission("manage_settings")) {
+  if (hasPermission("organizations", "edit")) {
     rowActions.push({
       label: "แก้ไข",
       icon: <Edit className="h-4 w-4" />,
@@ -317,7 +317,7 @@ export function OrganizationsPage() {
     onClick: handleView,
   });
 
-  if (hasPermission("manage_settings")) {
+  if (hasPermission("organizations", "delete")) {
     rowActions.push({
       label: "ลบ",
       icon: <Trash2 className="h-4 w-4" />,
@@ -336,7 +336,7 @@ export function OrganizationsPage() {
           <ActionToolbar
             onRefresh={handleRefresh}
             onImport={handleImport}
-            onAddNew={hasPermission("manage_settings") ? handleAddNew : undefined}
+            onAddNew={hasPermission("organizations", "create") ? handleAddNew : undefined}
             addNewLabel={TABLE_LABELS.addNew}
             exportLabel="ส่งออก"
             isLoading={state.isLoading}

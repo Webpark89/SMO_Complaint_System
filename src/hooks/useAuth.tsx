@@ -36,7 +36,7 @@ interface AuthCtx {
   signInAdminMock?: () => void;
   signOutMock?: () => void;
   hasAnyRole: (allowed: AppRole[]) => boolean;
-  hasPermission: (permission: string) => boolean;
+  hasPermission: (permissionOrPage: string, action?: string) => boolean;
 }
 
 const Ctx = createContext<AuthCtx | undefined>(undefined);
@@ -79,12 +79,112 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return roles.some((r) => allowed.includes(r));
   };
 
-  const hasPermission = (permission: string): boolean => {
+  const hasPermission = (permissionOrPage: string, action?: string): boolean => {
     if (roles.includes("super-admin") || roles.includes("admin")) {
       return true;
     }
     const userPermissions = getUserPermissions(roles);
-    return userPermissions.includes(permission);
+
+    if (action) {
+      return userPermissions.includes(`${permissionOrPage}:${action}`);
+    }
+
+    // Mapping สำหรับรองรับการใช้งานรูปแบบเดิม (Backward Compatibility)
+    const oldPermissionsMapping: Record<string, string[]> = {
+      view_complaints: [
+        "complaint_list:view",
+        "complaint_intake:view",
+        "complaint_assignment:view",
+        "complaint_investigation:view",
+        "complaint_approval:view",
+        "complaint_extension:view",
+        "sensitive_cases:view",
+        "documents_evidence:view",
+      ],
+      create_complaints: [
+        "complaint_intake:create",
+        "complaint_assignment:create",
+        "complaint_investigation:create",
+        "complaint_extension:create",
+        "documents_evidence:upload",
+      ],
+      edit_complaints: [
+        "complaint_list:edit",
+        "complaint_assignment:edit",
+        "complaint_assignment:assign",
+        "complaint_investigation:edit",
+        "complaint_investigation:investigate",
+        "complaint_approval:edit",
+        "complaint_approval:approve",
+        "complaint_extension:edit",
+        "complaint_extension:approve",
+        "documents_evidence:edit",
+      ],
+      delete_complaints: [
+        "complaint_list:delete",
+        "complaint_assignment:delete",
+        "complaint_investigation:delete",
+        "complaint_approval:delete",
+        "complaint_extension:delete",
+        "documents_evidence:delete",
+      ],
+      investigate_complaints: ["complaint_investigation:investigate", "complaint_extension:approve"],
+      approve_complaints: ["complaint_approval:approve"],
+      view_reports: [
+        "report_summary:view",
+        "report_sla:view",
+        "report_investigation:view",
+        "report_executive:view",
+        "report_audit_log:view",
+      ],
+      export_reports: [
+        "report_summary:export",
+        "report_sla:export",
+        "report_investigation:export",
+        "report_executive:export",
+        "report_audit_log:export",
+      ],
+      manage_users: ["users:view", "users:create", "users:edit", "users:delete"],
+      manage_roles: [
+        "roles_permissions:view",
+        "roles_permissions:create",
+        "roles_permissions:edit",
+        "roles_permissions:delete",
+      ],
+      manage_settings: [
+        "categories:view",
+        "categories:create",
+        "categories:edit",
+        "categories:delete",
+        "subcategories:view",
+        "subcategories:create",
+        "subcategories:edit",
+        "subcategories:delete",
+        "forms:view",
+        "forms:create",
+        "forms:edit",
+        "forms:delete",
+        "termandprivacy:view",
+        "termandprivacy:edit",
+        "sla:view",
+        "sla:create",
+        "sla:edit",
+        "sla:delete",
+        "organizations:view",
+        "organizations:create",
+        "organizations:edit",
+        "organizations:delete",
+        "audit_logs:view",
+      ],
+    };
+
+    if (permissionOrPage in oldPermissionsMapping) {
+      return oldPermissionsMapping[permissionOrPage].some((p) =>
+        userPermissions.includes(p)
+      );
+    }
+
+    return userPermissions.includes(permissionOrPage);
   };
 
   async function signIn(email: string, password: string) {

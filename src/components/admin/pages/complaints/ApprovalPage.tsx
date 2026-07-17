@@ -1,4 +1,5 @@
 import { useMemo, useState, useCallback } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { mockApprovals } from "@/mock/complaints/ApprovalMock";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -171,6 +172,7 @@ const EDIT_FIELDS: FormField[] = [
 
 export function ApprovalPage() {
   const navigate = useNavigate();
+  const { hasPermission } = useAuth();
   const [state, actions] = useCRUD<ApprovalRow>(mockApprovals);
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -346,9 +348,9 @@ export function ApprovalPage() {
   ];
 
   const rowActions = createStandardRowActions<ApprovalRow>({
-    onEdit: handleEdit,
+    onEdit: hasPermission("complaint_approval", "edit") ? handleEdit : undefined,
     onView: handleView,
-    onDelete: handleDelete,
+    onDelete: hasPermission("complaint_approval", "delete") ? handleDelete : undefined,
   });
     
 
@@ -364,10 +366,10 @@ export function ApprovalPage() {
             onImport={handleImport}
             onExportPDF={handleExportPDF}
             exportLabel="ส่งออก"
-            onAddNew={handleAddNew}
+            onAddNew={hasPermission("complaint_approval", "approve") ? handleAddNew : undefined}
             addNewLabel={TABLE_LABELS.addNew}
             isLoading={state.isLoading}
-            showAddNew
+            showAddNew={hasPermission("complaint_approval", "approve")}
             showImport
             showExport
           />

@@ -260,9 +260,9 @@ export function FormsPage() {
   ];
 
   const rowActions: RowAction<FormRow>[] = [
-    hasPermission("manage_settings") && { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
+    hasPermission("forms", "edit") && { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
     { label: "ดูรายละเอียด", icon: <Eye className="h-4 w-4 text-[#B8BABF] hover:text-[#8e6c25]" />, onClick: handleView },
-    hasPermission("manage_settings") && {
+    hasPermission("forms", "delete") && {
       label: "ลบ",
       icon: <Trash2 className="h-4 w-4" />,
       onClick: handleDelete,
@@ -279,7 +279,7 @@ export function FormsPage() {
         actionButtons={
           <ActionToolbar
             onRefresh={handleRefresh}
-            onAddNew={hasPermission("manage_settings") ? handleAddNew : undefined}
+            onAddNew={hasPermission("forms", "create") ? handleAddNew : undefined}
             addNewLabel={TABLE_LABELS.addNew}
             exportLabel="ส่งออก"
             isLoading={state.isLoading}

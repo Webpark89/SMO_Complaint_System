@@ -299,15 +299,15 @@ export function DetailDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className={sizeClass}>
-        <SheetHeader>
+      <SheetContent className={`flex flex-col h-full ${sizeClass}`}>
+        <SheetHeader className="flex-none">
           <SheetTitle className="flex items-center gap-2">
             <Eye className="h-5 w-5 text-[var(--gold)]" />
             {title}
           </SheetTitle>
           <SheetDescription className="sr-only">รายละเอียด</SheetDescription>
         </SheetHeader>
-        <div className="mt-6 space-y-4 overflow-y-auto">
+        <div className="mt-6 space-y-4 flex-1 overflow-y-auto pr-2">
           {item &&
             fields.map((field) => (
               <div key={field.key} className="space-y-1.5">
@@ -322,7 +322,7 @@ export function DetailDrawer({
               </div>
             ))}
           {actions && (
-            <div className="pt-4 border-t border-[var(--border)]">
+            <div className="pt-4 border-t border-[var(--border)] flex-none">
               {actions}
             </div>
           )}

@@ -1,4 +1,5 @@
 import { useMemo, useState, useCallback } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { mockExtensions } from "@/mock/complaints/extension.mock";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -161,6 +162,7 @@ const EDIT_FIELDS: FormField[] = [
 ];
 
 export function ExtensionsPage() {
+  const { hasPermission } = useAuth();
   const [state, actions] = useCRUD<ExtensionRow>(mockExtensions);
   const [modalOpen, setModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -338,9 +340,9 @@ export function ExtensionsPage() {
   ];
 
   const rowActions = createStandardRowActions<ExtensionRow>({
-    onEdit: handleEdit,
+    onEdit: hasPermission("complaint_extension", "edit") ? handleEdit : undefined,
     onView: handleView,
-    onDelete: handleDelete,
+    onDelete: hasPermission("complaint_extension", "delete") ? handleDelete : undefined,
   });
 
   return (
@@ -354,10 +356,10 @@ export function ExtensionsPage() {
             onRefresh={handleRefresh}
             onImport={handleImport}
             exportLabel="ส่งออก"
-            onAddNew={handleAddNew}
+            onAddNew={hasPermission("complaint_extension", "create") ? handleAddNew : undefined}
             addNewLabel={TABLE_LABELS.addNew}
             isLoading={state.isLoading}
-            showAddNew
+            showAddNew={hasPermission("complaint_extension", "create")}
             showImport
             showExport
           />

@@ -247,7 +247,7 @@ type SidebarProps = {
 
 export function Sidebar({ activeKey, isCollapsed }: SidebarProps) {
   const router = useRouter();
-  const { roles, signOut, loading } = useAuth();
+  const { roles, signOut, loading, hasPermission } = useAuth();
 
   if (loading) {
     return (
@@ -281,10 +281,9 @@ export function Sidebar({ activeKey, isCollapsed }: SidebarProps) {
             const matchesGroup = g.keys.includes(n.group);
             if (!matchesGroup) return false;
 
-            if (!n.requiredPermission) return true;
+            if (n.key === "dashboard") return true;
 
-            const userPermissions = getUserPermissions(roles);
-            return userPermissions.includes(n.requiredPermission);
+            return hasPermission(n.key, "view");
           });
 
           if (!items.length) return null;

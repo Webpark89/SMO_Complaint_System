@@ -7,6 +7,7 @@ import { ArrowLeft, Save, Loader2, ShieldCheck, CheckSquare, Square } from "luci
 import { PageHeader } from "@/components/admin/crud";
 import { AdminLayout } from "@/components/admin/layout";
 import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/settings/roles/edit/$id")({
   component: EditRolePage,
@@ -61,27 +62,80 @@ function EditRolePage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleTogglePermission = (value: string) => {
+  const handleToggleGranularPermission = (page: any, action: any) => {
     setFormData((prev) => {
-      const isSelected = prev.permissions.includes(value);
-      const newPerms = isSelected
-        ? prev.permissions.filter((p) => p !== value)
-        : [...prev.permissions, value];
+      const isChecked = prev.permissions.includes(action.value);
+      const isView = action.value.endsWith(":view");
+      const viewActionVal = `${page.id}:view`;
+
+      let newPerms = [...prev.permissions];
+
+      if (isChecked) {
+        // Uncheck
+        if (isView) {
+          // If unchecking view, remove ALL actions for this page
+          const pageVals = page.actions.map((a: any) => a.value);
+          newPerms = newPerms.filter((p) => !pageVals.includes(p));
+        } else {
+          newPerms = newPerms.filter((p) => p !== action.value);
+        }
+      } else {
+        // Check
+        newPerms.push(action.value);
+        if (!isView) {
+          // If checking any action, automatically check the view action if not already checked
+          if (!newPerms.includes(viewActionVal)) {
+            newPerms.push(viewActionVal);
+          }
+        }
+      }
+
+      return { ...prev, permissions: Array.from(new Set(newPerms)) };
+    });
+  };
+
+  const handleToggleAllInPage = (page: any) => {
+    const pageVals = page.actions.map((a: any) => a.value);
+    setFormData((prev) => {
+      const allChecked = pageVals.every((val: string) => prev.permissions.includes(val));
+      let newPerms = [...prev.permissions];
+
+      if (allChecked) {
+        // Remove all
+        newPerms = newPerms.filter((p) => !pageVals.includes(p));
+      } else {
+        // Add all
+        newPerms = [...newPerms, ...pageVals];
+      }
+
+      return { ...prev, permissions: Array.from(new Set(newPerms)) };
+    });
+  };
+
+  const handleSelectAllCategory = (catPerm: any) => {
+    const allCatVals: string[] = [];
+    catPerm.pages.forEach((p: any) => {
+      p.actions.forEach((a: any) => {
+        allCatVals.push(a.value);
+      });
+    });
+
+    setFormData((prev) => {
+      const newPerms = Array.from(new Set([...prev.permissions, ...allCatVals]));
       return { ...prev, permissions: newPerms };
     });
   };
 
-  const handleSelectAllInCategory = (category: string, availablePerms: string[]) => {
+  const handleClearCategory = (catPerm: any) => {
+    const allCatVals: string[] = [];
+    catPerm.pages.forEach((p: any) => {
+      p.actions.forEach((a: any) => {
+        allCatVals.push(a.value);
+      });
+    });
+
     setFormData((prev) => {
-      const allSelected = availablePerms.every((p) => prev.permissions.includes(p));
-      let newPerms;
-      if (allSelected) {
-        // Deselect all in this category
-        newPerms = prev.permissions.filter((p) => !availablePerms.includes(p));
-      } else {
-        // Select all in this category (without duplicates)
-        newPerms = Array.from(new Set([...prev.permissions, ...availablePerms]));
-      }
+      const newPerms = prev.permissions.filter((p) => !allCatVals.includes(p));
       return { ...prev, permissions: newPerms };
     });
   };
@@ -119,9 +173,6 @@ function EditRolePage() {
   }
 
   if (!hasPermission("manage_roles")) return null;
-
-  // Group permissions by category
-  const categories = Array.from(new Set(ALL_PERMISSIONS.map((p) => p.category)));
 
   if (error) {
     return (
@@ -230,53 +281,100 @@ function EditRolePage() {
 
               {/* Granular Action Permissions */}
               <div className="space-y-4 pt-4 border-t border-slate-100">
-                <h3 className="text-md font-bold text-slate-800 flex items-center gap-2">
+                <div className="flex items-center gap-2">
                   <ShieldCheck className="h-5 w-5 text-[#b08730]" />
-                  กำหนดสิทธิ์การดำเนินการโดยละเอียด (Granular Action Permissions)
-                </h3>
-                <p className="text-xs text-slate-500">
-                  เลือกสิทธิ์การดำเนินการในแต่ละส่วนที่เกี่ยวข้องกับบทบาทนี้เพื่อควบคุมการเข้าใช้งานหลังบ้าน
-                </p>
+                  <div>
+                    <h3 className="text-md font-bold text-slate-800">
+                      กำหนดสิทธิ์การดำเนินการโดยละเอียด (Granular Action Permissions)
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1">
+                      เลือกสิทธิ์การเข้าถึงแต่ละหน้าและกำหนดสิทธิ์การกระทำในหน้านั้นๆ (เช่น ดู, เพิ่ม, แก้ไข, ลบ)
+                    </p>
+                  </div>
+                </div>
 
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-3 mt-4">
-                  {categories.map((category) => {
-                    const categoryPerms = ALL_PERMISSIONS.filter((p) => p.category === category);
-                    const categoryPermsValues = categoryPerms.map((p) => p.value);
-                    const allSelected = categoryPermsValues.every((v) => formData.permissions.includes(v));
-
+                <div className="space-y-6 mt-4">
+                  {ALL_PERMISSIONS.map((catPerm) => {
                     return (
-                      <div key={category} className="border border-slate-200 rounded-xl bg-slate-50/50 p-4 space-y-3">
-                        <div className="flex justify-between items-center border-b border-slate-150 pb-2">
-                          <span className="text-sm font-bold text-slate-700">{category}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleSelectAllInCategory(category, categoryPermsValues)}
-                            className="text-xs font-semibold text-[#b08730] hover:text-[#8e6c25] flex items-center gap-1 transition-colors"
-                          >
-                            {allSelected ? "ล้างการเลือก" : "เลือกทั้งหมด"}
-                          </button>
+                      <div key={catPerm.category} className="border border-slate-200 rounded-xl bg-white shadow-sm overflow-hidden">
+                        <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 flex justify-between items-center">
+                          <span className="text-sm font-bold text-slate-700">{catPerm.category}</span>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleSelectAllCategory(catPerm)}
+                              className="text-xs font-semibold text-[#b08730] hover:text-[#8e6c25]"
+                            >
+                              เลือกทั้งหมดในหมวดหมู่นี้
+                            </button>
+                            <span className="text-slate-300">|</span>
+                            <button
+                              type="button"
+                              onClick={() => handleClearCategory(catPerm)}
+                              className="text-xs font-semibold text-slate-500 hover:text-slate-700"
+                            >
+                              ล้างทั้งหมด
+                            </button>
+                          </div>
                         </div>
 
-                        <div className="space-y-2">
-                          {categoryPerms.map((perm) => {
-                            const isChecked = formData.permissions.includes(perm.value);
+                        <div className="divide-y divide-slate-100">
+                          {catPerm.pages.map((page) => {
+                            const viewAction = page.actions.find(a => a.value.endsWith(":view"));
+                            const hasViewPermission = viewAction ? formData.permissions.includes(viewAction.value) : false;
+                            
+                            // check if all actions of this page are checked
+                            const allPageValues = page.actions.map(a => a.value);
+                            const allChecked = allPageValues.every(val => formData.permissions.includes(val));
+
                             return (
-                              <button
-                                key={perm.value}
-                                type="button"
-                                onClick={() => handleTogglePermission(perm.value)}
-                                className="flex w-full items-start gap-2.5 rounded-lg p-2 text-left hover:bg-slate-100 transition-colors"
-                              >
-                                {isChecked ? (
-                                  <CheckSquare className="h-4 w-4 text-[#b08730] shrink-0 mt-0.5" />
-                                ) : (
-                                  <Square className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
-                                )}
-                                <div className="leading-tight">
-                                  <div className="text-sm font-medium text-slate-700">{perm.label}</div>
-                                  <div className="text-[10px] text-slate-400 font-mono mt-0.5">{perm.value}</div>
+                              <div key={page.id} className="p-4 grid grid-cols-1 md:grid-cols-4 gap-4 items-start hover:bg-slate-50/50 transition-colors">
+                                {/* Left Column: Page Name & Select All for Page */}
+                                <div className="md:col-span-1 space-y-1">
+                                  <span className="font-semibold text-sm text-slate-700 block">{page.name}</span>
+                                  <span className="text-[10px] text-slate-400 font-mono block mb-2">{page.id}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleAllInPage(page)}
+                                    className="text-[11px] text-[#b08730] hover:underline font-medium"
+                                  >
+                                    {allChecked ? "ยกเลิกทั้งหมดในหน้านี้" : "เลือกทั้งหมดในหน้านี้"}
+                                  </button>
                                 </div>
-                              </button>
+
+                                {/* Right Column: Checkboxes for Actions */}
+                                <div className="md:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                  {page.actions.map((act) => {
+                                    const isChecked = formData.permissions.includes(act.value);
+                                    const isView = act.value.endsWith(":view");
+
+                                    return (
+                                      <div
+                                        key={act.value}
+                                        onClick={() => handleToggleGranularPermission(page, act)}
+                                        className={cn(
+                                          "flex items-start gap-2 p-2 rounded-lg border border-slate-200 bg-slate-50/30 cursor-pointer select-none hover:bg-white hover:border-slate-300 transition-all",
+                                          isChecked && "border-[#b08730]/40 bg-[#b08730]/5 hover:bg-[#b08730]/5 hover:border-[#b08730]/50",
+                                          !isView && !hasViewPermission && "opacity-50 cursor-not-allowed bg-slate-100"
+                                        )}
+                                      >
+                                        <div className="mt-0.5 shrink-0">
+                                          {isChecked ? (
+                                            <CheckSquare className="h-4 w-4 text-[#b08730] fill-[#b08730]/10" />
+                                          ) : (
+                                            <Square className="h-4 w-4 text-slate-400" />
+                                          )}
+                                        </div>
+                                        <div className="leading-tight">
+                                          <div className="text-xs font-semibold text-slate-700">{act.label}</div>
+                                          <div className="text-[9px] text-slate-400 font-mono mt-0.5">{act.value}</div>
+                                          <div className="text-[10px] text-slate-400 leading-normal mt-1">{act.description}</div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
                             );
                           })}
                         </div>

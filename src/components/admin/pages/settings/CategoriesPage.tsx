@@ -175,9 +175,9 @@ export function CategoriesPage() {
   ];
 
   const rowActions = createStandardRowActions<CategoryRow>({
-    onEdit: hasPermission("manage_settings") ? handleEdit : undefined,
+    onEdit: hasPermission("categories", "edit") ? handleEdit : undefined,
     onView: handleView,
-    onDelete: hasPermission("manage_settings") ? handleDelete : undefined,
+    onDelete: hasPermission("categories", "delete") ? handleDelete : undefined,
   });
 
   return (
@@ -190,11 +190,11 @@ export function CategoriesPage() {
           <ActionToolbar
             onRefresh={handleRefresh}
             onImport={handleImport}
-            onAddNew={hasPermission("manage_settings") ? handleAddNew : undefined}
+            onAddNew={hasPermission("categories", "create") ? handleAddNew : undefined}
             addNewLabel={TABLE_LABELS.addNew}
             exportLabel="ส่งออก"
             isLoading={state.isLoading}
-            showAddNew={hasPermission("manage_settings")}
+            showAddNew={hasPermission("categories", "create")}
           />
         }
       />

@@ -241,9 +241,9 @@ export function DocumentsPage() {
   ];
 
   const rowActions: RowAction<DocumentRow>[] = [
-    hasPermission("edit_complaints") && { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
+    hasPermission("documents_evidence", "edit") && { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
     { label: "ดูรายละเอียด", icon: <Eye className="h-4 w-4 text-[#B8BABF] hover:text-[#8e6c25]" />, onClick: handleView },
-    hasPermission("delete_complaints") && {
+    hasPermission("documents_evidence", "delete") && {
       label: "ลบ",
       icon: <Trash2 className="h-4 w-4" />,
       onClick: handleDelete,
@@ -258,7 +258,7 @@ export function DocumentsPage() {
         description="จัดการเอกสารและหลักฐานประกอบเรื่องร้องเรียน"
         actionButtons={
           <ActionToolbar
-            onAddNew={hasPermission("create_complaints") ? handleAddNew : undefined}
+            onAddNew={hasPermission("documents_evidence", "upload") ? handleAddNew : undefined}
             addNewLabel={TABLE_LABELS.addNew}
             isLoading={state.isLoading}
           />
