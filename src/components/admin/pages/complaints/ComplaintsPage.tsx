@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "@tanstack/react-router";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Edit,
   Trash2,
@@ -215,6 +216,7 @@ const EDIT_FIELDS: FormField[] = [
 
 export function ComplaintsPage() {
   const navigate = useNavigate();
+  const { hasPermission } = useAuth();
   const [state, actions] = useCRUD<ComplaintRow>(mockComplaintList);
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -412,9 +414,9 @@ export function ComplaintsPage() {
   ];
 
   const rowActions = createStandardRowActions<ComplaintRow>({
-    onEdit: handleEdit,
+    onEdit: hasPermission("edit_complaints") ? handleEdit : undefined,
     onView: handleView,
-    onDelete: handleDelete,
+    onDelete: hasPermission("delete_complaints") ? handleDelete : undefined,
   });
 
   return (
@@ -429,10 +431,10 @@ export function ComplaintsPage() {
             onImport={handleImport}
             onExportPDF={handleExportPDF}
             exportLabel="ส่งออก"
-            onAddNew={handleAddNew}
+            onAddNew={hasPermission("create_complaints") ? handleAddNew : undefined}
             addNewLabel={TABLE_LABELS.addNew}
             isLoading={state.isLoading}
-            showAddNew
+            showAddNew={hasPermission("create_complaints")}
             showImport
             showExport
           />

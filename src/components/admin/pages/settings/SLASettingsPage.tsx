@@ -1,3 +1,4 @@
+import { useAuth } from "@/hooks/useAuth";
 import { useMemo, useState, useCallback } from "react";
 import { mockSLAs } from "@/mock/sla";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,6 +14,7 @@ import {
   AlarmClock,
   Clock,
   Copy,
+  Eye,
 } from "lucide-react";
 import {
   PageHeader,
@@ -66,7 +68,6 @@ function priorityVariant(p: string): string {
 }
 
 const DETAIL_FIELDS = [
-  { key: "id", label: "รหัส SLA" },
   { key: "category", label: "หมวดหมู่" },
   { key: "priority", label: "ระดับความสำคัญ" },
   { key: "responseHours", label: "เวลาตอบรับ" },
@@ -159,6 +160,7 @@ const EDIT_FIELDS: FormField[] = [
 ];
 
 export function SLASettingsPage() {
+  const { hasPermission } = useAuth();
   const [state, actions] = useCRUD<SLARow>(mockSLAs);
   const [modalOpen, setModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -308,14 +310,15 @@ export function SLASettingsPage() {
   ];
 
   const rowActions: RowAction<SLARow>[] = [
-    { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
-    {
+    hasPermission("manage_settings") && { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
+    { label: "ดูรายละเอียด", icon: <Eye className="h-4 w-4 text-[#B8BABF] hover:text-[#8e6c25]" />, onClick: handleView },
+    hasPermission("manage_settings") && {
       label: "ลบ",
       icon: <Trash2 className="h-4 w-4" />,
       onClick: handleDelete,
       variant: "danger",
     },
-  ];
+  ].filter((a): a is RowAction<SLARow> => !!a);
 
   return (
     <div className="space-y-6">
@@ -327,7 +330,7 @@ export function SLASettingsPage() {
           <ActionToolbar
             onRefresh={handleRefresh}
             onImport={handleImport}
-            onAddNew={handleAddNew}
+            onAddNew={hasPermission("manage_settings") ? handleAddNew : undefined}
             addNewLabel={TABLE_LABELS.addNew}
             exportLabel="ส่งออก"
             isLoading={state.isLoading}

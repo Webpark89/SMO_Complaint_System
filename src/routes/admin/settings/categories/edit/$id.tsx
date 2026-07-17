@@ -6,9 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/admin/crud";
-
-// สำคัญ: Import AdminLayout เข้ามาใช้งาน (กรุณาตรวจสอบ Path ให้ตรงกับโฟลเดอร์โปรเจกต์ของคุณ)
-import { AdminLayout } from "@/components/admin/layout"
+import { AdminLayout } from "@/components/admin/layout";
+import { useAuth } from "@/hooks/useAuth";
 
 // กำหนด Route สำหรับหน้าแก้ไขหมวดหมู่
 export const Route = createFileRoute("/admin/settings/categories/edit/$id")({
@@ -20,6 +19,13 @@ const STATUS_OPTIONS = ["เปิดใช้งาน", "ระงับ"];
 function EditCategoryPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
+  const { hasPermission, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !hasPermission("manage_settings")) {
+      navigate({ to: "/admin/dashboard", replace: true });
+    }
+  }, [loading, hasPermission, navigate]);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,6 +37,7 @@ function EditCategoryPage() {
   });
 
   useEffect(() => {
+    if (loading || !hasPermission("manage_settings")) return;
     setIsLoading(true);
     // จำลองการดึงข้อมูล
     setTimeout(() => {
@@ -46,7 +53,7 @@ function EditCategoryPage() {
       }
       setIsLoading(false);
     }, 500);
-  }, [id]);
+  }, [id, loading, hasPermission]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -76,6 +83,19 @@ function EditCategoryPage() {
       navigate({ to: "/admin/settings/categories" }); 
     }, 800);
   };
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="flex h-64 items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-[var(--gold)]" />
+          <span className="ml-2 text-sm text-slate-500">กำลังโหลด...</span>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (!hasPermission("manage_settings")) return null;
 
   if (error) {
     return (
@@ -115,7 +135,7 @@ function EditCategoryPage() {
           <CardContent className="p-6">
             <div className="mb-6 border-b border-slate-100 pb-4">
               <h2 className="text-lg font-bold text-slate-800">
-                แก้ไขข้อมูลหมวดหมู่รหัส: <span className="text-[#b08730]">{id}</span>
+                แก้ไขข้อมูลหมวดหมู่
               </h2>
             </div>
             <form onSubmit={handleSubmit} className="space-y-5">

@@ -54,11 +54,26 @@ export const mockAuth = {
   },
 
   async signIn(email: string, _password: string) {
+    let role: AppRole = "employee";
+    let fullName = email.split("@")[0];
+
+    const cleanEmail = email.trim().toLowerCase();
+    if (cleanEmail === "strategy@example.com" || cleanEmail === "cs@example.com") {
+      role = "cs";
+      fullName = "Boss";
+    } else if (cleanEmail === "hr@example.com") {
+      role = "hr";
+      fullName = "Tawan";
+    } else if (cleanEmail === "super.admin@example.com" || cleanEmail === "admin@example.com") {
+      role = "admin";
+      fullName = "Arm";
+    }
+
     const session = createSession({
       id: emailToId(email),
       email,
-      fullName: email.split("@")[0],
-      role: "employee",
+      fullName,
+      role: role,
     });
     saveSession(session);
     notify(session);
@@ -66,11 +81,26 @@ export const mockAuth = {
   },
 
   async signUp(email: string, _password: string, fullName?: string) {
+    let role: AppRole = "employee";
+    let name = fullName || email.split("@")[0];
+
+    const cleanEmail = email.trim().toLowerCase();
+    if (cleanEmail === "strategy@example.com" || cleanEmail === "cs@example.com") {
+      role = "cs";
+      name = "Boss";
+    } else if (cleanEmail === "hr@example.com") {
+      role = "hr";
+      name = "Tawan";
+    } else if (cleanEmail === "super.admin@example.com" || cleanEmail === "admin@example.com") {
+      role = "admin";
+      name = "Arm";
+    }
+
     const session = createSession({
       id: emailToId(email),
       email,
-      fullName: fullName || email.split("@")[0],
-      role: "employee",
+      fullName: name,
+      role: role,
     });
     saveSession(session);
     notify(session);
@@ -98,7 +128,7 @@ export const mockAuth = {
     const session = createSession({
       id: "SUPER-ADMIN-0001",
       email: "super.admin@example.com",
-      fullName: "Admin",
+      fullName: "Arm",
       role: "admin",
     });
     saveSession(session);

@@ -24,7 +24,8 @@ import {
   LogOut,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { useAuth, type AppRole } from "@/hooks/useAuth"; // ตรวจสอบ Path ให้ตรงกับโปรเจกต์ของคุณ
+import { useAuth, type AppRole } from "@/hooks/useAuth";
+import { mockCombinedRoles, getUserPermissions } from "@/mock/roles/roles.mock";
 
 type NavKey = string;
 
@@ -34,7 +35,7 @@ type NavItem = {
   path: string;
   icon: React.ComponentType<{ className?: string }> | React.ElementType;
   group: string;
-  allowedRoles?: AppRole[]; // เพิ่มฟิลด์สำหรับจัดการสิทธิ์
+  requiredPermission?: string; // เปลี่ยนจาก allowedRoles เป็น requiredPermission
 };
 
 const NAV: NavItem[] = [
@@ -54,6 +55,7 @@ const NAV: NavItem[] = [
     path: "/admin/complaints",
     icon: ClipboardList,
     group: "COMPLAINTS",
+    requiredPermission: "view_complaints",
   },
   {
     key: "complaint_intake",
@@ -61,7 +63,7 @@ const NAV: NavItem[] = [
     path: "/admin/complaints/intake",
     icon: FilePlus,
     group: "COMPLAINTS",
-    allowedRoles: ["super-admin", "admin", "manager"],
+    requiredPermission: "create_complaints",
   },
   {
     key: "complaint_assignment",
@@ -69,7 +71,7 @@ const NAV: NavItem[] = [
     path: "/admin/complaints/assignment",
     icon: Users,
     group: "COMPLAINTS",
-    allowedRoles: ["super-admin", "admin", "manager"],
+    requiredPermission: "edit_complaints",
   },
   {
     key: "complaint_investigation",
@@ -77,7 +79,7 @@ const NAV: NavItem[] = [
     path: "/admin/complaints/investigation",
     icon: FileSearch,
     group: "COMPLAINTS",
-    allowedRoles: ["super-admin", "admin", "manager"],
+    requiredPermission: "investigate_complaints",
   },
   {
     key: "complaint_approval",
@@ -85,7 +87,7 @@ const NAV: NavItem[] = [
     path: "/admin/complaints/approval",
     icon: CheckCircle,
     group: "COMPLAINTS",
-    allowedRoles: ["super-admin", "admin", "manager"],
+    requiredPermission: "approve_complaints",
   },
   {
     key: "complaint_extension",
@@ -93,7 +95,7 @@ const NAV: NavItem[] = [
     path: "/admin/complaints/extensions",
     icon: Clock3,
     group: "COMPLAINTS",
-    allowedRoles: ["super-admin", "admin", "manager"],
+    requiredPermission: "investigate_complaints",
   },
   {
     key: "sensitive_cases",
@@ -101,7 +103,7 @@ const NAV: NavItem[] = [
     path: "/admin/complaints/sensitive",
     icon: ShieldAlert,
     group: "COMPLAINTS",
-    allowedRoles: ["super-admin", "admin", "compliance"], // ตัวอย่างการจำกัดสิทธิ์
+    requiredPermission: "view_complaints",
   },
   {
     key: "documents_evidence",
@@ -109,7 +111,7 @@ const NAV: NavItem[] = [
     path: "/admin/complaints/documents",
     icon: FolderOpen,
     group: "COMPLAINTS",
-    allowedRoles: ["super-admin", "admin", "manager"],
+    requiredPermission: "view_complaints",
   },
 
   // Reports
@@ -119,7 +121,7 @@ const NAV: NavItem[] = [
     path: "/admin/reports/summary",
     icon: BarChart3,
     group: "REPORTS",
-    allowedRoles: ["super-admin", "admin", "manager"],
+    requiredPermission: "view_reports",
   },
   {
     key: "report_sla",
@@ -127,7 +129,7 @@ const NAV: NavItem[] = [
     path: "/admin/reports/sla",
     icon: Timer,
     group: "REPORTS",
-    allowedRoles: ["super-admin", "admin", "manager"],
+    requiredPermission: "view_reports",
   },
   {
     key: "report_investigation",
@@ -135,7 +137,7 @@ const NAV: NavItem[] = [
     path: "/admin/reports/investigation",
     icon: FileSearch,
     group: "REPORTS",
-    allowedRoles: ["super-admin", "admin", "manager"],
+    requiredPermission: "view_reports",
   },
   {
     key: "report_executive",
@@ -143,7 +145,7 @@ const NAV: NavItem[] = [
     path: "/admin/reports/executive",
     icon: BriefcaseBusiness,
     group: "REPORTS",
-    allowedRoles: ["super-admin", "admin", "manager"], // ตัวอย่างการจำกัดสิทธิ์
+    requiredPermission: "view_reports",
   },
   {
     key: "report_audit_log",
@@ -151,7 +153,7 @@ const NAV: NavItem[] = [
     path: "/admin/reports/audit-log",
     icon: ClipboardCheck,
     group: "REPORTS",
-    allowedRoles: ["super-admin", "admin", "auditor"], // ตัวอย่างการจำกัดสิทธิ์
+    requiredPermission: "view_reports",
   },
 
   // System Settings
@@ -161,7 +163,7 @@ const NAV: NavItem[] = [
     path: "/admin/settings/users",
     icon: Users,
     group: "SETTINGS",
-    allowedRoles: ["super-admin", "admin"],
+    requiredPermission: "manage_users",
   },
   {
     key: "roles_permissions",
@@ -169,7 +171,7 @@ const NAV: NavItem[] = [
     path: "/admin/settings/roles",
     icon: ShieldCheck,
     group: "SETTINGS",
-    allowedRoles: ["super-admin", "admin"],
+    requiredPermission: "manage_roles",
   },
   {
     key: "categories",
@@ -177,7 +179,7 @@ const NAV: NavItem[] = [
     path: "/admin/settings/categories",
     icon: Layers,
     group: "SETTINGS",
-    allowedRoles: ["super-admin", "admin"],
+    requiredPermission: "manage_settings",
   },
   {
     key: "subcategories",
@@ -185,7 +187,7 @@ const NAV: NavItem[] = [
     path: "/admin/settings/subcategories",
     icon: Layers3,
     group: "SETTINGS",
-    allowedRoles: ["super-admin", "admin"],
+    requiredPermission: "manage_settings",
   },
   {
     key: "forms",
@@ -193,7 +195,7 @@ const NAV: NavItem[] = [
     path: "/admin/settings/forms",
     icon: FileText,
     group: "SETTINGS",
-    allowedRoles: ["super-admin", "admin"],
+    requiredPermission: "manage_settings",
   },
   {
     key: "termandprivacy",
@@ -201,7 +203,7 @@ const NAV: NavItem[] = [
     path: "/admin/settings/Term-Privacy",
     icon: FileText,
     group: "SETTINGS",
-    allowedRoles: ["super-admin", "admin"],
+    requiredPermission: "manage_settings",
   },
   {
     key: "sla",
@@ -209,15 +211,15 @@ const NAV: NavItem[] = [
     path: "/admin/settings/sla",
     icon: AlarmClock,
     group: "SETTINGS",
-    allowedRoles: ["super-admin", "admin"],
+    requiredPermission: "manage_settings",
   },
   {
     key: "organizations",
-    label: "หน่วยงานและโครงสร้างงองค์กร",
+    label: "หน่วยงานและโครงสร้างองค์กร",
     path: "/admin/settings/organizations",
     icon: Building2,
     group: "SETTINGS",
-    allowedRoles: ["super-admin", "admin"],
+    requiredPermission: "manage_settings",
   },
   {
     key: "audit_logs",
@@ -225,7 +227,7 @@ const NAV: NavItem[] = [
     path: "/admin/settings/audit-logs",
     icon: History,
     group: "SETTINGS",
-    allowedRoles: ["super-admin", "admin", "auditor"],
+    requiredPermission: "manage_settings",
   },
 ];
 
@@ -236,43 +238,54 @@ const GROUPS: Array<{ title: string; keys: NavItem["group"][] }> = [
   { title: "ตั้งค่าระบบ", keys: ["SETTINGS"] },
 ];
 
-type SidebarProps = { 
+// ดึงรายการ Permissions ทั้งหมดของผู้ใช้ตาม AppRole ถูกย้ายไปที่ roles.mock.ts แล้ว
+
+type SidebarProps = {
   activeKey: NavKey | null;
   isCollapsed: boolean;
 };
 
 export function Sidebar({ activeKey, isCollapsed }: SidebarProps) {
   const router = useRouter();
-  const { roles, signOut, loading } = useAuth(); // นำ roles และ signOut มาใช้งาน
+  const { roles, signOut, loading } = useAuth();
 
-  // ถ้าต้องการโหลดข้อมูลให้เสร็จก่อนเรนเดอร์เมนู
   if (loading) {
     return (
-      <aside className={cn(
-        "hidden h-full shrink-0 border-r border-[var(--border)] bg-white md:flex flex-col items-center justify-center text-slate-400 transition-all duration-300",
-        isCollapsed ? "w-[80px]" : "w-[320px]"
-      )}>
+      <aside
+        className={cn(
+          "hidden h-full shrink-0 border-r border-[var(--border)] bg-white md:flex flex-col items-center justify-center text-slate-400 transition-all duration-300",
+          isCollapsed ? "w-[80px]" : "w-[320px]"
+        )}
+      >
         <span className="text-sm">{isCollapsed ? "..." : "กำลังโหลดเมนู..."}</span>
       </aside>
     );
   }
 
   return (
-    <aside className={cn(
-      "hidden h-full shrink-0 border-r border-[var(--border)] bg-white md:flex flex-col transition-all duration-300",
-      isCollapsed ? "w-[80px]" : "w-[320px]"
-    )}>
-      <nav className={cn(
-        "flex-1 overflow-auto py-6 pb-22",
-        isCollapsed ? "px-2" : "px-4"
-      )}>
+    <aside
+      className={cn(
+        "hidden h-full shrink-0 border-r border-[var(--border)] bg-white md:flex flex-col transition-all duration-300",
+        isCollapsed ? "w-[80px]" : "w-[320px]"
+      )}
+    >
+      <nav
+        className={cn(
+          "flex-1 overflow-auto py-6 pb-22",
+          isCollapsed ? "px-2" : "px-4"
+        )}
+      >
         {GROUPS.map((g) => {
-          // กรองเมนูตาม Role
-          const items = NAV.filter(
-            (n) =>
-              g.keys.includes(n.group) &&
-              (!n.allowedRoles || n.allowedRoles.some((r) => roles.includes(r)))
-          );
+          // กรองเมนูตามสิทธิ์การดำเนินการโดยละเอียด
+          const items = NAV.filter((n) => {
+            const matchesGroup = g.keys.includes(n.group);
+            if (!matchesGroup) return false;
+
+            if (!n.requiredPermission) return true;
+
+            const userPermissions = getUserPermissions(roles);
+            return userPermissions.includes(n.requiredPermission);
+          });
 
           if (!items.length) return null;
 
@@ -283,10 +296,12 @@ export function Sidebar({ activeKey, isCollapsed }: SidebarProps) {
                   {g.title}
                 </h3>
               )}
-              <div className={cn(
-                "mt-2 mb-5 space-y-2",
-                isCollapsed ? "px-1" : "px-3"
-              )}>
+              <div
+                className={cn(
+                  "mt-2 mb-5 space-y-2",
+                  isCollapsed ? "px-1" : "px-3"
+                )}
+              >
                 {items.map((item) => {
                   const isActive = item.key === activeKey;
                   const Icon = item.icon;
@@ -327,8 +342,8 @@ export function Sidebar({ activeKey, isCollapsed }: SidebarProps) {
             isCollapsed ? "justify-center px-0 w-12 h-12 mx-auto" : "gap-3 px-4"
           )}
           onClick={async () => {
-            await signOut(); // ใช้ฟังก์ชันจาก Auth Context
-            localStorage.removeItem("auth-token"); // เผื่อมีการใช้งาน token แยก
+            await signOut();
+            localStorage.removeItem("auth-token");
             router.navigate({ to: "/auth" });
           }}
           title="ออกจากระบบ"

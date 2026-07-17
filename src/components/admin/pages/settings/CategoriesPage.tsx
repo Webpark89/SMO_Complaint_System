@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2,Eye, FolderOpen } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
+import { useAuth } from "@/hooks/useAuth";
 import {
   PageHeader,
   ActionToolbar,
@@ -45,7 +46,6 @@ function statusVariant(s: CategoryStatus): StatusVariant {
 }
 
 const DETAIL_FIELDS = [
-  { key: "id", label: "รหัสหมวดหมู่" },
   { key: "name", label: "ชื่อหมวดหมู่" },
   { key: "description", label: "คำอธิบาย" },
   { key: "subcategoryCount", label: "จำนวนหมวดย่อย" },
@@ -73,6 +73,7 @@ const CREATE_FIELDS: FormField[] = [
 
 export function CategoriesPage() {
   const navigate = useNavigate();
+  const { hasPermission } = useAuth();
   const [state, actions] = useCRUD<CategoryRow>(mockCategories);
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -187,9 +188,9 @@ export function CategoriesPage() {
   ];
 
   const rowActions = createStandardRowActions<CategoryRow>({
-    onEdit: handleEdit,
+    onEdit: hasPermission("manage_settings") ? handleEdit : undefined,
     onView: handleView,
-    onDelete: handleDelete,
+    onDelete: hasPermission("manage_settings") ? handleDelete : undefined,
   });
 
   return (
@@ -202,10 +203,11 @@ export function CategoriesPage() {
           <ActionToolbar
             onRefresh={handleRefresh}
             onImport={handleImport}
-            onAddNew={handleAddNew}
+            onAddNew={hasPermission("manage_settings") ? handleAddNew : undefined}
             addNewLabel={TABLE_LABELS.addNew}
             exportLabel="ส่งออก"
             isLoading={state.isLoading}
+            showAddNew={hasPermission("manage_settings")}
           />
         }
       />

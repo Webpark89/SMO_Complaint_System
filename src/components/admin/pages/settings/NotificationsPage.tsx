@@ -1,9 +1,10 @@
+import { useAuth } from "@/hooks/useAuth";
 import { useMemo, useState, useCallback } from "react";
 import { mockNotifications } from "@/mock/notifications";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, Bell, Mail, MessageSquare, Copy } from "lucide-react";
+import { Edit, Trash2, Bell, Mail, MessageSquare, Copy, Eye } from "lucide-react";
 import {
   PageHeader,
   ActionToolbar,
@@ -52,7 +53,6 @@ function channelVariant(c: string): string {
 }
 
 const DETAIL_FIELDS = [
-  { key: "id", label: "รหัส" },
   { key: "name", label: "ชื่อการแจ้งเตือน" },
   { key: "channel", label: "ช่องทาง" },
   { key: "trigger", label: "เงื่อนไข" },
@@ -143,6 +143,7 @@ const EDIT_FIELDS: FormField[] = [
 ];
 
 export function NotificationsPage() {
+  const { hasPermission } = useAuth();
   const [state, actions] = useCRUD<NotificationRow>(mockNotifications);
   const [modalOpen, setModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -299,14 +300,15 @@ export function NotificationsPage() {
   ];
 
   const rowActions: RowAction<NotificationRow>[] = [
-    { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
-    {
+    hasPermission("manage_settings") && { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
+    { label: "ดูรายละเอียด", icon: <Eye className="h-4 w-4 text-[#B8BABF] hover:text-[#8e6c25]" />, onClick: handleView },
+    hasPermission("manage_settings") && {
       label: "ลบ",
       icon: <Trash2 className="h-4 w-4" />,
       onClick: handleDelete,
       variant: "danger",
     },
-  ];
+  ].filter((a): a is RowAction<NotificationRow> => !!a);
 
   return (
     <div className="space-y-6">
@@ -318,7 +320,7 @@ export function NotificationsPage() {
           <ActionToolbar
             onRefresh={handleRefresh}
             onImport={handleImport}
-            onAddNew={handleAddNew}
+            onAddNew={hasPermission("manage_settings") ? handleAddNew : undefined}
             addNewLabel={TABLE_LABELS.addNew}
             exportLabel="ส่งออก"
             isLoading={state.isLoading}

@@ -10,6 +10,7 @@ import {
   type MockSession,
   type MockUser,
 } from "@/services/mock/auth";
+import { getUserPermissions } from "@/mock/roles/roles.mock";
 
 export type AppRole =
   | "super-admin"
@@ -18,7 +19,8 @@ export type AppRole =
   | "compliance"
   | "manager"
   | "auditor"
-  | "employee";
+  | "employee"
+  | "cs";
 
 interface AuthCtx {
   user: MockUser | null;
@@ -34,6 +36,7 @@ interface AuthCtx {
   signInAdminMock?: () => void;
   signOutMock?: () => void;
   hasAnyRole: (allowed: AppRole[]) => boolean;
+  hasPermission: (permission: string) => boolean;
 }
 
 const Ctx = createContext<AuthCtx | undefined>(undefined);
@@ -64,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const isStaff = roles.some((r) =>
-    ["super-admin", "admin", "hr", "compliance", "manager", "auditor"].includes(r)
+    ["super-admin", "admin", "hr", "compliance", "manager", "auditor", "cs"].includes(r)
   );
   
   const canViewSensitive = roles.some((r) =>
@@ -74,6 +77,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ฟังก์ชันเช็คสิทธิ์ที่เพิ่มเข้ามาใหม่
   const hasAnyRole = (allowed: AppRole[]) => {
     return roles.some((r) => allowed.includes(r));
+  };
+
+  const hasPermission = (permission: string): boolean => {
+    if (roles.includes("super-admin") || roles.includes("admin")) {
+      return true;
+    }
+    const userPermissions = getUserPermissions(roles);
+    return userPermissions.includes(permission);
   };
 
   async function signIn(email: string, password: string) {
@@ -116,7 +127,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signInMock,
         signInAdminMock,
         signOutMock,
-        hasAnyRole, // ส่งฟังก์ชันลง Provider ตรงนี้
+        hasAnyRole,
+        hasPermission,
       }}
     >
       {children}

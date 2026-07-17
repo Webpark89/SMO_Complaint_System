@@ -1,9 +1,10 @@
+import { useAuth } from "@/hooks/useAuth";
 import { useMemo, useState, useCallback } from "react";
 import { mockForms } from "@/mock/forms";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, LayoutList, Copy } from "lucide-react";
+import { Edit, Trash2, LayoutList, Copy, Eye } from "lucide-react";
 import {
   PageHeader,
   ActionToolbar,
@@ -53,7 +54,6 @@ const STATUS_OPTIONS = [
 const statusVariant = (s: string): StatusVariant => getFormStatusVariant(s);
 
 const DETAIL_FIELDS = [
-  { key: "id", label: "รหัสฟอร์ม" },
   { key: "name", label: "ชื่อฟอร์ม" },
   { key: "formTypeId", label: "หมวดหมู่" },
   { key: "fields", label: "จำนวนช่อง" },
@@ -120,6 +120,7 @@ const EDIT_FIELDS: FormField[] = [
 ];
 
 export function FormsPage() {
+  const { hasPermission } = useAuth();
   const [state, actions] = useCRUD<FormRow>(mockForms);
   const [modalOpen, setModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -259,14 +260,15 @@ export function FormsPage() {
   ];
 
   const rowActions: RowAction<FormRow>[] = [
-    { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
-    {
+    hasPermission("manage_settings") && { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
+    { label: "ดูรายละเอียด", icon: <Eye className="h-4 w-4 text-[#B8BABF] hover:text-[#8e6c25]" />, onClick: handleView },
+    hasPermission("manage_settings") && {
       label: "ลบ",
       icon: <Trash2 className="h-4 w-4" />,
       onClick: handleDelete,
       variant: "danger",
     },
-  ];
+  ].filter((a): a is RowAction<FormRow> => !!a);
 
   return (
     <div className="space-y-6">
@@ -277,7 +279,7 @@ export function FormsPage() {
         actionButtons={
           <ActionToolbar
             onRefresh={handleRefresh}
-            onAddNew={handleAddNew}
+            onAddNew={hasPermission("manage_settings") ? handleAddNew : undefined}
             addNewLabel={TABLE_LABELS.addNew}
             exportLabel="ส่งออก"
             isLoading={state.isLoading}

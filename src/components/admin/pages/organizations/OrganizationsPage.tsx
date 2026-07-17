@@ -1,3 +1,4 @@
+import { useAuth } from "@/hooks/useAuth";
 import { useMemo, useState, useCallback } from "react";
 import { mockOrganizations } from "@/mock/organization";
 import { ORG_TYPES } from "@/mock/shared/file-types";
@@ -140,6 +141,7 @@ const EDIT_FIELDS: FormField[] = [
 ];
 
 export function OrganizationsPage() {
+  const { hasPermission } = useAuth();
   const [state, actions] = useCRUD<OrgRow>(mockOrganizations);
   const [modalOpen, setModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -288,14 +290,15 @@ export function OrganizationsPage() {
   ];
 
   const rowActions: RowAction<OrgRow>[] = [
-    { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
-    {
+    hasPermission("manage_settings") && { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
+    { label: "ดูรายละเอียด", icon: <Eye className="h-4 w-4 text-[#B8BABF] hover:text-[#8e6c25]" />, onClick: handleView },
+    hasPermission("manage_settings") && {
       label: "ลบ",
       icon: <Trash2 className="h-4 w-4" />,
       onClick: handleDelete,
       variant: "danger",
     },
-  ];
+  ].filter((a): a is RowAction<OrgRow> => !!a);
 
   return (
     <div className="space-y-6">
@@ -307,7 +310,7 @@ export function OrganizationsPage() {
           <ActionToolbar
             onRefresh={handleRefresh}
             onImport={handleImport}
-            onAddNew={handleAddNew}
+            onAddNew={hasPermission("manage_settings") ? handleAddNew : undefined}
             addNewLabel={TABLE_LABELS.addNew}
             exportLabel="ส่งออก"
             isLoading={state.isLoading}

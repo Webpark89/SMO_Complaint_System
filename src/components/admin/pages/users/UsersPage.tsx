@@ -1,13 +1,9 @@
 import { useMemo, useState, useCallback } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import {
-  mockUsers,
-  DEPARTMENTS as DEPARTMENTS_CANONICAL,
-  ROLES as ROLES_CANONICAL,
-} from "@/mock/users";
+import { useAuth } from "@/hooks/useAuth";
+import { mockUsers } from "@/mock/users";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
   Plus,
@@ -21,8 +17,8 @@ import {
   Mail,
   Lock,
   Unlock,
-  Eye, // 2. นำเข้า Eye
-  Key, // 3. นำเข้า Key สำหรับปุ่มจัดการสิทธิ์
+  Eye,
+  Key,
   UserCheck,
   UserX,
   CheckCircle,
@@ -46,6 +42,7 @@ import {
 } from "@/components/admin/crud";
 import { TABLE_LABELS } from "@/components/admin/constants/tableLabels";
 import { createStandardRowActions } from "@/components/admin/layout/tableActions";
+import { mockCombinedRoles } from "@/mock/roles/roles.mock";
 
 type UserStatus = "เปิดใช้งาน" | "ปิดใช้งาน" | "รอยืนยัน";
 
@@ -58,9 +55,6 @@ type UserRow = {
   lastLogin: string;
   status: UserStatus;
 };
-
-const ROLES = ROLES_CANONICAL;
-const DEPARTMENTS = DEPARTMENTS_CANONICAL;
 
 const STATUS_OPTIONS = [
   { value: "all", label: "ทั้งหมด" },
@@ -76,56 +70,19 @@ function statusVariant(s: string): StatusVariant {
 }
 
 const USER_DETAIL_FIELDS = [
-  { key: "id", label: "รหัสผู้ใช้" },
   { key: "name", label: "ชื่อ-นามสกุล" },
   { key: "email", label: "อีเมล" },
-  { key: "role", label: "บทบาท" },
-  { key: "department", label: "แผนก" },
+  { key: "role", label: "บทบาท/แผนก" },
   { key: "lastLogin", label: "เข้าใช้ล่าสุด" },
   { key: "status", label: "สถานะ" },
 ];
 
-const CREATE_FIELDS: FormField[] = [
-  {
-    key: "name",
-    label: "ชื่อ-นามสกุล",
-    type: "text",
-    placeholder: "กรอกชื่อ-นามสกุล",
-    required: true,
-  },
-  {
-    key: "email",
-    label: "อีเมล",
-    type: "email",
-    placeholder: "กรอกอีเมล",
-    required: true,
-  },
-  {
-    key: "role",
-    label: "บทบาท",
-    type: "select",
-    placeholder: "เลือกบทบาท",
-    required: true,
-    options: ROLES,
-  },
-  {
-    key: "department",
-    label: "แผนก",
-    type: "select",
-    placeholder: "เลือกแผนก",
-    required: true,
-    options: DEPARTMENTS,
-  },
-];
-
-// ลบ EDIT_FIELDS ออกเพราะเราย้ายไปทำในหน้าใหม่แล้ว
-
 export function UsersPage() {
-  const navigate = useNavigate(); // 4. เรียกใช้งาน React Router
+  const navigate = useNavigate();
+  const { hasPermission } = useAuth();
 
   const [state, actions] = useCRUD<UserRow>(mockUsers);
   const [modalOpen, setModalOpen] = useState(false);
-  // ลบ editModalOpen และ editValues ออก
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<UserRow | null>(null);
@@ -139,7 +96,7 @@ export function UsersPage() {
         !q ||
         r.name.toLowerCase().includes(q) ||
         r.email.toLowerCase().includes(q) ||
-        r.department.toLowerCase().includes(q);
+        r.role.toLowerCase().includes(q);
       const matchStatus =
         state.filterStatus === "all" ? true : r.status === state.filterStatus;
       return matchQ && matchStatus;
@@ -156,7 +113,6 @@ export function UsersPage() {
       name: "",
       email: "",
       role: "",
-      department: "",
       status: "รอยืนยัน",
     });
     setModalOpen(true);
@@ -176,7 +132,7 @@ export function UsersPage() {
       name: createValues.name as string,
       email: createValues.email as string,
       role: createValues.role as string,
-      department: createValues.department as string,
+      department: "",
       lastLogin: "—",
       status: "รอยืนยัน",
     };
@@ -184,7 +140,6 @@ export function UsersPage() {
     setModalOpen(false);
   }, [actions, createValues, state.items.length]);
 
-  // 5. เปลี่ยนจากการเปิด Modal เป็นการนำทาง (Navigate) ไปหน้าอื่น
   const handleEdit = useCallback((row: UserRow) => {
     navigate({ 
       to: `/admin/settings/users/edit/${row.id}` 
@@ -207,12 +162,6 @@ export function UsersPage() {
   const handleView = useCallback((row: UserRow) => {
     setSelectedItem(row);
     setDetailDrawerOpen(true);
-  }, []);
-
-  const handleResetPassword = useCallback((row: UserRow) => {
-    setSelectedItem(row);
-    setDetailAction("reset-password");
-    setTimeout(() => setDetailAction(null), 1500);
   }, []);
 
   const handleLock = useCallback(
@@ -247,18 +196,13 @@ export function UsersPage() {
     },
     {
       key: "role",
-      header: "บทบาท",
+      header: "บทบาท/แผนก",
       render: (r) => (
         <span className="flex items-center gap-1 text-slate-600">
           <UserCog className="h-3 w-3 text-slate-400" />
           {r.role}
         </span>
       ),
-    },
-    {
-      key: "department",
-      header: "แผนก",
-      render: (r) => <span className="text-slate-600">{r.department}</span>,
     },
     {
       key: "lastLogin",
@@ -275,10 +219,35 @@ export function UsersPage() {
   ];
 
   const rowActions = createStandardRowActions<UserRow>({
-    onEdit: handleEdit,
+    onEdit: hasPermission("manage_users") ? handleEdit : undefined,
     onView: handleView,
-    onDelete: handleDelete,
+    onDelete: hasPermission("manage_users") ? handleDelete : undefined,
   });
+
+  const createFields = useMemo<FormField[]>(() => [
+    {
+      key: "name",
+      label: "ชื่อ-นามสกุล",
+      type: "text",
+      placeholder: "กรอกชื่อ-นามสกุล",
+      required: true,
+    },
+    {
+      key: "email",
+      label: "อีเมล",
+      type: "email",
+      placeholder: "กรอกอีเมล",
+      required: true,
+    },
+    {
+      key: "role",
+      label: "บทบาท/แผนก",
+      type: "select",
+      placeholder: "เลือกบทบาท/แผนก",
+      required: true,
+      options: mockCombinedRoles.map(r => ({ value: r.name, label: r.name })),
+    },
+  ], []);
 
   return (
     <div className="space-y-6">
@@ -290,10 +259,11 @@ export function UsersPage() {
           <ActionToolbar
             onRefresh={handleRefresh}
             onImport={handleImport}
-            onAddNew={handleAddNew}
+            onAddNew={hasPermission("manage_users") ? handleAddNew : undefined}
             addNewLabel={TABLE_LABELS.addNew}
             exportLabel="ส่งออก"
             isLoading={state.isLoading}
+            showAddNew={hasPermission("manage_users")}
           />
         }
       />
@@ -365,15 +335,13 @@ export function UsersPage() {
         onOpenChange={setModalOpen}
         title="เพิ่มผู้ใช้ใหม่"
         description="กรอกข้อมูลผู้ใช้เพื่อเพิ่มบัญชีใหม่"
-        fields={CREATE_FIELDS}
+        fields={createFields}
         values={createValues}
         onValuesChange={setCreateValues}
         onSubmit={handleSubmitCreate}
         mode="create"
         submitLabel="เพิ่มผู้ใช้"
       />
-
-      {/* ลบ Edit Modal ทิ้งแล้ว */}
 
       {/* Delete Dialog */}
       <DeleteDialog
@@ -396,20 +364,24 @@ export function UsersPage() {
         actions={
           selectedItem && (
             <div className="flex flex-col w-full gap-4 mt-2">
-              
-              {/* 7. เพิ่มพื้นที่จัดการสิทธิ์ */}
               <div className="flex w-full justify-between items-center bg-slate-50 p-3 rounded-md border border-slate-200">
                 <span className="text-sm font-medium text-slate-700">การกำหนดสิทธิ์ผู้ใช้งาน</span>
                 <Button 
                   size="sm" 
                   className="bg-[#b08730] hover:bg-[#8e6c25] text-white gap-1"
-                  onClick={() => alert('เปิดหน้าต่าง/ส่วนจัดการสิทธิ์ (จะเพิ่มในภายหลัง)')}
+                  onClick={() => {
+                    const roleMatch = mockCombinedRoles.find(r => r.name === selectedItem.role);
+                    if (roleMatch) {
+                      navigate({ to: `/admin/settings/roles/edit/${roleMatch.id}` });
+                    } else {
+                      alert('ไม่พบบทบาท/แผนกที่สอดคล้องกับผู้ใช้งานรายนี้');
+                    }
+                  }}
                 >
                   <Key className="h-4 w-4" /> จัดการสิทธิ์
                 </Button>
               </div>
 
-              {/* ปุ่ม Lock/Unlock เดิม */}
               <div className="flex flex-wrap gap-2 justify-end pt-2 border-t border-slate-100">
                 {selectedItem.status === "ปิดใช้งาน" ? (
                   <Button

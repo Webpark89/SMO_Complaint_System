@@ -1,17 +1,13 @@
 import { useState, useEffect } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import {
-  mockUsers,
-  DEPARTMENTS as DEPARTMENTS_CANONICAL,
-  ROLES as ROLES_CANONICAL,
-} from "@/mock/users";
+import { mockUsers } from "@/mock/users";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/admin/crud";
-
-// สำคัญ: Import AdminLayout เข้ามาใช้งาน (กรุณาตรวจสอบ Path ให้ตรงกับโฟลเดอร์โปรเจกต์ของคุณ)
-import { AdminLayout } from "@/components/admin/layout"; // <-- เปลี่ยน Path ให้ตรงกับที่เก็บไฟล์ AdminLayout.tsx ของคุณ
+import { AdminLayout } from "@/components/admin/layout";
+import { mockCombinedRoles } from "@/mock/roles/roles.mock";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/admin/settings/users/edit/$id")({
   component: EditUserPage,
@@ -22,6 +18,13 @@ const STATUS_OPTIONS = ["เปิดใช้งาน", "ปิดใช้ง
 function EditUserPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
+  const { hasPermission, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !hasPermission("manage_users")) {
+      navigate({ to: "/admin/dashboard", replace: true });
+    }
+  }, [loading, hasPermission, navigate]);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,11 +33,11 @@ function EditUserPage() {
     name: "",
     email: "",
     role: "",
-    department: "",
     status: "",
   });
 
   useEffect(() => {
+    if (loading || !hasPermission("manage_users")) return;
     setIsLoading(true);
     setTimeout(() => {
       const user = mockUsers.find((u) => u.id === id);
@@ -43,7 +46,6 @@ function EditUserPage() {
           name: user.name,
           email: user.email,
           role: user.role,
-          department: user.department,
           status: user.status,
         });
       } else {
@@ -51,7 +53,7 @@ function EditUserPage() {
       }
       setIsLoading(false);
     }, 500);
-  }, [id]);
+  }, [id, loading, hasPermission]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -72,7 +74,7 @@ function EditUserPage() {
           name: formData.name,
           email: formData.email,
           role: formData.role,
-          department: formData.department,
+          department: "",
           status: formData.status as any,
         };
       }
@@ -82,7 +84,19 @@ function EditUserPage() {
     }, 800);
   };
 
-  // กรณีหาข้อมูลไม่พบ
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="flex h-64 items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-[var(--gold)]" />
+          <span className="ml-2 text-sm text-slate-500">กำลังโหลด...</span>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (!hasPermission("manage_users")) return null;
+
   if (error) {
     return (
       <AdminLayout>
@@ -106,9 +120,7 @@ function EditUserPage() {
   }
 
   return (
-    // 1. ครอบด้วย AdminLayout เพื่อดึง Sidebar และ Navbar มาแสดง
     <AdminLayout>
-      {/* 2. ใช้ space-y-6 เพื่อรักษาระยะห่างส่วนหัวและเนื้อหาให้เท่ากับหน้า UsersPage */}
       <div className="space-y-6">
         
         <PageHeader
@@ -119,7 +131,6 @@ function EditUserPage() {
             { label: "ผู้ใช้งาน" },
             { label: "แก้ไขข้อมูลผู้ใช้" }
           ]}
-          // ปุ่มย้อนกลับจัดไว้มุมขวาบนเหมือนปุ่ม Action ในหน้าตาราง
           actionButtons={
             <Button
               variant="outline"
@@ -132,15 +143,14 @@ function EditUserPage() {
           }
         />
         
-        {/* 3. Card กางเต็มพื้นที่ w-full (เหมือนกล่อง DataTable) */}
         <Card className="w-full border-[var(--border)] bg-white shadow-soft">
           <CardContent className="p-6">
             <div className="mb-6 border-b border-slate-100 pb-4">
               <h2 className="text-lg font-bold text-slate-800">
-                แก้ไขข้อมูลผู้ใช้รหัส: <span className="text-[#b08730]">{id}</span>
+                แก้ไขข้อมูลผู้ใช้
               </h2>
             </div>
-            {/* 4. ฟอร์มจำกัดความกว้าง max-w-2xl เพื่อไม่ให้ช่องกรอกข้อมูลยาวยืดเต็มจอ */}
+            
             <form onSubmit={handleSubmit} className="w-full space-y-6">
               
               <div className="space-y-1.5">
@@ -173,11 +183,10 @@ function EditUserPage() {
                 />
               </div>
 
-              {/* จัดบทบาทและแผนกให้อยู่คู่กันในบรรทัดเดียว */}
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-slate-700">
-                    บทบาท <span className="text-red-500">*</span>
+                    บทบาท/แผนก <span className="text-red-500">*</span>
                   </label>
                   <select
                     name="role"
@@ -186,10 +195,10 @@ function EditUserPage() {
                     onChange={handleChange}
                     className="w-full h-10 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#b08730] focus:border-transparent transition-all"
                   >
-                    <option value="" disabled>เลือกบทบาท</option>
-                    {ROLES_CANONICAL.map((role) => (
-                      <option key={role.value} value={role.value}>
-                        {role.label}
+                    <option value="" disabled>เลือกบทบาท/แผนก</option>
+                    {mockCombinedRoles.map((role) => (
+                      <option key={role.id} value={role.name}>
+                        {role.name}
                       </option>
                     ))}
                   </select>
@@ -197,46 +206,25 @@ function EditUserPage() {
 
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-slate-700">
-                    แผนก <span className="text-red-500">*</span>
+                    สถานะ <span className="text-red-500">*</span>
                   </label>
                   <select
-                    name="department"
+                    name="status"
                     required
-                    value={formData.department}
+                    value={formData.status}
                     onChange={handleChange}
                     className="w-full h-10 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#b08730] focus:border-transparent transition-all"
                   >
-                    <option value="" disabled>เลือกแผนก</option>
-                    {DEPARTMENTS_CANONICAL.map((dept) => (
-                      <option key={dept.value} value={dept.value}>
-                        {dept.label}
+                    <option value="" disabled>เลือกสถานะ</option>
+                    {STATUS_OPTIONS.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
                       </option>
                     ))}
                   </select>
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-slate-700">
-                  สถานะ <span className="text-red-500">*</span>
-                </label>
-                <select
-                  name="status"
-                  required
-                  value={formData.status}
-                  onChange={handleChange}
-                  className="w-full h-10 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#b08730] focus:border-transparent transition-all"
-                >
-                  <option value="" disabled>เลือกสถานะ</option>
-                  {STATUS_OPTIONS.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* ส่วนปุ่ม Actions */}
               <div className="flex gap-3 pt-6 mt-6">
                 <Button
                   type="submit"

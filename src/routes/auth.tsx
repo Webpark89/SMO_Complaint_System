@@ -151,20 +151,49 @@ function AuthPage() {
                   {loading ? "กำลังเข้าสู่ระบบ…" : "เข้าสู่ระบบ"}
                 </Button>
 
-                {import.meta.env.DEV && signInAdminMock && (
-                  <div className="mt-3 text-center">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={() => {
-                        signInAdminMock();
-                        clearPostLoginRedirectState();
-                        toast.success("เข้าสู่ระบบ Admin ชั่วคราวเรียบร้อย");
-                        navigate({ to: "/admin/dashboard", replace: true });
-                      }}
-                    >
-                      เข้าสู่ระบบ Admin (ชั่วคราว)
-                    </Button>
+                {import.meta.env.DEV && (
+                  <div className="mt-6 p-4 rounded-lg border border-slate-200 bg-slate-50 space-y-3">
+                    <div className="text-xs font-semibold text-slate-500 text-center">
+                      บัญชีทดสอบระบบ (Quick Login)
+                    </div>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="bg-white border-slate-200 text-xs font-medium text-slate-700 hover:bg-slate-50 py-2 h-auto"
+                        onClick={() => {
+                          setEmail("super.admin@example.com");
+                          setPassword("123456");
+                        }}
+                      >
+                        ผู้ดูแลระบบ
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="bg-white border-slate-200 text-xs font-medium text-slate-700 hover:bg-slate-50 py-2 h-auto"
+                        onClick={() => {
+                          setEmail("strategy@example.com");
+                          setPassword("123456");
+                        }}
+                      >
+                        กลยุทธ์องค์กร
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="bg-white border-slate-200 text-xs font-medium text-slate-700 hover:bg-slate-50 py-2 h-auto"
+                        onClick={() => {
+                          setEmail("hr@example.com");
+                          setPassword("123456");
+                        }}
+                      >
+                        ทรัพยากรบุคคล
+                      </Button>
+                    </div>
                   </div>
                 )}
               </form>

@@ -1,10 +1,10 @@
 import { useMemo, useState, useCallback } from "react";
-import { PERMISSIONS_LIST } from "@/mock/master-data/roles";
+import { useNavigate } from "@tanstack/react-router";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, ShieldCheck, Users } from "lucide-react";
+import { Edit, Trash2, ShieldCheck, Users, Eye } from "lucide-react";
 import {
   PageHeader,
   ActionToolbar,
@@ -22,67 +22,12 @@ import {
   useCRUD,
 } from "@/components/admin/crud";
 import { TABLE_LABELS } from "@/components/admin/constants/tableLabels";
-
-export type DepartmentCode =
-  | "CS" // กลยุทธ์องค์กร
-  | "SC" // เลขานุการบริษัท
-  | "RP" // จัดซื้อวัตถุดิบ
-  | "HR" // ทรัพยากรบุคคล
-  | "DSM" // ขายและการตลาดในประเทศ
-  | "ISM" // ขายและการตลาดต่างประเทศ
-  | "GP" // จัดซื้อทั่วไป
-  | "OS" // สำนักงานเลขานุการบริหาร
-  | "LG" // โลจิสติกส์
-  | "QE" // บริหารระบบคุณภาพ ความปลอดภัย อาชีวอนามัยและสิ่งแวดล้อม
-  | "FN"; // การเงิน
-
-export type Department = {
-  code: DepartmentCode;
-  name: string;
-  nameEn: string;
-};
-
-export const departments: Department[] = [
-  { code: "CS", name: "กลยุทธ์องค์กร", nameEn: "Corporate Strategy" },
-  { code: "SC", name: "เลขานุการบริษัท", nameEn: "Corporate Secretary" },
-  { code: "RP", name: "จัดซื้อวัตถุดิบ", nameEn: "Raw Material Procurement" },
-  { code: "HR", name: "ทรัพยากรบุคคล", nameEn: "Human Resources" },
-  {
-    code: "DSM",
-    name: "ขายและการตลาดในประเทศ",
-    nameEn: "Domestic Sales & Marketing",
-  },
-  {
-    code: "ISM",
-    name: "ขายและการตลาดต่างประเทศ",
-    nameEn: "International Sales & Marketing",
-  },
-  { code: "GP", name: "จัดซื้อทั่วไป", nameEn: "General Procurement" },
-  { code: "OS", name: "สำนักงานเลขานุการบริหาร", nameEn: "Board Secretariat" },
-  { code: "LG", name: "โลจิสติกส์", nameEn: "Logistics" },
-  {
-    code: "QE",
-    name: "บริหารระบบคุณภาพ ความปลอดภัย อาชีวอนามัยและสิ่งแวดล้อม",
-    nameEn: "Quality, Safety, Occupational Health & Environment",
-  },
-  { code: "FN", name: "การเงิน", nameEn: "Finance" },
-];
-
-type RoleStatus = "เปิดใช้งาน" | "ระงับ";
-
-type RoleRow = {
-  id: string;
-  name: string;
-  description: string;
-  userCount: number;
-  permissions: string[];
-  status: RoleStatus;
-};
+import { mockCombinedRoles, ALL_PERMISSIONS, type RoleStatus, type RoleRow } from "@/mock/roles/roles.mock";
 
 const STATUS_OPTIONS = [
   { value: "all", label: "ทั้งหมด" },
   { value: "เปิดใช้งาน", label: "เปิดใช้งาน" },
-  { value: "ระงับ", label: "ระงับ" },
+  { value: "ปิดใช้งาน", label: "ปิดใช้งาน" },
 ];
 
 function statusVariant(s: RoleStatus): StatusVariant {
@@ -90,26 +35,17 @@ function statusVariant(s: RoleStatus): StatusVariant {
 }
 
 function translatePermission(p: string): string {
-  switch (p) {
-    case "all_access":
-      return "เข้าถึงทั้งหมด";
-    case "view_complaints":
-      return "ดูเรื่องร้องเรียน";
-    case "reply_complaints":
-      return "ตอบกลับเรื่องร้องเรียน";
-    default:
-      return p;
-  }
+  const matched = ALL_PERMISSIONS.find((perm) => perm.value === p);
+  return matched ? matched.label : p;
 }
 
 const DETAIL_FIELDS = [
-  { key: "id", label: "รหัสบทบาท" },
   { key: "name", label: "ชื่อบทบาท" },
   { key: "description", label: "คำอธิบาย" },
   { key: "userCount", label: "จำนวนผู้ใช้" },
   {
     key: "permissions",
-    label: "สิทธิ์",
+    label: "สิทธิ์การใช้งาน",
     render: (val: any) => {
       const perms = Array.isArray(val) ? val : [];
       return (
@@ -147,61 +83,15 @@ const CREATE_FIELDS: FormField[] = [
   },
 ];
 
-const EDIT_FIELDS: FormField[] = [
-  {
-    key: "name",
-    label: "ชื่อบทบาท",
-    type: "text",
-    placeholder: "กรอกชื่อบทบาท",
-    required: true,
-  },
-  {
-    key: "description",
-    label: "คำอธิบาย",
-    type: "textarea",
-    placeholder: "กรอกคำอธิบายบทบาท",
-    required: true,
-  },
-  {
-    key: "status",
-    label: "สถานะ",
-    type: "select",
-    required: true,
-    options: STATUS_OPTIONS.slice(1),
-  },
-];
-
-const mockRoles: RoleRow[] = [
-  {
-    id: "ROLE-001",
-    name: "ผู้ดูแลระบบ (Super Admin)",
-    description: "ดูแลและจัดการตั้งค่าระบบทั้งหมด",
-    userCount: 2,
-    permissions: ["all_access"],
-    status: "เปิดใช้งาน",
-  },
-];
-
-const departmentRoles: RoleRow[] = departments.map((dept) => ({
-  id: `DEPT-${dept.code}`,
-  name: dept.name,
-  description: `ฝ่าย/แผนก: ${dept.nameEn}`,
-  userCount: 0,
-  permissions: ["view_complaints", "reply_complaints"],
-  status: "เปิดใช้งาน",
-}));
-
-const combinedRoles: RoleRow[] = [...mockRoles, ...departmentRoles];
-
 export function RolesPage() {
-  const [state, actions] = useCRUD<RoleRow>(combinedRoles);
+  const navigate = useNavigate();
+  const { hasPermission } = useAuth();
+  const [state, actions] = useCRUD<RoleRow>(mockCombinedRoles);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<RoleRow | null>(null);
   const [createValues, setCreateValues] = useState<Record<string, unknown>>({});
-  const [editValues, setEditValues] = useState<Record<string, unknown>>({});
 
   const filtered = useMemo(() => {
     const q = state.searchQuery.trim().toLowerCase();
@@ -235,7 +125,7 @@ export function RolesPage() {
       name: createValues.name as string,
       description: createValues.description as string,
       userCount: 0,
-      permissions: [],
+      permissions: ["view_complaints"],
       status: "เปิดใช้งาน",
     };
     actions.addItem(newItem);
@@ -243,21 +133,10 @@ export function RolesPage() {
   }, [actions, createValues, state.items.length]);
 
   const handleEdit = useCallback((row: RoleRow) => {
-    setSelectedItem(row);
-    setEditValues({ ...row });
-    setEditModalOpen(true);
-  }, []);
-
-  const handleSubmitEdit = useCallback(() => {
-    if (!selectedItem) return;
-    actions.updateItem(selectedItem.id, {
-      name: editValues.name as string,
-      description: editValues.description as string,
-      status: editValues.status as RoleStatus,
+    navigate({
+      to: `/admin/settings/roles/edit/${row.id}`,
     });
-    setEditModalOpen(false);
-    setSelectedItem(null);
-  }, [actions, selectedItem, editValues]);
+  }, [navigate]);
 
   const handleDelete = useCallback((row: RoleRow) => {
     setSelectedItem(row);
@@ -274,19 +153,6 @@ export function RolesPage() {
     setSelectedItem(row);
     setDetailDrawerOpen(true);
   }, []);
-
-  const handleClone = useCallback(
-    (row: RoleRow) => {
-      const clone: RoleRow = {
-        ...row,
-        id: `${row.id}-clone`,
-        name: `${row.name} (คัดลอก)`,
-        userCount: 0,
-      };
-      actions.addItem(clone);
-    },
-    [actions],
-  );
 
   const columns: Column<RoleRow>[] = [
     {
@@ -319,11 +185,11 @@ export function RolesPage() {
     },
     {
       key: "permissions",
-      header: "สิทธิ์",
-      width: "200px",
+      header: "สิทธิ์การใช้งาน",
+      width: "220px",
       render: (r) => (
         <div className="flex flex-wrap gap-1">
-          {r.permissions.slice(0, 2).map((p) => (
+          {r.permissions.slice(0, 3).map((p) => (
             <Badge
               key={p}
               className="border border-[rgba(148,163,184,0.25)] bg-[rgba(148,163,184,0.12)] text-slate-600 hover:bg-[rgba(193,201,214,0.12)] text-xs"
@@ -331,11 +197,12 @@ export function RolesPage() {
               {translatePermission(p)}
             </Badge>
           ))}
-          {r.permissions.length > 2 && (
-            <Badge className="border border-[rgba(148,163,184,0.25)] bg-[rgba(148,163,184,0.12)] text-slate-600 hover:bg-[rgba(193,201,214,0.12)] text-xs">
-              +{r.permissions.length - 2}
+          {r.permissions.length > 3 && (
+            <Badge className="border border-[rgba(148,163,184,0.25)] bg-[rgba(148,163,184,0.12)] text-slate-600 hover:bg-[rgba(193,201,214,0.12)] text-xs font-semibold">
+              +{r.permissions.length - 3}
             </Badge>
           )}
+          {r.permissions.length === 0 && <span className="text-xs text-slate-400">— ไม่มีสิทธิ์ —</span>}
         </div>
       ),
     },
@@ -352,14 +219,15 @@ export function RolesPage() {
   ];
 
   const rowActions: RowAction<RoleRow>[] = [
-    { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
-    {
+    hasPermission("manage_roles") && { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
+    { label: "ดูรายละเอียด", icon: <Eye className="h-4 w-4 text-[#B8BABF] hover:text-[#8e6c25]" />, onClick: handleView },
+    hasPermission("manage_roles") && {
       label: "ลบ",
       icon: <Trash2 className="h-4 w-4" />,
       onClick: handleDelete,
       variant: "danger",
     },
-  ];
+  ].filter((a): a is RowAction<RoleRow> => !!a);
 
   return (
     <div className="space-y-6">
@@ -371,10 +239,11 @@ export function RolesPage() {
           <ActionToolbar
             onRefresh={handleRefresh}
             onImport={handleImport}
-            onAddNew={handleAddNew}
+            onAddNew={hasPermission("manage_roles") ? handleAddNew : undefined}
             addNewLabel={TABLE_LABELS.addNew}
             exportLabel="ส่งออก"
             isLoading={state.isLoading}
+            showAddNew={hasPermission("manage_roles")}
           />
         }
       />
@@ -441,19 +310,6 @@ export function RolesPage() {
         onSubmit={handleSubmitCreate}
         mode="create"
         submitLabel="เพิ่มบทบาท"
-      />
-
-      <CreateEditModal
-        open={editModalOpen}
-        onOpenChange={setEditModalOpen}
-        title="แก้ไขบทบาท"
-        description={`แก้ไขบทบาท: ${selectedItem?.name ?? ""}`}
-        fields={EDIT_FIELDS}
-        values={editValues}
-        onValuesChange={setEditValues}
-        onSubmit={handleSubmitEdit}
-        mode="edit"
-        submitLabel="บันทึก"
       />
 
       <DeleteDialog

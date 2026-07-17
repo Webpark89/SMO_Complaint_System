@@ -1,9 +1,10 @@
+import { useAuth } from "@/hooks/useAuth";
 import { useMemo, useState, useCallback } from "react";
 import { mockSensitiveCases } from "@/mock/assignment/sensitive.mock";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, Shield, Copy, ChevronDown } from "lucide-react";
+import { Edit, Trash2, Shield, Copy, ChevronDown, Eye } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -200,6 +201,7 @@ const EDIT_FIELDS: FormField[] = [
 ];
 
 export function SensitiveComplaintsPage() {
+  const { hasPermission } = useAuth();
   const [state, actions] = useCRUD<SensitiveRow>(mockSensitiveCases);
   const [modalOpen, setModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -393,14 +395,15 @@ export function SensitiveComplaintsPage() {
   ];
 
   const rowActions: RowAction<SensitiveRow>[] = [
-    { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
-    {
+    hasPermission("edit_complaints") && { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
+    { label: "ดูรายละเอียด", icon: <Eye className="h-4 w-4 text-[#B8BABF] hover:text-[#8e6c25]" />, onClick: handleView },
+    hasPermission("delete_complaints") && {
       label: "ลบ",
       icon: <Trash2 className="h-4 w-4" />,
       onClick: handleDelete,
       variant: "danger",
     },
-  ];
+  ].filter((a): a is RowAction<SensitiveRow> => !!a);
 
   return (
     <div className="space-y-6">
@@ -414,10 +417,10 @@ export function SensitiveComplaintsPage() {
             onImport={handleImport}
             onExportPDF={handleExportPDF}
             exportLabel="ส่งออก"
-            onAddNew={handleAddNew}
+            onAddNew={hasPermission("create_complaints") ? handleAddNew : undefined}
             addNewLabel={TABLE_LABELS.addNew}
             isLoading={state.isLoading}
-            showAddNew
+            showAddNew={hasPermission("create_complaints")}
             showImport
             showExport
           />

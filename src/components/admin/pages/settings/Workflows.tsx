@@ -1,5 +1,6 @@
 import { useMemo, useState, useCallback } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useAuth } from "@/hooks/useAuth";
 import { AdminLayout } from "@/components/admin/layout";
 
 import {
@@ -19,7 +20,7 @@ import {
 } from "@/components/admin/crud";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Eye } from "lucide-react";
 
 type Workflow = {
   id: string;
@@ -86,7 +87,6 @@ const STATUS_OPTIONS = [
 ];
 
 const DETAIL_FIELDS = [
-  { key: "id", label: "รหัส" },
   { key: "name", label: "ชื่อกระบวนการ" },
   { key: "category", label: "หมวดหมู่" },
   { key: "steps", label: "จำนวนขั้นตอน" },
@@ -145,6 +145,7 @@ const EDIT_FIELDS: FormField[] = [
 ];
 
 export function WorkflowsPage() {
+  const { hasPermission } = useAuth();
   const [state, actions] = useCRUD<Workflow>(mockWorkflows);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -272,9 +273,15 @@ export function WorkflowsPage() {
   ];
 
   const rowActions: RowAction<Workflow>[] = [
-    { label: "แก้ไข", icon: <Edit />, onClick: handleEdit },
-    { label: "ลบ", icon: <Trash2 />, onClick: handleDelete, variant: "danger" },
-  ];
+    hasPermission("manage_settings") && { label: "แก้ไข", icon: <Edit className="h-4 w-4" />, onClick: handleEdit },
+    { label: "ดูรายละเอียด", icon: <Eye className="h-4 w-4 text-[#B8BABF] hover:text-[#8e6c25]" />, onClick: handleView },
+    hasPermission("manage_settings") && {
+      label: "ลบ",
+      icon: <Trash2 className="h-4 w-4" />,
+      onClick: handleDelete,
+      variant: "danger",
+    },
+  ].filter((a): a is RowAction<Workflow> => !!a);
 
   return (
     <AdminLayout>
@@ -288,7 +295,7 @@ export function WorkflowsPage() {
           ]}
           actionButtons={
             <ActionToolbar
-              onAddNew={handleCreate}
+              onAddNew={hasPermission("manage_settings") ? handleCreate : undefined}
               addNewLabel="เพิ่มรายการใหม่"
               onRefresh={() => actions.setLoading(false)}
               isLoading={state.isLoading}

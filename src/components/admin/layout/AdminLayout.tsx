@@ -2,13 +2,14 @@ import { useState, useRef, useEffect, memo, type ReactNode } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "./Sidebar";
-import type { AppRole } from "@/hooks/useAuth";
+import { useAuth, type AppRole } from "@/hooks/useAuth";
 import {
   Bell,
   LayoutDashboard,
   ShieldCheck,
   Search,
   Users,
+  User,
   ClipboardList,
   Layers,
   Layers3,
@@ -220,7 +221,7 @@ const NAV: NavItem[] = [
   },
   {
     key: "organizations",
-    label: "หน่วยงานและโครงสร้างงองค์กร",
+    label: "หน่วยงานและโครงสร้างองค์กร",
     path: "/admin/settings/organizations",
     icon: Building2,
     group: "SETTINGS",
@@ -253,6 +254,27 @@ function getActiveKeyFromPath(pathname: string): NavKey | null {
 
 export function AdminLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const { user, roles } = useAuth();
+
+  const getRoleNameTh = (role: string) => {
+    const roleNames: Record<string, string> = {
+      "super-admin": "ผู้ดูแลระบบสูงสุด",
+      "admin": "ผู้ดูแลระบบ",
+      "hr": "ทรัพยากรบุคคล",
+      "compliance": "ผู้จัดการด้านการปฏิบัติตามกฎเกณฑ์",
+      "manager": "ผู้จัดการทั่วไป",
+      "auditor": "ผู้ตรวจสอบ",
+      "employee": "พนักงาน",
+      "cs": "กลยุทธ์องค์กร",
+    };
+    return roleNames[role] || role;
+  };
+
+  const displayName = user?.user_metadata?.full_name || "ไม่มีชื่อ";
+  const displayRole = roles.length > 0 ? getRoleNameTh(roles[0]) : "ผู้ใช้งาน";
+  const displayEmail = user?.email || "no-email@company.com";
+  const isAdmin = roles.includes("admin") || roles.includes("super-admin");
+
   const [searchValue, setSearchValue] = useState("");
   const mainRef = useRef<HTMLDivElement>(null);
   const lastPathRef = useRef(router.state.location.pathname);
@@ -335,15 +357,22 @@ export function AdminLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <div className="flex h-[48px] items-center gap-3 rounded-full border border-[var(--border)] bg-white pl-4 pr-1.5 shadow-soft">
-            <div className="flex flex-col justify-center leading-tight">
-              <div className="text-[11px] font-bold tracking-wider text-slate-500">
-                ADMIN
+          <div className="flex items-center gap-3.5 rounded-full border border-[#E2E8F0] bg-white py-1.5 pl-6 pr-1.5 shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
+            <div className="flex flex-col items-center justify-center text-center">
+              <div className="text-[13px] font-semibold text-[#002D62] leading-tight">
+                {displayName} ({displayRole})
+              </div>
+              <div className="text-[11px] font-medium text-slate-400 leading-tight mt-0.5">
+                {displayEmail}
               </div>
             </div>
-            <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[var(--gold-soft)] text-[#111827]">
-              <ShieldCheck className="h-4.5 w-4.5" />
-            </span>
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FBEFD3] text-[#111827]">
+              {isAdmin ? (
+                <ShieldCheck className="h-4.5 w-4.5" />
+              ) : (
+                <User className="h-4.5 w-4.5" />
+              )}
+            </div>
           </div>
         </div>
       </header>

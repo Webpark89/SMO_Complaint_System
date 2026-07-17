@@ -87,7 +87,7 @@ const parseTime = (dateStr: string) => {
   if (parts.length >= 3) {
     let y = Number(parts[2]);
     if (y > 2500) y -= 543;
-    return new Date(y, Number(parts[1]) - 1, Number(parts[0]), Number(parts[3]||0), Number(parts[4]||0), Number(parts[5]||0)).getTime();
+    return new Date(y, Number(parts[1]) - 1, Number(parts[0]), Number(parts[3] || 0), Number(parts[4] || 0), Number(parts[5] || 0)).getTime();
   }
   return 0;
 };
@@ -125,7 +125,7 @@ function TrackPage() {
   const [ref, setRef] = useState(search.ref ?? "");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<TrackResult | null | "not_found">(null);
-  
+
   // State สำหรับควบคุมการ Expand/Collapse ของ Timeline
   const [isTimelineExpanded, setIsTimelineExpanded] = useState(false);
 
@@ -157,7 +157,7 @@ function TrackPage() {
   // หา Status ล่าสุดเพื่อนำไปกำหนดสี Badge และดึง sorted history
   let currentStatusLabel = "-";
   let sortedHistory: TrackResult["history"] = [];
-  
+
   if (showResult && typeof result !== "string") {
     sortedHistory = [...result.history].sort((a, b) => {
       const timeA = parseTime(a.created_at);
@@ -172,10 +172,10 @@ function TrackPage() {
   }
 
   // คำนวณข้อมูลสำหรับการแสดง Timeline
-  const visibleHistory = isTimelineExpanded 
-    ? sortedHistory 
+  const visibleHistory = isTimelineExpanded
+    ? sortedHistory
     : sortedHistory.slice(0, DEFAULT_VISIBLE_COUNT);
-  
+
   const hasMoreHistory = sortedHistory.length > DEFAULT_VISIBLE_COUNT;
 
   // กำหนดสีพื้นหลัง Badge ตามสถานะ
@@ -187,10 +187,10 @@ function TrackPage() {
   };
 
   const formatThaiDate = (dateStr: string) => {
-  const d = new Date(dateStr);
-  return isNaN(d.getTime())
-    ? dateStr
-    : d.toLocaleDateString("th-TH");
+    const d = new Date(dateStr);
+    return isNaN(d.getTime())
+      ? dateStr
+      : d.toLocaleDateString("th-TH");
   };
 
   return (
@@ -217,10 +217,10 @@ function TrackPage() {
               <h1 className="mt-4 font-display text-3xl font-bold text-primary md:text-4xl">
                 ติดตามสถานะเรื่องร้องเรียน
               </h1>
-              <div className="mt-3 h-0.5 w-48 rounded-full bg-[#D29E0E]"/>
+              <div className="mt-3 h-0.5 w-48 rounded-full bg-[#D29E0E]" />
               <p className="mt-4 text-sm leading-relaxed text-[#002856]">
                 กรุณากรอกหมายเลขอ้างอิงที่ได้รับเมื่อส่งเรื่อง (รูปแบบ{" "}
-                <span className="font-mono">CMP-YYYY-XXXX</span>)
+                <span className="font-mono">CMP-XXXXXXXX</span>)
                 เพื่อความเป็นส่วนตัว ระบบจะแสดงเฉพาะข้อมูลสรุปเท่านั้น
               </p>
 
@@ -242,7 +242,7 @@ function TrackPage() {
                     <div className="flex flex-col gap-2 sm:flex-row">
                       <Input
                         id="ref"
-                        placeholder="CMP-2026-0001"
+                        placeholder="CMP-00000001"
                         value={ref}
                         onChange={(e) => setRef(e.target.value)}
                         className="font-mono uppercase"
@@ -287,11 +287,11 @@ function TrackPage() {
               >
                 <ArrowLeft className="mr-2 h-4 w-4" /> กลับสู่หน้าติดตามสถานะเรื่องร้องเรียน
               </button>
-              
+
               <h1 className="mt-6 font-display text-3xl font-bold text-primary md:text-4xl">
                 ติดตามสถานะเรื่องร้องเรียน
               </h1>
-              <div className="mt-3 h-0.5 w-48 rounded-full bg-[#D29E0E]"/>
+              <div className="mt-3 h-0.5 w-48 rounded-full bg-[#D29E0E]" />
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                 กรุณากรอกหมายเลขอ้างอิงที่ได้รับเมื่อส่งเรื่อง (รูปแบบ CMP-YYYY-XXXX) เพื่อความเป็นส่วนตัว ระบบจะแสดงเฉพาะข้อมูลสรุปเท่านั้น
               </p>
@@ -307,35 +307,34 @@ function TrackPage() {
                 </div>
 
                 <div className="p-6">
-                  
+
                   {/* กรอบรายละเอียด */}
                   <div className="bg-[#F9FAFB] border border-[#D6D7D9] rounded-lg p-5 space-y-3">
                     <div className="flex flex-wrap items-baseline gap-x-2 text-sm text-slate-700">
                       <span className="font-bold">หมายเลขอ้างอิง :</span>
                       <span>{result.reference_number}</span>
                     </div>
-                    
+
                     <div className="flex flex-wrap items-baseline gap-x-2 text-sm text-slate-700">
                       <span className="font-bold">ประเภทเรื่องร้องเรียน :</span>
                       <span>{result.complaint_type_name || "-"}</span>
                     </div>
-                    
+
                     <div className="flex flex-wrap items-baseline gap-x-2 text-sm text-slate-700">
                       <span className="font-bold">สาขาที่เกิดเหตุ :</span>
                       <span>{result.branch_name || "-"}</span>
                     </div>
-                    
+
                     <div className="flex flex-wrap items-baseline gap-x-2 text-sm text-slate-700">
                       <span className="font-bold">วันที่และเวลาที่เกิดเหตุ :</span>
                       <span>
                         {result.incident_date
-                          ? `วันที่ ${formatThaiDate(result.incident_date)} ${
-                              result.incident_time ? `เวลา ${result.incident_time} น.` : ""
-                            }`
+                          ? `วันที่ ${formatThaiDate(result.incident_date)} ${result.incident_time ? `เวลา ${result.incident_time} น.` : ""
+                          }`
                           : "-"}
                       </span>
                     </div>
-                    
+
                     <div className="flex flex-wrap items-baseline gap-x-2 text-sm text-slate-700">
                       <span className="font-bold">อัปเดตล่าสุด :</span>
                       <span>{new Date(result.updated_at).toLocaleDateString("th-TH")}</span>
@@ -350,7 +349,7 @@ function TrackPage() {
                     <h3 className="text-sm font-bold text-slate-800">
                       ลำดับสถานะ:
                     </h3>
-                    
+
                     <div className="mt-6 ml-2">
                       {sortedHistory.length === 0 ? (
                         <div className="text-sm text-muted-foreground">
@@ -364,24 +363,24 @@ function TrackPage() {
                             const isLastVisible = i === visibleHistory.length - 1;
 
                             // จัดการสีของจุด
-                            let textColor = "text-muted-foreground"; 
-                            let dotBorder = "border-muted-foreground/30"; 
-                            let dotBg = "bg-card"; 
+                            let textColor = "text-muted-foreground";
+                            let dotBorder = "border-muted-foreground/30";
+                            let dotBg = "bg-card";
 
                             // ให้จุดแรกสุด (index 0) ของทั้งหมดเป็นสีเด่น
                             if (i === 0) {
                               if (statusLabel === "ปิดเรื่อง") {
-                                textColor = "text-[#00B14F]"; 
+                                textColor = "text-[#00B14F]";
                                 dotBorder = "border-[#00B14F]";
-                                dotBg = "bg-[#00B14F]"; 
+                                dotBg = "bg-[#00B14F]";
                               } else if (statusLabel === "รอพิจารณา") {
-                                textColor = "text-amber-500"; 
+                                textColor = "text-amber-500";
                                 dotBorder = "border-amber-500";
-                                dotBg = "bg-amber-500"; 
+                                dotBg = "bg-amber-500";
                               } else if (statusLabel === "ปฏิเสธ" || statusLabel === "ส่งกลับให้ทบทวน") {
-                                textColor = "text-red-500"; 
+                                textColor = "text-red-500";
                                 dotBorder = "border-red-500";
-                                dotBg = "bg-red-500"; 
+                                dotBg = "bg-red-500";
                               } else {
                                 textColor = "text-primary";
                                 dotBorder = "border-primary";
@@ -399,16 +398,16 @@ function TrackPage() {
                                 {!isLastVisible && (
                                   <span className="absolute left-[8px] top-[24px] bottom-[-8px] w-[2px] bg-muted-foreground/20" />
                                 )}
-                                
+
                                 {/* จุด (Node) */}
-                                <span 
+                                <span
                                   className={`absolute left-0 top-1.5 flex h-[18px] w-[18px] rounded-full border-2 ${dotBorder} ${dotBg}`}
                                 />
-                                
+
                                 <div className={`font-bold text-[15px] ${textColor}`}>
                                   {statusLabel}
                                 </div>
-                                
+
                                 <div className="mt-1 text-[13px] text-muted-foreground/70">
                                   {h.created_at ? displayDate(h.created_at) : "ยังไม่มีข้อมูลเวลา"}
                                 </div>
@@ -442,17 +441,17 @@ function TrackPage() {
                     <div className="mt-8">
                       <div className="border-t border-slate-200 mb-8"></div>
                       <div className="space-y-4">
-                        <ResolutionCard 
-                          title="มาตรการแก้ไขเฉพาะหน้า :" 
-                          items={mockResolutionData.immediateAction} 
+                        <ResolutionCard
+                          title="มาตรการแก้ไขเฉพาะหน้า :"
+                          items={mockResolutionData.immediateAction}
                         />
-                        <ResolutionCard 
-                          title="สาเหตุ :" 
-                          items={mockResolutionData.cause} 
+                        <ResolutionCard
+                          title="สาเหตุ :"
+                          items={mockResolutionData.cause}
                         />
-                        <ResolutionCard 
-                          title="มาตรการแก้ไขและป้องกันไม่ให้เกิดซ้ำ :" 
-                          items={mockResolutionData.preventiveAction} 
+                        <ResolutionCard
+                          title="มาตรการแก้ไขและป้องกันไม่ให้เกิดซ้ำ :"
+                          items={mockResolutionData.preventiveAction}
                         />
                       </div>
                     </div>
