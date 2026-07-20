@@ -1297,22 +1297,22 @@ function ComplaintForm() {
 
                 <div className="space-y-4">
                   <div className="rounded-xl border border-border bg-slate-50 p-4">
-                    <div className="flex items-center gap-3">
-                      {/* 1. เพิ่ม shrink-0 เพื่อไม่ให้กลายเป็นวงรีบนมือถือ */}
-                      {/* 2. นำ mt-0.5 ออก และเพิ่ม flex items-center justify-center เพื่อให้รูปอยู่ตรงกลางวงกลมเป๊ะๆ */}
-                      <div className="flex shrink-0 items-center justify-center rounded-full border border-border bg-[#D29E0E] p-1.5 shadow-sm">                        <img
-                        src="/src/assets/Frame.svg"
-                        alt="Anonymous Icon"
-                        // 3. เอา bg กับ rounded ออกจาก img เพราะตัวกรอบ (div ด้านบน) จัดการให้หมดแล้ว
-                        className="h-4 w-4 object-contain"
-                      />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                          ไม่เปิดเผยตัวตน (Anonymous)
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-start gap-3">
+                        <div className="flex shrink-0 items-center justify-center rounded-full border border-border bg-[#D29E0E] p-1.5 shadow-sm mt-0.5">
+                          <img
+                            src="/src/assets/Frame.svg"
+                            alt="Anonymous Icon"
+                            className="h-4 w-4 object-contain"
+                          />
                         </div>
-                        <div className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                          หากเปิดใช้งาน ระบบจะข้ามการกรอกข้อมูลส่วนตัวทั้งหมดทันที
+                        <div>
+                          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                            ไม่เปิดเผยตัวตน (Anonymous)
+                          </div>
+                          <div className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                            หากเปิดใช้งาน ระบบจะข้ามการกรอกข้อมูลส่วนตัวทั้งหมดทันที
+                          </div>
                         </div>
                       </div>
 
@@ -1329,32 +1329,24 @@ function ComplaintForm() {
                             update("reporter_phone", "");
                           }
                         }}
-                        className="ml-auto flex items-center flex gap-6"
+                        className="flex flex-wrap items-center gap-4 sm:gap-6 sm:ml-auto pt-2 sm:pt-0 border-t border-slate-200 sm:border-t-0"
                       >
                         <div className="flex items-center gap-2">
                           <RadioGroupItem value="identified" id="identified" />
-                          <Label htmlFor="identified">เปิดเผยตัวตน (Identified)</Label>
+                          <Label htmlFor="identified" className="text-xs sm:text-sm cursor-pointer text-[#002856]">
+                            เปิดเผยตัวตน (Identified)
+                          </Label>
                         </div>
 
                         <div className="flex items-center gap-2">
                           <RadioGroupItem value="anonymous" id="anonymous" />
-                          <Label htmlFor="anonymous">ไม่เปิดเผยตัวตน (Anonymous)</Label>
+                          <Label htmlFor="anonymous" className="text-xs sm:text-sm cursor-pointer text-[#002856]">
+                            ไม่เปิดเผยตัวตน (Anonymous)
+                          </Label>
                         </div>
                       </RadioGroup>
 
                     </div>
-                    {/* <Switch
-                      className="mt-1 data-[state=checked]:bg-[#002856] hover:data-[state=checked]:bg-[#D29E0E] hover:data-[state=unchecked]:bg-[#898F98]"
-                      checked={form.is_anonymous}
-                      onCheckedChange={(v) => {
-                        update("is_anonymous", v);
-                        if (v) {
-                          update("reporter_name", "");
-                          update("reporter_email", "");
-                          update("reporter_phone", "");
-                        }
-                      }}
-                    /> */}
                   </div>
                   <div className="mt-4 grid gap-5 md:grid-cols-2">
                     {!form.is_anonymous && (
